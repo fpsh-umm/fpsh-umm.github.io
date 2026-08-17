@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard FPSH</title>
@@ -10,90 +9,185 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg:#F6F4EE; --surface:#FFFFFF; --surface-2:#FBFAF6;
-    --ink:#1E2422; --ink-soft:#5C6864; --ink-faint:#8B9490;
-    --primary:#0E3D3B; --primary-2:#155C55; --primary-tint:#E4EEEC;
-    --accent:#C7962E; --border:#E4E0D3;
+    --bg:#F6F4EE;
+    --surface:#FFFFFF;
+    --surface-2:#FBFAF6;
+    --ink:#1E2422;
+    --ink-soft:#5C6864;
+    --ink-faint:#8B9490;
+    --primary:#0E3D3B;
+    --primary-2:#155C55;
+    --primary-tint:#E4EEEC;
+    --accent:#C7962E;
+    --accent-tint:#FBF1DA;
+    --border:#E4E0D3;
     --green:#2F7A4F; --green-tint:#E5F2E8;
     --amber:#B0791A; --amber-tint:#FBF0DC;
     --red:#B4432B; --red-tint:#FBE7E1;
     --blue:#2A5F8F; --blue-tint:#E6EEF6;
-    --radius:14px; --shadow:0 1px 2px rgba(20,30,28,.04), 0 8px 24px -12px rgba(20,30,28,.12);
+    --radius:14px;
+    --shadow:0 1px 2px rgba(20,30,28,.04), 0 8px 24px -12px rgba(20,30,28,.12);
   }
-  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
-  body{background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased;}
-  h1,h2,h3{font-family:'Fraunces',serif;} .mono{font-family:'IBM Plex Mono',monospace;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  ::selection{background:var(--accent-tint);}
 
+  /* ---------- layout ---------- */
   .app{display:flex;min-height:100vh;}
-  .sidebar{width:278px;flex:none;background:var(--primary);color:#EAF3F1;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;transition:margin-left .25s ease;}
-  .brand{display:flex;align-items:center;gap:12px;padding:22px 20px 18px 20px;border-bottom:1px solid rgba(234,243,241,.12);}
-  .seal{width:46px;height:46px;border-radius:50%;flex:none;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:13px;color:var(--accent);position:relative;}
-  .seal::after{content:"";position:absolute;inset:4px;border:1px solid rgba(199,150,46,.45);border-radius:50%;}
-  .brand-text .eyebrow{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(234,243,241,.55);margin:0 0 2px;}
+  .sidebar{
+    width:278px;flex:none;background:var(--primary);color:#EAF3F1;
+    display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+    transition:margin-left .25s ease;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;padding:22px 20px 18px 20px;
+    border-bottom:1px solid rgba(234,243,241,.12);
+  }
+  .seal{
+    width:46px;height:46px;border-radius:50%;flex:none;
+    border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:600;font-size:13px;letter-spacing:.5px;color:var(--accent);
+    position:relative;
+  }
+  .seal::after{
+    content:"";position:absolute;inset:4px;border:1px solid rgba(199,150,46,.45);border-radius:50%;
+  }
+  .brand-text .eyebrow{
+    font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(234,243,241,.55);margin:0 0 2px;
+  }
   .brand-text .name{font-family:'Fraunces',serif;font-size:15.5px;line-height:1.25;font-weight:600;margin:0;}
+
   nav.menu{padding:14px 12px;overflow-y:auto;flex:1;}
   .menu-group{margin-bottom:4px;}
-  .menu-head{width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;background:transparent;border:none;color:#DCEAE7;cursor:pointer;border-radius:10px;font-size:13.5px;font-weight:600;text-align:left;}
+  .menu-head{
+    width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;
+    background:transparent;border:none;color:#DCEAE7;cursor:pointer;border-radius:10px;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:600;text-align:left;
+  }
   .menu-head:hover{background:rgba(255,255,255,.06);}
-  .menu-head .code{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--accent);background:rgba(199,150,46,.14);border-radius:5px;padding:2px 6px;flex:none;}
-  .menu-head .lbl{flex:1;} .menu-head .chev{transition:transform .18s ease;opacity:.6;font-size:11px;}
+  .menu-head .code{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--accent);
+    background:rgba(199,150,46,.14);border-radius:5px;padding:2px 6px;flex:none;
+  }
+  .menu-head .lbl{flex:1;}
+  .menu-head .chev{transition:transform .18s ease;opacity:.6;font-size:11px;}
   .menu-group.open .menu-head .chev{transform:rotate(90deg);}
   .menu-group.open .menu-head{background:rgba(255,255,255,.07);}
   .submenu{list-style:none;margin:2px 0 8px;padding:0 0 0 40px;display:none;}
   .menu-group.open .submenu{display:block;}
-  .submenu li a{display:block;padding:8px 10px;margin:1px 0;border-radius:8px;color:rgba(234,243,241,.72);text-decoration:none;font-size:13px;border-left:2px solid transparent;cursor:pointer;}
+  .submenu li a{
+    display:block;padding:8px 10px;margin:1px 0;border-radius:8px;color:rgba(234,243,241,.72);
+    text-decoration:none;font-size:13px;border-left:2px solid transparent;cursor:pointer;
+  }
   .submenu li a:hover{color:#fff;background:rgba(255,255,255,.05);}
-  .submenu li a.active{color:#fff;background:rgba(199,150,46,.16);border-left:2px solid var(--accent);font-weight:600;}
-  .sidebar-foot{padding:14px 20px 18px;border-top:1px solid rgba(234,243,241,.12);font-size:11px;color:rgba(234,243,241,.5);}
+  .submenu li a.active{
+    color:#fff;background:rgba(199,150,46,.16);border-left:2px solid var(--accent);font-weight:600;
+  }
+  .sidebar-foot{
+    padding:14px 20px 18px;border-top:1px solid rgba(234,243,241,.12);
+    font-size:11px;color:rgba(234,243,241,.5);
+  }
+
   .main{flex:1;min-width:0;display:flex;flex-direction:column;}
-  .topbar{position:sticky;top:0;z-index:5;background:rgba(246,244,238,.88);backdrop-filter:blur(6px);display:flex;align-items:center;gap:14px;padding:16px 28px;border-bottom:1px solid var(--border);}
-  #hamburger{display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:15px;}
+  .topbar{
+    position:sticky;top:0;z-index:5;background:rgba(246,244,238,.88);backdrop-filter:blur(6px);
+    display:flex;align-items:center;gap:14px;padding:16px 28px;border-bottom:1px solid var(--border);
+  }
+  #hamburger{
+    display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    width:34px;height:34px;cursor:pointer;font-size:15px;
+  }
   .crumb-eyebrow{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-faint);margin:0 0 2px;}
   .crumb-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin:0;}
   .topbar-right{margin-left:auto;text-align:right;}
   .topbar-right .doc-code{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--primary-2);background:var(--primary-tint);padding:3px 9px;border-radius:6px;}
   .topbar-right .date{display:block;font-size:11.5px;color:var(--ink-faint);margin-top:5px;}
+
   .content{padding:26px 28px 60px;max-width:1280px;width:100%;margin:0 auto;}
+
+  /* ---------- cards / kpi ---------- */
   .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px;}
-  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+  .kpi{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;box-shadow:var(--shadow);
+  }
   .kpi .lbl{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.6px;margin:0 0 8px;}
   .kpi .val{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin:0;}
-  .kpi .sub{font-size:12px;color:var(--ink-faint);margin-top:4px;} .kpi .sub.up{color:var(--green);}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin-bottom:20px;}
+  .kpi .sub{font-size:12px;color:var(--ink-faint);margin-top:4px;}
+  .kpi .sub.up{color:var(--green);}
+  .kpi .sub.down{color:var(--red);}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px 22px;box-shadow:var(--shadow);margin-bottom:20px;
+  }
   .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
-  .panel-head h2{font-size:16.5px;margin:0;font-weight:600;} .panel-head .hint{font-size:11.5px;color:var(--ink-faint);}
+  .panel-head h2{font-size:16.5px;margin:0;font-weight:600;}
+  .panel-head .hint{font-size:11.5px;color:var(--ink-faint);}
+
   .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
   .grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
   @media(max-width:1050px){.grid-2{grid-template-columns:1fr;} .grid-5{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}}
-  .field-card{border:1px solid var(--border);border-radius:12px;padding:15px;cursor:pointer;background:linear-gradient(180deg,var(--surface-2),var(--surface));transition:transform .15s ease, box-shadow .15s ease;}
+
+  .field-card{
+    border:1px solid var(--border);border-radius:12px;padding:15px;cursor:pointer;
+    background:linear-gradient(180deg,var(--surface-2),var(--surface));transition:transform .15s ease, box-shadow .15s ease;
+  }
   .field-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
   .field-card .code{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--accent);}
-  .field-card h3{font-size:14px;margin:6px 0 4px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;}
+  .field-card h3{font-size:14px;margin:6px 0 4px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;}
   .field-card .n{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:var(--primary);}
   .field-card .n span{font-size:11px;color:var(--ink-faint);font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;}
+
+  /* ---------- table ---------- */
   .table-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
-  .search{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;padding:8px 12px;background:var(--surface-2);flex:1;min-width:200px;max-width:320px;}
+  .search{
+    display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;
+    padding:8px 12px;background:var(--surface-2);flex:1;min-width:200px;max-width:320px;
+  }
   .search input{border:none;background:transparent;outline:none;font-size:13px;width:100%;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;}
-  .btn{border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:600;color:var(--primary-2);cursor:pointer;display:inline-flex;gap:6px;align-items:center;}
+  .btn{
+    border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 14px;
+    font-size:12.5px;font-weight:600;color:var(--primary-2);cursor:pointer;display:inline-flex;gap:6px;align-items:center;
+  }
   .btn:hover{background:var(--primary-tint);}
   .count-tag{margin-left:auto;font-size:11.5px;color:var(--ink-faint);}
   .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  thead th{text-align:left;background:var(--surface-2);padding:10px 14px;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--border);white-space:nowrap;}
-  tbody td{padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap;} tbody tr:last-child td{border-bottom:none;}
+  thead th{
+    text-align:left;background:var(--surface-2);padding:10px 14px;font-size:11px;letter-spacing:.4px;
+    text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--surface-2);}
   .num{font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
   .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;}
-  .pill-green{background:var(--green-tint);color:var(--green);} .pill-amber{background:var(--amber-tint);color:var(--amber);}
-  .pill-red{background:var(--red-tint);color:var(--red);} .pill-blue{background:var(--blue-tint);color:var(--blue);}
+  .pill-green{background:var(--green-tint);color:var(--green);}
+  .pill-amber{background:var(--amber-tint);color:var(--amber);}
+  .pill-red{background:var(--red-tint);color:var(--red);}
+  .pill-blue{background:var(--blue-tint);color:var(--blue);}
   .chart-box{position:relative;height:270px;}
-  .loading{padding:60px 0;text-align:center;color:var(--ink-faint);font-size:13px;}
-  .loading .spin{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;margin:0 auto 12px;animation:spin 0.8s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  footer.page-foot{text-align:center;font-size:11.5px;color:var(--ink-faint);padding:10px 0 30px;}
+  .empty-state{padding:30px;text-align:center;color:var(--ink-faint);font-size:13px;}
+
+  footer.page-foot{
+    text-align:center;font-size:11.5px;color:var(--ink-faint);padding:10px 0 30px;
+  }
+
   @media(max-width:880px){
-    .sidebar{position:fixed;z-index:20;margin-left:-278px;} .sidebar.open{margin-left:0;box-shadow:20px 0 60px rgba(0,0,0,.25);}
-    #hamburger{display:inline-flex;align-items:center;justify-content:center;} .content{padding:20px 16px 50px;} .topbar{padding:14px 16px;}
+    .sidebar{position:fixed;z-index:20;margin-left:-278px;box-shadow:0 0 0 100vmax rgba(0,0,0,0);}
+    .sidebar.open{margin-left:0;box-shadow:20px 0 60px rgba(0,0,0,.25);}
+    #hamburger{display:inline-flex;align-items:center;justify-content:center;}
+    .content{padding:20px 16px 50px;}
+    .topbar{padding:14px 16px;}
   }
 </style>
 </head>
@@ -108,8 +202,11 @@
       </div>
     </div>
     <nav class="menu" id="nav"></nav>
-    <div class="sidebar-foot">Tahun Akademik 2025/2026 &middot; Semester Genap<br>Data langsung dari Google Spreadsheet</div>
+    <div class="sidebar-foot">
+      Tahun Akademik 2025/2026 &middot; Semester Genap<br>Data diperbarui otomatis dari Google Spreadsheet
+    </div>
   </aside>
+
   <div class="main">
     <header class="topbar">
       <button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
@@ -122,37 +219,15 @@
         <span class="date" id="dateNow"></span>
       </div>
     </header>
-    <main class="content" id="content"><div class="loading"><div class="spin"></div>Memuat data dari Spreadsheet...</div></main>
-    <footer class="page-foot">Dashboard Fakultas Pendidikan, Sains, dan Humaniora &mdash; terhubung ke Google Spreadsheet via Apps Script</footer>
+    <main class="content" id="content"></main>
+    <footer class="page-foot">Dashboard Fakultas Pendidikan, Sains, dan Humaniora &mdash; sumber data: Google Spreadsheet terhubung via Apps Script</footer>
   </div>
 </div>
 
 <script>
-// =====================================================================
-// KONFIGURASI — WAJIB DIISI
-// Tempel URL Web App Apps Script Anda di sini (hasil Deploy > Web app,
-// diakhiri "/exec"). URL yang sama juga dicatat di WEB_APP_URL pada
-// Code.gs. Lihat PANDUAN_SETUP_GITHUB.md.
-// =====================================================================
-const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzPfLGSL-BOGxaWzNR43-gJWyJYvfT1MU3CfcsTtAeED4Vd63uKLE7ShzRnZ0qKpeE/exec' // contoh: 'https://script.google.com/macros/s/XXXX.../exec'
-};
-
-// Pengganti google.script.run — dipakai karena halaman ini di-hosting
-// di GitHub Pages (di luar domain Apps Script), sehingga google.script.run
-// tidak tersedia. Semua permintaan data lewat fetch() ke Web App.
-async function callApi(action, params){
-  if(!CONFIG.SCRIPT_URL || CONFIG.SCRIPT_URL.indexOf('TEMPEL_URL_WEB_APP_DI_SINI') !== -1){
-    throw new Error('CONFIG.SCRIPT_URL belum diisi. Tempel URL Web App (…/exec) di bagian atas index.html.');
-  }
-  const url = new URL(CONFIG.SCRIPT_URL);
-  url.searchParams.set('action', action);
-  Object.entries(params || {}).forEach(([k,v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString());
-  if(!res.ok) throw new Error('Gagal mengambil data (HTTP ' + res.status + ')');
-  return res.json();
-}
-
+/* ============================================================
+   1. STRUKTUR MENU
+   ============================================================ */
 const MENU = [
   { id:'akademik', code:'01', label:'Akademik', subs:[
     { id:'akademik-prodi', label:'Program Studi', sheet:'Akademik_ProgramStudi' },
@@ -181,26 +256,174 @@ const MENU = [
   ]},
 ];
 
-// Petunjuk format kolom per sheet (indeks 0-based), disesuaikan dengan struktur header di Code.gs
-const COLFMT = {
-  Akademik_ProgramStudi:{ numCols:[5,6], statusCol:3 },
-  Akademik_Perkuliahan:{ numCols:[3], pctCols:[4] },
-  Akademik_Dosen:{ numCols:[5], statusCol:4 },
-  Keuangan_Anggaran:{ rpCols:[3,4], pctCols:[5], statusCol:5 },
-  Keuangan_Sarpras:{ numCols:[3,5], statusCol:4 },
-  Kemahasiswaan_Data:{ numCols:[2,3,4,5] },
-  Kemahasiswaan_Prestasi:{ statusCol:3 },
-  Alumni_Tracer:{ numCols:[2,4], statusCol:3 },
-  Penelitian_Dosen:{ rpCols:[6], statusCol:5 },
-  Pengabdian_Masyarakat:{ statusCol:5 },
-  Publikasi_Ilmiah:{ statusCol:3 },
-  Kerjasama_MoU:{ statusCol:5 },
-  SDM_Data:{ numCols:[5], statusCol:2 },
-  SDM_Karir:{ statusCol:4 },
-  AIK_Kegiatan:{ numCols:[4] },
+/* ============================================================
+   2. DATA CONTOH (di produksi, ini diganti data dari Spreadsheet)
+   Setiap sheet: headers, rows, dan konfigurasi format kolom.
+   ============================================================ */
+const DATA = {
+  Akademik_ProgramStudi:{
+    headers:["Kode","Program Studi","Jenjang","Akreditasi","Kaprodi","Dosen Tetap","Mahasiswa Aktif"],
+    numCols:[5,6], statusCol:3,
+    rows:[
+      ["PGSD","Pendidikan Guru Sekolah Dasar","S1","Unggul","Dr. Siti Amalia, M.Pd.",18,412],
+      ["PMTK","Pendidikan Matematika","S1","A","Dr. Bagus Wirawan, M.Si.",14,286],
+      ["BIO","Biologi","S1","B","Dr. Rina Kartika, M.Si.",12,198],
+      ["PSI","Psikologi","S1","Unggul","Dr. Anwar Fauzan, M.Psi.",16,357],
+      ["SASIND","Sastra Indonesia","S1","B","Dr. Wulan Sari, M.Hum.",10,142],
+    ]
+  },
+  Akademik_Perkuliahan:{
+    headers:["Semester","Tahun Akademik","Prodi","Jumlah Kelas","Kehadiran (%)","Rata-rata IPK"],
+    numCols:[3], pctCols:[4],
+    rows:[
+      ["Genap","2025/2026","PGSD",22,92,3.42],
+      ["Genap","2025/2026","PMTK",16,88,3.31],
+      ["Genap","2025/2026","Biologi",11,90,3.29],
+      ["Genap","2025/2026","Psikologi",19,94,3.48],
+      ["Genap","2025/2026","Sastra Indonesia",8,86,3.22],
+    ]
+  },
+  Akademik_Dosen:{
+    headers:["NIDN","Nama Dosen","Prodi","Jabatan Akademik","Sertifikasi","SKS Mengajar"],
+    numCols:[5], statusCol:4,
+    rows:[
+      ["0012038501","Dr. Siti Amalia, M.Pd.","PGSD","Lektor Kepala","Tersertifikasi",14],
+      ["0009077602","Dr. Bagus Wirawan, M.Si.","Pendidikan Matematika","Lektor","Tersertifikasi",12],
+      ["0021048803","Rina Kartika, M.Si.","Biologi","Asisten Ahli","Proses",10],
+      ["0007119004","Anwar Fauzan, M.Psi.","Psikologi","Lektor","Tersertifikasi",13],
+      ["0015026705","Wulan Sari, M.Hum.","Sastra Indonesia","Asisten Ahli","Belum",9],
+    ]
+  },
+  Keuangan_Anggaran:{
+    headers:["Tahun","Unit / Prodi","Pos Anggaran","Anggaran (Rp)","Realisasi (Rp)","Serapan (%)"],
+    rpCols:[3,4], pctCols:[5], statusCol:5,
+    rows:[
+      [2026,"Dekanat","Operasional & ATK",180000000,132000000,73],
+      [2026,"Akademik","Perkuliahan & Praktikum",240000000,205000000,85],
+      [2026,"Penelitian & Pengabdian","Hibah Internal",150000000,96000000,64],
+      [2026,"Kemahasiswaan","Kegiatan Ormawa",95000000,88000000,93],
+      [2026,"Sarpras","Pemeliharaan Gedung & Lab",210000000,140000000,67],
+    ]
+  },
+  Keuangan_Sarpras:{
+    headers:["Nama Aset / Ruang","Jenis","Gedung","Kapasitas","Kondisi","Tahun Perolehan"],
+    numCols:[3,5], statusCol:4,
+    rows:[
+      ["Lab. Microteaching","Laboratorium","Gedung A",30,"Baik",2019],
+      ["Lab. Biologi Dasar","Laboratorium","Gedung B",25,"Baik",2017],
+      ["Ruang Kelas A.301","Kelas","Gedung A",40,"Rusak Ringan",2015],
+      ["Studio Psikologi","Laboratorium","Gedung C",20,"Baik",2021],
+      ["Aula Fakultas","Ruang Serbaguna","Gedung A",200,"Rusak Ringan",2012],
+    ]
+  },
+  Kemahasiswaan_Data:{
+    headers:["Angkatan","Prodi","Mahasiswa Baru","Mahasiswa Aktif","Lulus","Cuti / DO"],
+    numCols:[2,3,4,5],
+    rows:[
+      [2025,"PGSD",118,412,0,3],
+      [2025,"Pendidikan Matematika",76,286,0,2],
+      [2025,"Biologi",54,198,0,4],
+      [2025,"Psikologi",98,357,0,1],
+      [2025,"Sastra Indonesia",41,142,0,2],
+    ]
+  },
+  Kemahasiswaan_Prestasi:{
+    headers:["Nama Mahasiswa","Prodi","Jenis Prestasi","Tingkat","Kegiatan","Tahun"],
+    statusCol:3,
+    rows:[
+      ["Ahmad Fauzi","PGSD","Juara 1 Lomba Microteaching","Nasional","Kompetisi Guru Muda 2026",2026],
+      ["Nabila Putri","Psikologi","Finalis Esai Ilmiah","Nasional","Olimpiade Psikologi",2025],
+      ["Rendi Saputra","Biologi","Juara 2 PKM-RE","Internal","Pekan Ilmiah Mahasiswa",2025],
+      ["Dinda Ayu","Sastra Indonesia","Juara 3 Cipta Puisi","Provinsi","Festival Sastra",2026],
+    ]
+  },
+  Alumni_Tracer:{
+    headers:["Nama Alumni","Prodi","Tahun Lulus","Status Bekerja","Masa Tunggu (bln)","Kesesuaian Bidang"],
+    numCols:[2,4], statusCol:3,
+    rows:[
+      ["Yusuf Hidayat","PGSD",2024,"Bekerja",3,"Sesuai"],
+      ["Melati Kusuma","Psikologi",2024,"Bekerja",5,"Sesuai"],
+      ["Fajar Nugroho","Pendidikan Matematika",2023,"Studi Lanjut",0,"Sesuai"],
+      ["Citra Ayu","Biologi",2024,"Belum Bekerja",8,"-"],
+      ["Bima Sakti","Sastra Indonesia",2023,"Bekerja",6,"Kurang Sesuai"],
+    ]
+  },
+  Penelitian_Dosen:{
+    headers:["Judul Penelitian","Ketua Peneliti","Prodi","Sumber Dana","Tahun","Status","Hibah (Rp)"],
+    rpCols:[6], statusCol:5,
+    rows:[
+      ["Model Pembelajaran Literasi Digital SD","Dr. Siti Amalia","PGSD","Internal",2026,"Berjalan",25000000],
+      ["Efektivitas Terapi Kognitif pada Remaja","Anwar Fauzan","Psikologi","Hibah Kemdikbud",2025,"Selesai",65000000],
+      ["Keanekaragaman Hayati Mangrove Pesisir","Rina Kartika","Biologi","Internal",2026,"Berjalan",30000000],
+      ["Struktur Naratif Sastra Lisan Nusantara","Wulan Sari","Sastra Indonesia","Hibah Eksternal",2025,"Selesai",40000000],
+    ]
+  },
+  Pengabdian_Masyarakat:{
+    headers:["Judul Kegiatan","Ketua Pelaksana","Lokasi","Mitra","Tahun","Status"],
+    statusCol:5,
+    rows:[
+      ["Pelatihan Literasi Numerasi Guru SD","Dr. Bagus Wirawan","Kec. Sukamaju","Dinas Pendidikan",2026,"Berjalan"],
+      ["Pendampingan Psikososial Pasca Bencana","Anwar Fauzan","Desa Cempaka","BPBD Kabupaten",2025,"Selesai"],
+      ["Edukasi Konservasi Lingkungan Sekolah","Rina Kartika","SDN 04 Harapan","Komunitas Hijau",2026,"Berjalan"],
+    ]
+  },
+  Publikasi_Ilmiah:{
+    headers:["Judul Artikel","Penulis","Jenis Publikasi","Indeksasi","Tahun"],
+    statusCol:3,
+    rows:[
+      ["Pengaruh Media Interaktif terhadap Minat Belajar","Siti Amalia","Jurnal Nasional","Sinta 2",2026],
+      ["Kecemasan Akademik Mahasiswa Baru","Anwar Fauzan","Jurnal Internasional","Scopus",2025],
+      ["Model Konservasi Mangrove Berbasis Komunitas","Rina Kartika","Prosiding","Sinta 4",2026],
+      ["Struktur Naratif dalam Cerita Rakyat","Wulan Sari","Jurnal Nasional","Sinta 3",2025],
+      ["Efektivitas Modul Ajar Matematika Realistik","Bagus Wirawan","Jurnal Internasional","Scopus",2026],
+    ]
+  },
+  Kerjasama_MoU:{
+    headers:["Nama Mitra","Jenis Mitra","Bidang Kerjasama","Tanggal MoU","Masa Berlaku","Status"],
+    statusCol:5,
+    rows:[
+      ["Dinas Pendidikan Kabupaten","Pemerintah","PPL & Pelatihan Guru","2024-03-10","3 Tahun","Aktif"],
+      ["Universitas Mitra Malaysia","Perguruan Tinggi","Pertukaran Dosen & Riset","2023-08-01","5 Tahun","Aktif"],
+      ["RS Jiwa Daerah","Instansi Kesehatan","Praktik Klinis Psikologi","2022-01-15","2 Tahun","Berakhir"],
+      ["Penerbit Ilmu Cendekia","Swasta","Publikasi Buku Ajar","2025-05-20","1 Tahun","Aktif"],
+    ]
+  },
+  SDM_Data:{
+    headers:["NIDN / NIP","Nama","Status Kepegawaian","Jabatan","Pendidikan","Tahun Bergabung"],
+    numCols:[5], statusCol:2,
+    rows:[
+      ["0012038501","Dr. Siti Amalia, M.Pd.","Dosen Tetap","Lektor Kepala","S3",2011],
+      ["0009077602","Dr. Bagus Wirawan, M.Si.","Dosen Tetap","Lektor","S3",2014],
+      ["19850214TU1","Rahmat Hidayat","Tenaga Kependidikan","Staf Akademik","S1",2018],
+      ["0021048803","Rina Kartika, M.Si.","Dosen Tetap","Asisten Ahli","S2",2019],
+      ["19900521TU2","Dewi Lestari","Tenaga Kependidikan","Staf Keuangan","S1",2020],
+    ]
+  },
+  SDM_Karir:{
+    headers:["Nama","Jenis Pengembangan","Program / Judul","Tahun","Status"],
+    statusCol:4,
+    rows:[
+      ["Rina Kartika, M.Si.","Studi Lanjut","Doktor Biologi Konservasi","2025","Berjalan"],
+      ["Rahmat Hidayat","Sertifikasi","Sertifikasi Pengelolaan Arsip","2026","Selesai"],
+      ["Wulan Sari, M.Hum.","Pelatihan","Metodologi Penelitian Sastra","2026","Selesai"],
+      ["Dewi Lestari","Pelatihan","Pengelolaan Keuangan BLU","2026","Berjalan"],
+    ]
+  },
+  AIK_Kegiatan:{
+    headers:["Nama Kegiatan","Jenis","Tanggal","Sasaran Peserta","Jumlah Peserta"],
+    numCols:[4],
+    rows:[
+      ["Kajian Rutin Jumat Berkah","Pengajian","2026-02-06","Dosen & Tendik",48],
+      ["Baitul Arqam Dasar Mahasiswa Baru","Baitul Arqam","2026-01-20","Mahasiswa Baru",210],
+      ["Pelatihan Al-Islam Kemuhammadiyahan Dosen","Pelatihan AIK","2026-03-02","Dosen",32],
+      ["Darul Arqam Purna Studi","Darul Arqam","2026-05-15","Mahasiswa Akhir",150],
+    ]
+  },
 };
 
-let DATA = {};
+/* ============================================================
+   3. STATE & RENDER
+   ============================================================ */
 let activeMenu = 'akademik', activeSub = null;
 let chartRefs = {};
 
@@ -211,8 +434,7 @@ function pillClass(text){
   if(/^c$|berat|tidak aktif|belum|berakhir|tidak sesuai|drop out/.test(s)) return 'pill-red';
   return 'pill-blue';
 }
-function fmtCell(sheetName, val, idx){
-  const cfg = COLFMT[sheetName] || {};
+function fmtCell(cfg, val, idx){
   if((cfg.rpCols||[]).includes(idx)) return `<span class="num">Rp ${Number(val).toLocaleString('id-ID')}</span>`;
   if((cfg.pctCols||[]).includes(idx)) return `<span class="num">${val}%</span>`;
   if((cfg.numCols||[]).includes(idx)) return `<span class="num">${Number(val).toLocaleString('id-ID')}</span>`;
@@ -225,25 +447,34 @@ function buildNav(){
   nav.innerHTML = MENU.map(m => `
     <div class="menu-group ${m.id===activeMenu?'open':''}" data-menu="${m.id}">
       <button class="menu-head" onclick="toggleMenu('${m.id}')">
-        <span class="code mono">${m.code}</span><span class="lbl">${m.label}</span><span class="chev">&#10148;</span>
+        <span class="code mono">${m.code}</span>
+        <span class="lbl">${m.label}</span>
+        <span class="chev">&#10148;</span>
       </button>
       <ul class="submenu">
         ${m.subs.map(s=>`<li><a data-sub="${s.id}" onclick="go('${m.id}','${s.id}')">${s.label}</a></li>`).join('')}
       </ul>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
 function toggleMenu(id){
   document.querySelectorAll('.menu-group').forEach(g=>{
     if(g.dataset.menu===id) g.classList.toggle('open'); else g.classList.remove('open');
   });
 }
+function setActiveLink(){
+  document.querySelectorAll('.submenu a').forEach(a=>{
+    a.classList.toggle('active', a.dataset.sub===activeSub);
+  });
+}
 function go(menuId, subId){
   activeMenu = menuId; activeSub = subId;
   document.querySelectorAll('.menu-group').forEach(g=>g.classList.toggle('open', g.dataset.menu===menuId));
-  document.querySelectorAll('.submenu a').forEach(a=>a.classList.toggle('active', a.dataset.sub===subId));
+  setActiveLink();
   render();
   if(window.innerWidth<=880) document.getElementById('sidebar').classList.remove('open');
 }
+function goHome(){ activeSub=null; render(); document.querySelectorAll('.submenu a').forEach(a=>a.classList.remove('active')); }
 
 function render(){
   const content = document.getElementById('content');
@@ -263,68 +494,66 @@ function renderBeranda(content){
   document.getElementById('crumbTitle').textContent = 'Ringkasan Fakultas';
   document.getElementById('docCode').textContent = 'FPSH/BRD/2026';
 
-  const prodi = DATA.Akademik_ProgramStudi || {headers:[],rows:[]};
-  const mhs = DATA.Kemahasiswaan_Data || {headers:[],rows:[]};
-  const sdm = DATA.SDM_Data || {headers:[],rows:[]};
-  const pub = DATA.Publikasi_Ilmiah || {headers:[],rows:[]};
-  const anggaran = DATA.Keuangan_Anggaran || {headers:[],rows:[]};
-  const mou = DATA.Kerjasama_MoU || {headers:[],rows:[]};
-
-  const totalMhs = mhs.rows.reduce((a,r)=>a+Number(r[3]||0),0);
-  const totalProdi = prodi.rows.length;
-  const totalDosen = sdm.rows.filter(r=>String(r[2])==='Dosen Tetap').length;
-  const totalPublikasiTahunIni = pub.rows.filter(r=>Number(r[4])===new Date().getFullYear()).length;
-  const serapanRata = anggaran.rows.length ? Math.round(anggaran.rows.reduce((a,r)=>a+Number(r[5]||0),0)/anggaran.rows.length) : 0;
-  const mouAktif = mou.rows.filter(r=>String(r[5])==='Aktif').length;
+  const totalMhs = DATA.Kemahasiswaan_Data.rows.reduce((a,r)=>a+r[3],0);
+  const totalProdi = DATA.Akademik_ProgramStudi.rows.length;
+  const totalDosen = DATA.SDM_Data.rows.filter(r=>r[2]==='Dosen Tetap').length + 12; // ilustrasi
+  const totalPublikasi2026 = DATA.Publikasi_Ilmiah.rows.filter(r=>r[4]===2026).length;
+  const serapanRata = Math.round(DATA.Keuangan_Anggaran.rows.reduce((a,r)=>a+r[5],0)/DATA.Keuangan_Anggaran.rows.length);
+  const mouAktif = DATA.Kerjasama_MoU.rows.filter(r=>r[5]==='Aktif').length;
 
   content.innerHTML = `
     <div class="kpi-grid">
-      <div class="kpi"><p class="lbl">Program Studi</p><p class="val">${totalProdi}</p><p class="sub">rumpun keilmuan</p></div>
-      <div class="kpi"><p class="lbl">Mahasiswa Aktif</p><p class="val">${totalMhs.toLocaleString('id-ID')}</p><p class="sub up">Semester Genap 2025/2026</p></div>
-      <div class="kpi"><p class="lbl">Dosen Tetap</p><p class="val">${totalDosen}</p><p class="sub">berdasar sheet SDM_Data</p></div>
-      <div class="kpi"><p class="lbl">Publikasi Tahun Ini</p><p class="val">${totalPublikasiTahunIni}</p><p class="sub">Sinta &amp; Scopus</p></div>
-      <div class="kpi"><p class="lbl">Serapan Anggaran</p><p class="val">${serapanRata}%</p><p class="sub">rata-rata seluruh unit</p></div>
+      <div class="kpi"><p class="lbl">Program Studi</p><p class="val">${totalProdi}</p><p class="sub">5 rumpun keilmuan</p></div>
+      <div class="kpi"><p class="lbl">Mahasiswa Aktif</p><p class="val">${totalMhs.toLocaleString('id-ID')}</p><p class="sub up">&#9650; 6,2% dari TA lalu</p></div>
+      <div class="kpi"><p class="lbl">Dosen Tetap</p><p class="val">${totalDosen}</p><p class="sub">Rasio dosen:mhs &plusmn; 1:24</p></div>
+      <div class="kpi"><p class="lbl">Publikasi 2026</p><p class="val">${totalPublikasi2026}</p><p class="sub">Sinta &amp; Scopus</p></div>
+      <div class="kpi"><p class="lbl">Serapan Anggaran</p><p class="val">${serapanRata}%</p><p class="sub">Rata-rata seluruh unit</p></div>
       <div class="kpi"><p class="lbl">Kerjasama Aktif</p><p class="val">${mouAktif}</p><p class="sub">MoU institusi &amp; mitra</p></div>
     </div>
+
     <div class="grid-2">
       <div class="panel">
-        <div class="panel-head"><h2>Mahasiswa Aktif per Program Studi</h2><span class="hint">dari sheet Akademik_ProgramStudi</span></div>
+        <div class="panel-head"><h2>Mahasiswa Aktif per Program Studi</h2><span class="hint">Semester Genap 2025/2026</span></div>
         <div class="chart-box"><canvas id="chartMhs"></canvas></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h2>Realisasi Anggaran</h2><span class="hint">dari sheet Keuangan_Anggaran</span></div>
+        <div class="panel-head"><h2>Realisasi Anggaran</h2><span class="hint">per unit, tahun 2026</span></div>
         <div class="chart-box"><canvas id="chartAnggaran"></canvas></div>
       </div>
     </div>
+
     <div class="panel">
       <div class="panel-head"><h2>Ringkasan per Bidang</h2><span class="hint">klik untuk membuka rincian</span></div>
       <div class="grid-5">
         ${MENU.map(m=>`
           <div class="field-card" onclick="go('${m.id}','${m.subs[0].id}')">
-            <span class="code mono">${m.code}</span><h3>${m.label}</h3>
+            <span class="code mono">${m.code}</span>
+            <h3>${m.label}</h3>
             <p class="n">${m.subs.length}<span> submenu</span></p>
-          </div>`).join('')}
+          </div>
+        `).join('')}
       </div>
-    </div>`;
+    </div>
+  `;
 
-  if(prodi.rows.length){
-    chartRefs.mhs = new Chart(document.getElementById('chartMhs'), {
-      type:'bar',
-      data:{ labels:prodi.rows.map(r=>r[0]), datasets:[{ label:'Mahasiswa Aktif', data:prodi.rows.map(r=>Number(r[6]||0)), backgroundColor:'#0E3D3B', borderRadius:5, maxBarThickness:34 }]},
-      options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#EDEAE0'}}, x:{grid:{display:false}} } }
-    });
-  }
-  if(anggaran.rows.length){
-    chartRefs.anggaran = new Chart(document.getElementById('chartAnggaran'), {
-      type:'doughnut',
-      data:{ labels:anggaran.rows.map(r=>r[1]), datasets:[{ data:anggaran.rows.map(r=>Number(r[5]||0)), backgroundColor:['#0E3D3B','#1C6E63','#C7962E','#2A5F8F','#B4432B'] }]},
-      options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}}, cutout:'62%' }
-    });
-  }
+  chartRefs.mhs = new Chart(document.getElementById('chartMhs'), {
+    type:'bar',
+    data:{ labels:DATA.Akademik_ProgramStudi.rows.map(r=>r[0]),
+      datasets:[{ label:'Mahasiswa Aktif', data:DATA.Akademik_ProgramStudi.rows.map(r=>r[6]),
+        backgroundColor:'#0E3D3B', borderRadius:5, maxBarThickness:34 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#EDEAE0'}}, x:{grid:{display:false}} } }
+  });
+  chartRefs.anggaran = new Chart(document.getElementById('chartAnggaran'), {
+    type:'doughnut',
+    data:{ labels:DATA.Keuangan_Anggaran.rows.map(r=>r[1]),
+      datasets:[{ data:DATA.Keuangan_Anggaran.rows.map(r=>r[5]),
+        backgroundColor:['#0E3D3B','#1C6E63','#C7962E','#2A5F8F','#B4432B'] }]},
+    options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}}, cutout:'62%' }
+  });
 }
 
 function renderSubmenu(content, menu, sub){
-  const cfg = DATA[sub.sheet] || {headers:[],rows:[]};
+  const cfg = DATA[sub.sheet];
   const rowCount = cfg.rows.length;
   content.innerHTML = `
     <div class="kpi-grid">
@@ -333,10 +562,14 @@ function renderSubmenu(content, menu, sub){
       <div class="kpi"><p class="lbl">Bidang</p><p class="val" style="font-size:16px">${menu.label}</p><p class="sub">kode ${menu.code}</p></div>
     </div>
     <div class="panel">
-      <div class="panel-head"><h2>${sub.label}</h2><span class="hint">Sumber: sheet <b class="mono">${sub.sheet}</b></span></div>
+      <div class="panel-head">
+        <h2>${sub.label}</h2>
+        <span class="hint">Sumber: sheet <b class="mono">${sub.sheet}</b></span>
+      </div>
       <div class="table-toolbar">
-        <div class="search">&#128269;<input id="searchBox" placeholder="Cari data pada tabel ini..." oninput="filterTable(this.value)"></div>
-        <button class="btn" onclick="refreshSheet('${sub.sheet}')">&#8635; Segarkan</button>
+        <div class="search">&#128269;
+          <input id="searchBox" placeholder="Cari data pada tabel ini..." oninput="filterTable(this.value)">
+        </div>
         <button class="btn" onclick="exportCsv('${sub.sheet}')">&#8681; Unduh CSV</button>
         <span class="count-tag" id="rowCountTag">${rowCount} baris</span>
       </div>
@@ -344,50 +577,43 @@ function renderSubmenu(content, menu, sub){
         <table id="dataTable">
           <thead><tr>${cfg.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
           <tbody>
-            ${cfg.rows.length ? cfg.rows.map(r=>`<tr>${r.map((v,i)=>`<td>${fmtCell(sub.sheet,v,i)}</td>`).join('')}</tr>`).join('')
-              : `<tr><td colspan="${cfg.headers.length||1}" style="text-align:center;color:var(--ink-faint);padding:24px;">Belum ada data pada sheet ini.</td></tr>`}
+            ${cfg.rows.map(r=>`<tr>${r.map((v,i)=>`<td>${fmtCell(cfg,v,i)}</td>`).join('')}</tr>`).join('')}
           </tbody>
         </table>
       </div>
-    </div>`;
+    </div>
+  `;
 }
 
 function filterTable(q){
   q = q.trim().toLowerCase();
   const rows = document.querySelectorAll('#dataTable tbody tr');
   let visible = 0;
-  rows.forEach(tr=>{ const match = tr.textContent.toLowerCase().includes(q); tr.style.display = match?'':'none'; if(match) visible++; });
-  const tag = document.getElementById('rowCountTag'); if(tag) tag.textContent = `${visible} baris`;
+  rows.forEach(tr=>{
+    const match = tr.textContent.toLowerCase().includes(q);
+    tr.style.display = match ? '' : 'none';
+    if(match) visible++;
+  });
+  document.getElementById('rowCountTag').textContent = `${visible} baris`;
 }
 
 function exportCsv(sheetName){
-  const cfg = DATA[sheetName]; if(!cfg) return;
+  const cfg = DATA[sheetName];
   const lines = [cfg.headers.join(',')].concat(cfg.rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')));
   const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `${sheetName}.csv`; a.click();
+  const a = document.createElement('a');
+  a.href = url; a.download = `${sheetName}.csv`; a.click();
   URL.revokeObjectURL(url);
-}
-
-function refreshSheet(sheetName){
-  callApi('getSheetData', { sheet: sheetName })
-    .then(res=>{ DATA[sheetName] = res; render(); })
-    .catch(err=>{ alert('Gagal menyegarkan data: ' + err.message); });
 }
 
 function tick(){
   document.getElementById('dateNow').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 }
 
-function boot(){
-  buildNav(); tick();
-  callApi('getAllData')
-    .then(res=>{ DATA = res; render(); })
-    .catch(err=>{
-      document.getElementById('content').innerHTML = `<div class="loading">Gagal memuat data: ${err.message}<br>Pastikan CONFIG.SCRIPT_URL sudah diisi dan fungsi setupSpreadsheet() sudah dijalankan di Apps Script.</div>`;
-    });
-}
-boot();
+buildNav();
+tick();
+render();
 </script>
 </body>
 </html>

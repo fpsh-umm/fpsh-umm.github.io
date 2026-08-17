@@ -135,11 +135,11 @@
 // Code.gs. Lihat PANDUAN_SETUP_GITHUB.md.
 // =====================================================================
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzPfLGSL-BOGxaWzNR43-gJWyJYvfT1MU3CfcsTtAeED4Vd63uKLE7ShzRnZ0qKpeE/exec' // contoh: 'https://script.google.com/macros/s/AKfycbzPfLGSL-BOGxaWzNR43-gJWyJYvfT1MU3CfcsTtAeED4Vd63uKLE7ShzRnZ0qKpeE/exec'
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzPfLGSL-BOGxaWzNR43-gJWyJYvfT1MU3CfcsTtAeED4Vd63uKLE7ShzRnZ0qKpeE/exec' // contoh: 'https://script.google.com/macros/s/XXXX.../exec'
 };
 
 // Pengganti google.script.run — dipakai karena halaman ini di-hosting
-// di GitHub Pages (di luar domain Apps Script), sehingga google.scrhttps://script.google.com/macros/s/AKfycbzPfLGSL-BOGxaWzNR43-gJWyJYvfT1MU3CfcsTtAeED4Vd63uKLE7ShzRnZ0qKpeE/execipt.run
+// di GitHub Pages (di luar domain Apps Script), sehingga google.script.run
 // tidak tersedia. Semua permintaan data lewat fetch() ke Web App.
 async function callApi(action, params){
   if(!CONFIG.SCRIPT_URL || CONFIG.SCRIPT_URL.indexOf('TEMPEL_URL_WEB_APP_DI_SINI') !== -1){

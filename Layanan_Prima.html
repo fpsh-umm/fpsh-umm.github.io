@@ -182,6 +182,15 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .tn-dropdown .sb-link:hover{background:rgba(255,255,255,0.07); color:#fff;}
 .tn-dropdown .sb-link.active{background:var(--navy-700); color:#fff;}
 
+/* Jam & tanggal hari ini, pojok kanan atas header biru */
+.tn-clock{
+  display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
+  padding:0 16px; margin-right:6px; border-right:1px solid rgba(255,255,255,0.1);
+  font-family:var(--sans); line-height:1.35; white-space:nowrap; flex:none;
+}
+.tn-clock .tn-clock-date{font-size:11px; color:#9aa1b5; text-transform:uppercase; letter-spacing:.06em;}
+.tn-clock .tn-clock-time{font-family:var(--mono); font-size:14px; font-weight:700; color:#fff; letter-spacing:.03em;}
+
 .sb-link{
   display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; font-size:13.5px;
   color:#c7cbdb; text-decoration:none; margin-bottom:2px; cursor:pointer; border:none; background:none; width:100%; text-align:left;
@@ -330,6 +339,7 @@ tbody tr:hover{background:#faf9f4;}
 
 @media (max-width:880px){
   .tn-brand-text{display:none;}
+  .tn-clock{display:none;}
   .tn-menu{
     display:none; flex-direction:column; align-items:stretch; gap:0; width:100%;
     position:absolute; top:100%; left:0; background:var(--navy-900); padding:8px;
@@ -365,18 +375,19 @@ tbody tr:hover{background:#faf9f4;}
       </div>
     </div>
     <div class="auth-hero">
-      <h1>Satu pintu untuk semua<br>layanan administrasi fakultas.</h1>
-      <p>Ajukan, lacak, dan kelola permohonan layanan — mulai dari peminjaman inventaris hingga surat kelulusan — dalam satu portal yang tercatat rapi di setiap langkahnya.</p>
+      <h1>Portal Petugas<br>Layanan Prima FPSH.</h1>
+      <p>Halaman masuk ini khusus untuk Tendik &amp; Admin yang memproses pengajuan layanan fakultas. Mahasiswa dan Dosen dapat langsung mengajukan layanan dari dasbor tanpa perlu masuk.</p>
       <ul class="auth-list">
-        <li><span class="num">01</span> Ajukan permohonan kapan saja, tanpa antre.</li>
-        <li><span class="num">02</span> Pantau status secara langsung, dari diajukan hingga selesai.</li>
-        <li><span class="num">03</span> Tendik &amp; Admin memproses lewat satu dasbor terpadu.</li>
+        <li><span class="num">01</span> Kelola &amp; proses seluruh pengajuan yang masuk.</li>
+        <li><span class="num">02</span> Pantau status setiap permohonan secara terpusat.</li>
+        <li><span class="num">03</span> Kelola akun pengguna &amp; data induk fakultas.</li>
       </ul>
     </div>
     <div class="auth-foot">Data pengajuan tersimpan pada spreadsheet resmi fakultas dan dapat diaudit sewaktu-waktu.</div>
   </div>
 
   <div class="auth-form-wrap">
+    <button type="button" id="authBackBtn" class="btn btn-ghost btn-sm" style="margin-bottom:14px;">&larr; Kembali ke Dasboard</button>
     <div class="auth-card">
 
       <div id="loginPanel">
@@ -385,11 +396,11 @@ tbody tr:hover{background:#faf9f4;}
         <div id="loginMsg"></div>
         <form id="loginForm">
           <div class="field">
-            <label>Email / NIM / NIP</label>
+            <label>Email (user@umm.ac.id)</label>
             <input type="text" id="loginId" required autocomplete="username">
           </div>
           <div class="field">
-            <label>Kata Sandi</label>
+            <label>Password</label>
             <input type="password" id="loginPw" required autocomplete="current-password">
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Masuk</button>
@@ -400,7 +411,7 @@ tbody tr:hover{background:#faf9f4;}
 
       <div id="registerPanel" class="hidden">
         <h2>Daftar Akun</h2>
-        <p class="sub">Untuk Mahasiswa, Dosen &amp; Tendik.</p>
+        <p class="sub">Untuk Mahasiswa, Dosen &amp; Tendik. Akun Pimpinan Prodi/Fakultas dibuatkan oleh Admin lewat Manajemen Pengguna.</p>
         <div id="registerMsg"></div>
         <form id="registerForm">
           <div class="field"><label>Peran</label>
@@ -438,8 +449,8 @@ tbody tr:hover{background:#faf9f4;}
       <div class="tn-item" data-group="utama">
         <button class="tn-toggle">Utama <span class="chev">&#9662;</span></button>
         <div class="tn-dropdown">
-          <button class="sb-link" data-page="dashboard"><span class="sb-icon">&#9635;</span> Dasbor</button>
-          <button class="sb-link" data-page="riwayat"><span class="sb-icon">&#8635;</span> Riwayat Saya</button>
+          <button class="sb-link" data-page="dashboard"><span class="sb-icon">&#9635;</span> Dasboard</button>
+          <button class="sb-link user-only hidden" data-page="riwayat"><span class="sb-icon">&#8635;</span> Riwayat Saya</button>
         </div>
       </div>
 
@@ -447,12 +458,13 @@ tbody tr:hover{background:#faf9f4;}
         <button class="tn-toggle">Ajukan Layanan <span class="chev">&#9662;</span></button>
         <div class="tn-dropdown">
           <button class="sb-link" data-page="svc-PEMINJAMAN"><span class="sb-num">01</span> Peminjaman Barang</button>
-          <button class="sb-link" data-page="svc-SURAT_KET_IJIN"><span class="sb-num">02</span> Surat Keterangan/Izin</button>
-          <button class="sb-link" data-page="svc-SURAT_TUGAS"><span class="sb-num">03</span> Surat Tugas/Rekomendasi</button>
-          <button class="sb-link" data-page="svc-TUGAS_AKHIR"><span class="sb-num">04</span> Judul &amp; Pembimbing TA</button>
-          <button class="sb-link" data-page="svc-YUDISIUM"><span class="sb-num">05</span> Yudisium</button>
-          <button class="sb-link" data-page="svc-SKL"><span class="sb-num">06</span> Surat Keterangan Lulus</button>
-          <button class="sb-link" data-page="svc-LAINNYA"><span class="sb-num">07</span> Lain-lain</button>
+          <button class="sb-link" data-page="svc-PEMINJAMAN_RUANG"><span class="sb-num">02</span> Peminjaman Ruang</button>
+          <button class="sb-link" data-page="svc-SURAT_KET_IJIN"><span class="sb-num">03</span> Surat Keterangan/Izin</button>
+          <button class="sb-link" data-page="svc-SURAT_TUGAS"><span class="sb-num">04</span> Surat Tugas/Rekomendasi</button>
+          <button class="sb-link" data-page="svc-TUGAS_AKHIR"><span class="sb-num">05</span> Judul &amp; Pembimbing TA</button>
+          <button class="sb-link" data-page="svc-YUDISIUM"><span class="sb-num">06</span> Yudisium</button>
+          <button class="sb-link" data-page="svc-SKL"><span class="sb-num">07</span> Surat Keterangan Lulus</button>
+          <button class="sb-link" data-page="svc-LAINNYA"><span class="sb-num">08</span> Lain-lain</button>
         </div>
       </div>
 
@@ -460,18 +472,24 @@ tbody tr:hover{background:#faf9f4;}
         <button class="tn-toggle">Manajemen <span class="chev">&#9662;</span></button>
         <div class="tn-dropdown">
           <button class="sb-link" data-page="admin-requests"><span class="sb-icon">&#128203;</span> Semua Pengajuan</button>
-          <button class="sb-link" data-page="admin-users"><span class="sb-icon">&#128101;</span> Manajemen Pengguna</button>
-          <button class="sb-link" id="copyAppLinkBtn"><span class="sb-icon">&#128279;</span> Salin Tautan Aplikasi</button>
+          <button class="sb-link manager-only hidden" data-page="admin-master"><span class="sb-icon">&#128230;</span> Data Ruang & Barang/Inv.</button>
+          <button class="sb-link superadmin-only hidden" data-page="admin-users"><span class="sb-icon">&#128101;</span> Manajemen Pengguna</button>
         </div>
       </div>
 
       <div class="tn-item" data-group="akun">
-        <button class="tn-toggle">Akun <span class="chev">&#9662;</span></button>
+        <button class="tn-toggle">Login <span class="chev">&#9662;</span></button>
         <div class="tn-dropdown">
-          <button class="sb-link" data-page="akun"><span class="sb-icon">&#9881;</span> Ubah Kata Sandi</button>
+          <button class="sb-link user-only hidden" data-page="akun"><span class="sb-icon">&#9881;</span> Ubah Kata Sandi</button>
+          <button class="sb-link guest-only hidden" id="guestLoginNavBtn"><span class="sb-icon">&#128274;</span> Masuk</button>
         </div>
       </div>
     </nav>
+
+    <div class="tn-clock" id="tnClock" aria-live="off">
+      <span class="tn-clock-date" id="tnClockDate">—</span>
+      <span class="tn-clock-time" id="tnClockTime">--:--:--</span>
+    </div>
 
     <button class="hamburger" id="hamburgerBtn">&#9776;</button>
   </div>
@@ -480,11 +498,11 @@ tbody tr:hover{background:#faf9f4;}
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:12px;">
         <div>
-          <h1 id="pageTitle">Dasbor</h1>
+          <h1 id="pageTitle">Dasboard</h1>
           <div class="crumb" id="pageCrumb">Ringkasan aktivitas Anda</div>
         </div>
       </div>
-      <div class="tb-user">
+      <div class="tb-user user-only hidden" id="tbUserInfo">
         <div class="tb-avatar" id="sbAvatar">--</div>
         <div class="tb-user-text"><strong id="sbName">-</strong><span id="sbRole">-</span></div>
         <button class="btn btn-ghost btn-sm" id="logoutBtn">Keluar</button>
@@ -551,16 +569,42 @@ const DemoBackend = (function(){
   function seed(){
     return {
       users: [{ID:'u-admin',Nama:'Administrator Fakultas',Email:'admin@fpsh.ac.id',NIM_NIP:'ADMIN001',Role:'Admin',ProdiUnit:'Fakultas',NoHP:'-',Password:'admin123',Status:'Aktif',TanggalDibuat:new Date().toISOString()}],
-      PEMINJAMAN:[], SURAT_KET_IJIN:[], SURAT_TUGAS:[], TUGAS_AKHIR:[], YUDISIUM:[], SKL:[], LAINNYA:[]
+      PEMINJAMAN:[], PEMINJAMAN_RUANG:[], SURAT_KET_IJIN:[], SURAT_TUGAS:[], TUGAS_AKHIR:[], YUDISIUM:[], SKL:[], LAINNYA:[],
+      MASTER_RUANG: [
+        {ID:'r-1', NamaRuang:'Ruang Rapat Dekanat', Lokasi:'Gedung A Lt.2', Kapasitas:20, Keterangan:'', Status:'Aktif'},
+        {ID:'r-2', NamaRuang:'Aula Fakultas', Lokasi:'Gedung A Lt.1', Kapasitas:150, Keterangan:'', Status:'Aktif'},
+        {ID:'r-3', NamaRuang:'Laboratorium Komputer 1', Lokasi:'Gedung B Lt.3', Kapasitas:40, Keterangan:'', Status:'Aktif'}
+      ],
+      MASTER_BARANG: [
+        {ID:'b-1', NamaBarang:'LCD Proyektor', Kategori:'Elektronik', JumlahTersedia:5, Keterangan:'', Status:'Aktif'},
+        {ID:'b-2', NamaBarang:'Kamera DSLR', Kategori:'Elektronik', JumlahTersedia:2, Keterangan:'', Status:'Aktif'},
+        {ID:'b-3', NamaBarang:'Kursi Lipat', Kategori:'Furnitur', JumlahTersedia:100, Keterangan:'', Status:'Aktif'}
+      ]
     };
   }
-  function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || seed(); }catch(e){ return seed(); } }
+  // Menggabungkan data tersimpan dengan default seed() supaya kunci layanan
+  // baru (mis. PEMINJAMAN_RUANG) tetap ada walau data lama di localStorage
+  // browser dibuat sebelum layanan tsb ditambahkan.
+  function load(){
+    const defaults = seed();
+    try{
+      const stored = JSON.parse(localStorage.getItem(LS_KEY));
+      if(!stored) return defaults;
+      const merged = { users: stored.users || defaults.users };
+      Object.keys(defaults).forEach(k=>{ if(k!=='users') merged[k] = stored[k] || defaults[k]; });
+      return merged;
+    }catch(e){ return defaults; }
+  }
   function save(db){ try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){ /* penyimpanan tidak tersedia (mis. dibuka lewat file://) — lanjut tanpa persist */ } }
-  const LABELS = {PEMINJAMAN:'Peminjaman/Penggunaan Barang & Inventaris',SURAT_KET_IJIN:'Surat Keterangan / Izin',SURAT_TUGAS:'Surat Tugas / Rekomendasi',TUGAS_AKHIR:'Judul & Pembimbing Tugas Akhir',YUDISIUM:'Yudisium',SKL:'Surat Keterangan Lulus',LAINNYA:'Layanan Lain-lain'};
+  const LABELS = {PEMINJAMAN:'Peminjaman/Penggunaan Barang & Inventaris',PEMINJAMAN_RUANG:'Peminjaman/Penggunaan Ruang',SURAT_KET_IJIN:'Surat Keterangan / Izin',SURAT_TUGAS:'Surat Tugas / Rekomendasi',TUGAS_AKHIR:'Judul & Pembimbing Tugas Akhir',YUDISIUM:'Yudisium',SKL:'Surat Keterangan Lulus',LAINNYA:'Layanan Lain-lain'};
   const genId = () => 'REQ-DEMO-' + Math.random().toString(36).slice(2,7).toUpperCase();
+  const SELF_REGISTER_ROLES = ['Mahasiswa','Dosen','Tendik'];
+  const isProcessingRole = role => ['Tendik','Admin','Pimpinan Prodi','Pimpinan Fakultas'].indexOf(role) > -1;
+  const isProdiScopedRole = role => role === 'Pimpinan Prodi';
+  const reqProdi = r => r.ProdiUnit || r.Prodi || '';
 
   return {
-    getServiceMeta(){ return {labels:LABELS, statusList:['Diajukan','Diproses','Disetujui','Ditolak','Selesai'], roleList:['Mahasiswa','Dosen','Tendik','Admin'], webAppUrl:''}; },
+    getServiceMeta(){ return {labels:LABELS, statusList:['Diajukan','Diproses','Disetujui','Ditolak','Selesai'], roleList:['Mahasiswa','Dosen','Tendik','Pimpinan Prodi','Pimpinan Fakultas','Admin'], webAppUrl:''}; },
     login(id, pw){
       const db = load();
       const u = db.users.find(x => (x.Email===id || x.NIM_NIP===id) && x.Password===pw);
@@ -571,6 +615,7 @@ const DemoBackend = (function(){
     },
     registerUser(payload){
       const db = load();
+      if(SELF_REGISTER_ROLES.indexOf(payload.Role)===-1) return {success:false, message:'Peran ini tidak dapat didaftarkan sendiri. Hubungi Admin.'};
       if(db.users.some(u=>u.Email===payload.Email || (payload.NIM_NIP && u.NIM_NIP===payload.NIM_NIP))) return {success:false,message:'Email atau NIM sudah terdaftar.'};
       db.users.push(Object.assign({ID:'u-'+Date.now(),Status:'Aktif',TanggalDibuat:new Date().toISOString()},payload));
       save(db);
@@ -584,7 +629,12 @@ const DemoBackend = (function(){
     },
     submitRequest(key, formData){
       const db = load();
-      const row = Object.assign({ID:genId(), TanggalPengajuan:new Date().toISOString(), TanggalUpdate:new Date().toISOString(), Status:'Diajukan', CatatanAdmin:'', Petugas:'', NomorSurat:''}, formData);
+      let prodi = formData.ProdiUnit;
+      if(!prodi){
+        const u = db.users.find(x=>x.Email===formData.Email);
+        prodi = u ? (u.ProdiUnit||'') : '';
+      }
+      const row = Object.assign({ID:genId(), TanggalPengajuan:new Date().toISOString(), TanggalUpdate:new Date().toISOString(), Status:'Diajukan', CatatanAdmin:'', Petugas:'', NomorSurat:'', ProdiUnit:prodi}, formData);
       db[key].push(row); save(db);
       return {success:true, message:'Pengajuan berhasil dikirim.', id:row.ID};
     },
@@ -594,26 +644,30 @@ const DemoBackend = (function(){
       out.sort((a,b)=> new Date(b.TanggalPengajuan)-new Date(a.TanggalPengajuan));
       return out;
     },
-    getAllRequests(key){
+    getAllRequests(key, actorRole, actorProdi){
       const db = load();
-      return db[key].map(r=>Object.assign({_jenis:key,_label:LABELS[key]},r)).sort((a,b)=> new Date(b.TanggalPengajuan)-new Date(a.TanggalPengajuan));
+      let rows = db[key].map(r=>Object.assign({_jenis:key,_label:LABELS[key]},r));
+      if(isProdiScopedRole(actorRole) && actorProdi) rows = rows.filter(r=> reqProdi(r)===actorProdi);
+      return rows.sort((a,b)=> new Date(b.TanggalPengajuan)-new Date(a.TanggalPengajuan));
     },
-    getAllRequestsAllServices(){
-      const db = load(); let out=[];
-      Object.keys(LABELS).forEach(k=> out.push(...db[k].map(r=>Object.assign({_jenis:k,_label:LABELS[k]},r))));
+    getAllRequestsAllServices(actorRole, actorProdi){
+      let out=[];
+      Object.keys(LABELS).forEach(k=> out.push(...this.getAllRequests(k, actorRole, actorProdi)));
       out.sort((a,b)=> new Date(b.TanggalPengajuan)-new Date(a.TanggalPengajuan));
       return out;
     },
-    updateRequestStatus(key, id, updates, petugas){
+    updateRequestStatus(key, id, updates, petugas, actorRole, actorProdi){
       const db = load(); const row = db[key].find(r=>r.ID===id);
       if(!row) return {success:false,message:'Tidak ditemukan.'};
+      if(isProdiScopedRole(actorRole) && actorProdi && reqProdi(row)!==actorProdi){
+        return {success:false, message:'Anda hanya dapat memproses pengajuan dari Program Studi Anda sendiri.'};
+      }
       Object.assign(row, updates, {TanggalUpdate:new Date().toISOString(), Petugas:petugas||row.Petugas});
       save(db);
       return {success:true, message:'Status diperbarui.'};
     },
-    getDashboardStats(email, role){
-      const isStaff = role==='Tendik'||role==='Admin';
-      const all = isStaff ? this.getAllRequestsAllServices() : this.getMyRequests(email);
+    getDashboardStats(email, role, prodiUnit){
+      const all = isProcessingRole(role) ? this.getAllRequestsAllServices(role, prodiUnit) : this.getMyRequests(email);
       const stats = {total:all.length,Diajukan:0,Diproses:0,Disetujui:0,Ditolak:0,Selesai:0};
       all.forEach(r=>{ if(stats[r.Status]!==undefined) stats[r.Status]++; });
       const perLayanan={}; Object.keys(LABELS).forEach(k=>perLayanan[k]=0);
@@ -621,6 +675,57 @@ const DemoBackend = (function(){
       return {stats, perLayanan, recent: all.slice(0,8)};
     },
     getAllUsers(){ const db = load(); return db.users.map(u=>{const c=Object.assign({},u); delete c.Password; return c;}); },
+    getMasterOptions(masterKey){
+      const db = load();
+      const rows = db[masterKey] || [];
+      const isRuang = masterKey === 'MASTER_RUANG';
+      const nameField = isRuang ? 'NamaRuang' : 'NamaBarang';
+      return rows
+        .filter(r => r[nameField] && (!r.Status || r.Status === 'Aktif'))
+        .map(r => ({
+          nama: r[nameField],
+          keterangan: isRuang
+            ? [r.Lokasi, (r.Kapasitas!=='' && r.Kapasitas!=null) ? ('Kapasitas '+r.Kapasitas) : ''].filter(Boolean).join(' • ')
+            : [r.Kategori, (r.JumlahTersedia!=='' && r.JumlahTersedia!=null) ? ('Stok '+r.JumlahTersedia) : ''].filter(Boolean).join(' • ')
+        }))
+        .sort((a,b)=> a.nama.localeCompare(b.nama));
+    },
+    getAllMasterItems(masterKey){
+      const db = load();
+      const nameField = masterKey === 'MASTER_RUANG' ? 'NamaRuang' : 'NamaBarang';
+      return (db[masterKey]||[]).slice().sort((a,b)=> String(a[nameField]||'').localeCompare(String(b[nameField]||'')));
+    },
+    addMasterItem(masterKey, payload){
+      const db = load();
+      if(!db[masterKey]) db[masterKey] = [];
+      const nameField = masterKey === 'MASTER_RUANG' ? 'NamaRuang' : 'NamaBarang';
+      if(!payload[nameField]) return {success:false, message:'Nama wajib diisi.'};
+      db[masterKey].push(Object.assign({ID:(masterKey==='MASTER_RUANG'?'r-':'b-')+Date.now(), Status:'Aktif'}, payload));
+      save(db);
+      return {success:true, message:'Data berhasil ditambahkan.'};
+    },
+    updateMasterItem(masterKey, id, updates){
+      const db = load();
+      const row = (db[masterKey]||[]).find(r=>r.ID===id);
+      if(!row) return {success:false, message:'Data tidak ditemukan.'};
+      Object.assign(row, updates);
+      save(db);
+      return {success:true, message:'Data berhasil diperbarui.'};
+    },
+    toggleMasterItemStatus(masterKey, id){
+      const db = load();
+      const row = (db[masterKey]||[]).find(r=>r.ID===id);
+      if(!row) return {success:false, message:'Data tidak ditemukan.'};
+      row.Status = row.Status==='Aktif' ? 'Nonaktif' : 'Aktif';
+      save(db);
+      return {success:true, message:'Status diubah menjadi '+row.Status+'.', status: row.Status};
+    },
+    deleteMasterItem(masterKey, id){
+      const db = load();
+      db[masterKey] = (db[masterKey]||[]).filter(r=>r.ID!==id);
+      save(db);
+      return {success:true, message:'Data berhasil dihapus.'};
+    },
     addUserByAdmin(payload, actor){
       const db = load();
       if(db.users.some(u=>u.Email===payload.Email||u.NIM_NIP===payload.NIM_NIP)) return {success:false,message:'Sudah terdaftar.'};
@@ -662,13 +767,25 @@ let CURRENT_PAGE = 'dashboard';
 const SERVICE_FORM_CONFIG = {
   PEMINJAMAN: {
     title:'Peminjaman/Penggunaan Barang & Inventaris',
-    desc:'Ajukan peminjaman ruang, alat, atau inventaris fakultas.',
+    desc:'Ajukan peminjaman alat atau inventaris fakultas.',
     fields:[
-      {key:'NamaBarang', label:'Nama Barang/Ruang/Inventaris', type:'text', full:true},
+      {key:'NamaBarang', label:'Nama Barang/Inventaris', type:'text', full:true, master:'MASTER_BARANG'},
       {key:'Jumlah', label:'Jumlah', type:'number'},
       {key:'TujuanPenggunaan', label:'Tujuan Penggunaan', type:'text'},
       {key:'TanggalPinjam', label:'Tanggal Pinjam', type:'date'},
       {key:'TanggalKembali', label:'Tanggal Kembali', type:'date'}
+    ]
+  },
+  PEMINJAMAN_RUANG: {
+    title:'Peminjaman/Penggunaan Ruang',
+    desc:'Ajukan peminjaman ruang kelas, aula, laboratorium, atau ruang rapat.',
+    fields:[
+      {key:'NamaRuang', label:'Nama Ruang', type:'text', full:true, master:'MASTER_RUANG'},
+      {key:'JumlahPeserta', label:'Perkiraan Jumlah Peserta', type:'number'},
+      {key:'TujuanPenggunaan', label:'Tujuan Penggunaan', type:'text', full:true},
+      {key:'TanggalPenggunaan', label:'Tanggal Penggunaan', type:'date'},
+      {key:'JamMulai', label:'Jam Mulai', type:'time'},
+      {key:'JamSelesai', label:'Jam Selesai', type:'time'}
     ]
   },
   SURAT_KET_IJIN: {
@@ -766,7 +883,21 @@ function initials(name){
   return name.trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
 }
 function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function isStaff(){ return CURRENT_USER && (CURRENT_USER.Role==='Tendik' || CURRENT_USER.Role==='Admin'); }
+// "Staf pemroses": role yang berhak melihat & memproses/menyetujui pengajuan
+// lewat menu "Manajemen" > "Semua Pengajuan" — mencakup Tendik, Admin, dan
+// kedua role Pimpinan (Prodi/Fakultas). Cakupan datanya sendiri (semua
+// fakultas vs. hanya prodi sendiri) ditentukan & ditegakkan di server
+// (lihat getAllRequests/getDashboardStats/updateRequestStatus di Code.gs).
+const PROCESSING_ROLES = ['Tendik', 'Admin', 'Pimpinan Prodi', 'Pimpinan Fakultas'];
+function isStaff(){ return CURRENT_USER && PROCESSING_ROLES.includes(CURRENT_USER.Role); }
+function isSuperAdmin(){ return CURRENT_USER && CURRENT_USER.Email==='admin@fpsh.ac.id'; }
+function isProdiScopedRole(){ return CURRENT_USER && CURRENT_USER.Role==='Pimpinan Prodi'; }
+// Role operasional (bukan Pimpinan) yang boleh mengelola Data Ruang &
+// Barang/Inv. — dipakai untuk membedakan dari isStaff() yang juga mencakup
+// Pimpinan Prodi/Fakultas (peran tsb hanya memproses pengajuan, bukan
+// mengelola data induk fakultas).
+const MANAGER_ROLES = ['Tendik', 'Admin'];
+function isManager(){ return CURRENT_USER && MANAGER_ROLES.includes(CURRENT_USER.Role); }
 
 function showPanel(name){
   document.getElementById('loginPanel').classList.toggle('hidden', name!=='login');
@@ -847,25 +978,51 @@ document.getElementById('registerForm').addEventListener('submit', async (e)=>{
   }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', ()=>{
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   CURRENT_USER = null;
   try{ sessionStorage.removeItem('lp_user'); }catch(e){ /* penyimpanan sesi tidak tersedia */ }
+  document.getElementById('loginForm').reset();
+  await bootApp();
+});
+
+/* Tombol "Masuk" di menu Akun: buka layar login tanpa keluar dari mode tamu.
+   Satu tombol generik untuk semua peran (Tendik, Pimpinan Prodi, Pimpinan
+   Fakultas, dst.) — peran ditentukan dari akun yang login, bukan dari tombol
+   mana yang ditekan. */
+document.getElementById('guestLoginNavBtn').addEventListener('click', ()=>{
   document.getElementById('appScreen').classList.add('hidden');
   document.getElementById('authScreen').classList.remove('hidden');
-  document.getElementById('loginForm').reset();
+  showPanel('login');
+});
+
+/* Tombol "Kembali ke Dasboard" di layar login: batal masuk, kembali ke dasbor tamu */
+document.getElementById('authBackBtn').addEventListener('click', ()=>{
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
 });
 
 /* ============================================================
    4. APP BOOT + NAVIGATION
    ============================================================ */
+function renderUserBadge(){
+  const loggedIn = !!CURRENT_USER;
+  document.querySelectorAll('.user-only').forEach(el=> el.classList.toggle('hidden', !loggedIn));
+  document.querySelectorAll('.guest-only').forEach(el=> el.classList.toggle('hidden', loggedIn));
+  if(loggedIn){
+    document.getElementById('sbAvatar').textContent = initials(CURRENT_USER.Nama);
+    document.getElementById('sbName').textContent = CURRENT_USER.Nama;
+    document.getElementById('sbRole').textContent = CURRENT_USER.Role + ' · ' + (CURRENT_USER.NIM_NIP||'');
+  }
+}
+
 async function bootApp(){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
 
-  document.getElementById('sbAvatar').textContent = initials(CURRENT_USER.Nama);
-  document.getElementById('sbName').textContent = CURRENT_USER.Nama;
-  document.getElementById('sbRole').textContent = CURRENT_USER.Role + ' · ' + (CURRENT_USER.NIM_NIP||'');
+  renderUserBadge();
   document.querySelectorAll('.admin-only').forEach(el=> el.classList.toggle('hidden', !isStaff()));
+  document.querySelectorAll('.superadmin-only').forEach(el=> el.classList.toggle('hidden', !isSuperAdmin()));
+  document.querySelectorAll('.manager-only').forEach(el=> el.classList.toggle('hidden', !isManager()));
 
   if(!SERVICE_META) SERVICE_META = await callServer('getServiceMeta');
   navigate('dashboard');
@@ -893,29 +1050,46 @@ document.getElementById('hamburgerBtn').addEventListener('click', (e)=>{
   document.getElementById('topnav').classList.toggle('mobile-open');
 });
 
-document.getElementById('copyAppLinkBtn').addEventListener('click', async ()=>{
-  const url = (SERVICE_META && SERVICE_META.webAppUrl) || '';
-  if(!url){
-    toast('URL Web App belum ditempel di WEB_APP_URL (Code.gs). Deploy dulu, lalu tempel URL "/exec" dan redeploy.', 'error');
-    return;
-  }
-  try{
-    await navigator.clipboard.writeText(url);
-    toast('Tautan aplikasi disalin: ' + url, 'success');
-  } catch(e){
-    prompt('Salin tautan aplikasi ini:', url);
-  }
-});
+/* Jam & tanggal hari ini (pojok kanan atas header) — berjalan terus selama
+   halaman terbuka, tidak tergantung status login. */
+const CLOCK_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis',"Jumat",'Sabtu'];
+const CLOCK_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function updateTopClock(){
+  const now = new Date();
+  const dateEl = document.getElementById('tnClockDate');
+  const timeEl = document.getElementById('tnClockTime');
+  if(dateEl) dateEl.textContent = CLOCK_HARI[now.getDay()] + ', ' + now.getDate() + ' ' + CLOCK_BULAN[now.getMonth()] + ' ' + now.getFullYear();
+  if(timeEl) timeEl.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+}
+updateTopClock();
+setInterval(updateTopClock, 1000);
 
 const PAGE_TITLES = {
-  dashboard:['Dasbor','Ringkasan aktivitas Anda'],
+  dashboard:['Dasboard','Ringkasan Aktivitas'],
   riwayat:['Riwayat Saya','Seluruh pengajuan yang pernah Anda kirim'],
   akun:['Ubah Kata Sandi','Perbarui kredensial akun Anda'],
   'admin-requests':['Semua Pengajuan','Kelola seluruh pengajuan layanan fakultas'],
+  'admin-master':['Data Ruang & Barang/Inv.','Kelola data induk ruang dan barang/inventaris fakultas'],
   'admin-users':['Manajemen Pengguna','Kelola akun Tendik, Dosen, dan Mahasiswa']
 };
 
 async function navigate(page){
+  if((page==='riwayat' || page==='akun') && !CURRENT_USER){
+    toast('Silakan masuk terlebih dahulu untuk mengakses halaman ini.', 'error');
+    page = 'dashboard';
+  }
+  if((page==='admin-requests' || page==='admin-users') && !isStaff()){
+    toast('Halaman ini khusus untuk Tendik/Pimpinan/Admin.', 'error');
+    page = 'dashboard';
+  }
+  if(page==='admin-master' && !isManager()){
+    toast('Halaman Data Ruang & Barang/Inv. khusus untuk Tendik/Admin.', 'error');
+    page = 'dashboard';
+  }
+  if(page==='admin-users' && !isSuperAdmin()){
+    toast('Manajemen Pengguna khusus untuk Super Admin.', 'error');
+    page = 'dashboard';
+  }
   CURRENT_PAGE = page;
   document.querySelectorAll('.sb-link').forEach(b=> b.classList.toggle('active', b.dataset.page===page));
   document.querySelectorAll('.tn-item').forEach(item=>{
@@ -931,6 +1105,9 @@ async function navigate(page){
     const key = page.replace('svc-','');
     title = SERVICE_FORM_CONFIG[key].title;
     crumb = 'Formulir pengajuan layanan';
+  } else if (page==='admin-requests' && isProdiScopedRole()){
+    title = 'Pengajuan Program Studi';
+    crumb = 'Kelola pengajuan dari Program Studi ' + (CURRENT_USER.ProdiUnit || '-') + ' saja';
   } else {
     [title, crumb] = PAGE_TITLES[page] || [page, ''];
   }
@@ -942,6 +1119,7 @@ async function navigate(page){
     else if (page === 'riwayat') await renderRiwayat();
     else if (page === 'akun') renderAkun();
     else if (page === 'admin-requests') await renderAdminRequests();
+    else if (page === 'admin-master') await renderAdminMaster();
     else if (page === 'admin-users') await renderAdminUsers();
     else if (page.startsWith('svc-')) await renderServiceForm(page.replace('svc-',''));
   } catch(err){
@@ -953,9 +1131,48 @@ async function navigate(page){
    5. DASHBOARD
    ============================================================ */
 async function renderDashboard(){
-  const data = await callServer('getDashboardStats', CURRENT_USER.Email, CURRENT_USER.Role);
-  const s = data.stats;
   const content = document.getElementById('content');
+
+  // ---- Mode tamu (belum masuk): Mahasiswa & Dosen langsung ajukan layanan,
+  // tanpa statistik pribadi (perlu identitas login untuk itu), namun tetap
+  // menampilkan tabel Customer (seluruh pemohon/pengguna) untuk transparansi. ----
+  if(!CURRENT_USER){
+    const guestSvcCards = Object.keys(SERVICE_FORM_CONFIG).map((key,i)=>`
+      <button class="service-card" onclick="navigate('svc-${key}')">
+        <div class="top"><span class="sb-num">0${i+1}</span></div>
+        <h3>${esc(SERVICE_FORM_CONFIG[key].title)}</h3>
+        <p>${esc(SERVICE_FORM_CONFIG[key].desc)}</p>
+      </button>
+    `).join('');
+
+    // Tamu tidak punya akun/role, jadi diambil dengan sudut pandang staf
+    // (seluruh fakultas) supaya tabel Customer bisa menampilkan semua pemohon.
+    const guestData = await callServer('getDashboardStats', '', 'Tendik');
+    const guestRecentRows = guestData.recent.length ? guestData.recent.map(r=>`
+      <tr>
+        <td class="mono">${esc(r.ID)}</td>
+        <td>${esc(r._label)}</td>
+        <td>${esc(r.NamaPemohon||r.NamaMahasiswa||'-')}</td>
+        <td>${fmtDate(r.TanggalPengajuan)}</td>
+        <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
+      </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
+
+    content.innerHTML = `
+      <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">${Object.keys(SERVICE_FORM_CONFIG).length} kategori layanan tersedia</span></div>
+      <div class="service-grid">${guestSvcCards}</div>
+
+      <div class="section-title"><h2>Customer (Pemohon/Pengguna)</h2></div>
+      <div class="card tbl-wrap"><table>
+        <thead><tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Tanggal</th><th>Status</th></tr></thead>
+        <tbody>${guestRecentRows}</tbody>
+      </table></div>
+    `;
+    return;
+  }
+
+  // ---- Mode login (Mahasiswa/Dosen/Tendik/Admin): dasbor lengkap dengan statistik. ----
+  const data = await callServer('getDashboardStats', CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit);
+  const s = data.stats;
 
   const statCards = [
     ['total','Total Pengajuan',s.total],
@@ -987,10 +1204,10 @@ async function renderDashboard(){
   content.innerHTML = `
     <div class="stat-grid">${statCards}</div>
 
-    <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">7 kategori layanan tersedia</span></div>
+    <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">${Object.keys(SERVICE_FORM_CONFIG).length} kategori layanan tersedia</span></div>
     <div class="service-grid">${svcCards}</div>
 
-    <div class="section-title"><h2>${isStaff() ? 'Pengajuan Terbaru (Seluruh Fakultas)' : 'Pengajuan Terbaru Saya'}</h2></div>
+    <div class="section-title"><h2>${isStaff() ? (isProdiScopedRole() ? 'Pemohon Program Studi Anda' : 'Customer (Pemohon/Pengguna)') : 'Pengajuan Terbaru Saya'}</h2></div>
     <div class="card tbl-wrap"><table>
       <thead><tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Tanggal</th><th>Status</th></tr></thead>
       <tbody>${recentRows}</tbody>
@@ -1001,9 +1218,86 @@ async function renderDashboard(){
 /* ============================================================
    6. FORM LAYANAN + RIWAYAT PER LAYANAN
    ============================================================ */
+
+// Menampilkan daftar pengajuan yang belum berstatus 'Selesai' milik sebuah
+// NIM/NIP (lintas seluruh jenis layanan). Dipakai untuk memblokir form
+// "Ajukan Layanan" — baik versi tamu (begitu NIM/NIP ditemukan) maupun versi
+// sudah login — supaya pemohon menuntaskan pengajuan lama ke Admin/Tendik
+// dulu sebelum bisa mengirim pengajuan baru.
+function renderPendingBlockHtml(pending){
+  const rows = pending.map(p=>`
+    <tr>
+      <td class="mono">${esc(p.ID)}</td>
+      <td>${esc(p._label)}</td>
+      <td>${fmtDate(p.TanggalPengajuan)}</td>
+      <td><span class="pill ${esc(p.Status)}">${esc(p.Status)}</span></td>
+    </tr>`).join('');
+  return `
+    <div class="msg error" style="margin-bottom:12px;">
+      Anda masih memiliki <b>${pending.length}</b> pengajuan yang belum diselesaikan (belum berstatus <b>"Selesai"</b>) oleh Admin/Tendik. Selesaikan pengajuan berikut terlebih dahulu sebelum dapat mengajukan layanan baru.
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>ID</th><th>Layanan</th><th>Tanggal</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  `;
+}
+
 async function renderServiceForm(key){
   const cfg = SERVICE_FORM_CONFIG[key];
   const content = document.getElementById('content');
+  const isGuest = !CURRENT_USER;
+
+  // Pengguna yang sudah login & punya NIM/NIP terisi: cek dulu apakah masih
+  // ada pengajuan (jenis layanan apa pun) yang belum berstatus 'Selesai'.
+  // Kalau ada, "Formulir pengajuan layanan" TIDAK ditampilkan — hanya daftar
+  // riwayat aktifitas yang belum selesai tsb — sampai Admin/Tendik
+  // menuntaskannya. Untuk tamu, pengecekan yang setara dilakukan setelah
+  // NIM/NIP diketik & ditemukan di data induk (lihat doLookup di bawah).
+  if(!isGuest && CURRENT_USER.NIM_NIP){
+    let loggedInPending = [];
+    try{ loggedInPending = await callServer('getPendingRequestsByNimNip', CURRENT_USER.NIM_NIP); }
+    catch(e){ loggedInPending = []; }
+    if(loggedInPending.length){
+      content.innerHTML = `
+        <div class="card card-pad">
+          <h2 style="margin-top:0;font-size:17px;">${esc(cfg.title)}</h2>
+          <p style="color:var(--muted);font-size:13px;margin-top:-8px;">${esc(cfg.desc)}</p>
+          ${renderPendingBlockHtml(loggedInPending)}
+        </div>
+      `;
+      return;
+    }
+  }
+
+  // Untuk field yang punya properti 'master' (mis. Nama Barang/Nama Ruang),
+  // ambil daftar pilihan dari sheet data induk (Master_Barang_Inv/Master_Ruang)
+  // supaya bisa disarankan lewat <datalist> — pemohon tetap bisa mengetik
+  // bebas kalau item yang dicari belum terdaftar di data induk.
+  const masterFields = cfg.fields.filter(f => f.master);
+  const masterOptionsByKey = {};
+  if(masterFields.length){
+    await Promise.all(masterFields.map(async f=>{
+      try{ masterOptionsByKey[f.key] = await callServer('getMasterOptions', f.master); }
+      catch(e){ masterOptionsByKey[f.key] = []; }
+    }));
+  }
+
+  // Tamu (belum masuk) hanya mengisi NIM/NIP. Peran/Nama/Email tidak lagi
+  // berupa kotak isian terpisah — begitu NIM/NIP cocok dengan data induk
+  // (Master_Mahasiswa/Master_Dosen/Master_Tendik), datanya langsung tampil
+  // sebagai info di bawah kotak NIM/NIP (lihat listener di bawah) dan
+  // dikirim lewat field tersembunyi saat submit.
+  const identityFieldsHtml = isGuest ? `
+    <div class="field full">
+      <label>NIM / NIP</label>
+      <input type="text" name="_guestNimNip" id="svcGuestNimNip" required autocomplete="off">
+      <input type="hidden" name="_guestRole" id="svcGuestRole">
+      <input type="hidden" name="_guestNama" id="svcGuestNama">
+      <input type="hidden" name="_guestEmail" id="svcGuestEmail">
+      <div id="svcGuestLookupHint" style="font-size:13px;margin-top:6px;color:var(--muted);"></div>
+    </div>
+  ` : '';
 
   const fieldsHtml = cfg.fields.map(f=>{
     const fullClass = f.full ? 'full' : '';
@@ -1014,46 +1308,155 @@ async function renderServiceForm(key){
     if(f.type === 'textarea'){
       return `<div class="field ${fullClass}"><label>${esc(f.label)}</label><textarea name="${f.key}" rows="3" ${f.required===false?'':'required'}></textarea></div>`;
     }
+    if(f.master){
+      const opts = masterOptionsByKey[f.key] || [];
+      const dlId = 'dl_' + f.key;
+      const dlHtml = opts.map(o=>`<option value="${esc(o.nama)}"${o.keterangan?` label="${esc(o.keterangan)}"`:''}>`).join('');
+      const hint = opts.length ? 'Pilih dari daftar atau ketik nama lain' : 'Belum ada data induk terdaftar — ketik manual';
+      return `<div class="field ${fullClass}"><label>${esc(f.label)}</label>
+        <input type="text" name="${f.key}" list="${dlId}" placeholder="${esc(hint)}" ${f.required===false?'':'required'} autocomplete="off">
+        <datalist id="${dlId}">${dlHtml}</datalist></div>`;
+    }
     return `<div class="field ${fullClass}"><label>${esc(f.label)}</label><input type="${f.type}" name="${f.key}" ${f.required===false?'':'required'}></div>`;
   }).join('');
 
-  content.innerHTML = `
-    <div class="two-col">
-      <div class="card card-pad">
-        <h2 style="margin-top:0;font-size:17px;">${esc(cfg.title)}</h2>
-        <p style="color:var(--muted);font-size:13px;margin-top:-8px;">${esc(cfg.desc)}</p>
-        <div id="svcMsg"></div>
-        <form id="svcForm">
-          <div class="form-grid">${fieldsHtml}</div>
-          <div style="margin-top:18px;"><button type="submit" class="btn btn-primary" id="svcSubmitBtn">Kirim Pengajuan</button></div>
-        </form>
-      </div>
+  const historyBlock = isGuest ? '' : `
       <div>
         <div class="card card-pad">
           <h3 style="margin:0 0 12px;font-size:14px;">Riwayat Pengajuan Anda</h3>
           <div id="svcHistory"></div>
         </div>
+      </div>`;
+
+  content.innerHTML = `
+    <div class="${isGuest ? '' : 'two-col'}">
+      <div class="card card-pad">
+        <h2 style="margin-top:0;font-size:17px;">${esc(cfg.title)}</h2>
+        <p style="color:var(--muted);font-size:13px;margin-top:-8px;">${esc(cfg.desc)}</p>
+        <div id="svcMsg"></div>
+        <form id="svcForm">
+          <div class="form-grid">${identityFieldsHtml}<div id="svcRestFields" style="display:contents;">${fieldsHtml}</div></div>
+          <div id="svcPendingBlock" style="display:none;margin-top:14px;"></div>
+          <div style="margin-top:18px;" id="svcSubmitWrap"><button type="submit" class="btn btn-primary" id="svcSubmitBtn">Kirim Pengajuan</button></div>
+        </form>
       </div>
+      ${historyBlock}
     </div>
   `;
+
+  // Pencarian otomatis identitas (tamu saja): begitu NIM/NIP yang diketik
+  // cocok dengan data induk (Master_Mahasiswa/Master_Dosen/Master_Tendik),
+  // Nama/Email/Peran ditampilkan langsung di bawah kotak NIM/NIP (bukan
+  // kotak isian terpisah) dan disimpan lewat field tersembunyi untuk
+  // dikirim saat submit. Berlaku di semua form "Ajukan Layanan".
+  let guestHasPending = false; // dibaca oleh handler submit di bawah
+
+  if(isGuest){
+    const nimEl = document.getElementById('svcGuestNimNip');
+    const roleEl = document.getElementById('svcGuestRole');
+    const namaEl = document.getElementById('svcGuestNama');
+    const emailEl = document.getElementById('svcGuestEmail');
+    const hintEl = document.getElementById('svcGuestLookupHint');
+    const restEl = document.getElementById('svcRestFields');
+    const pendingEl = document.getElementById('svcPendingBlock');
+    const submitWrap = document.getElementById('svcSubmitWrap');
+    let lookupTimer = null;
+
+    // Sembunyikan sisa form (field lain + tombol kirim) dan tampilkan daftar
+    // riwayat yang belum selesai, ATAU sebaliknya tampilkan kembali sisa form
+    // kalau tidak ada yang tertunda.
+    const setPendingView = (pending)=>{
+      guestHasPending = !!(pending && pending.length);
+      if(guestHasPending){
+        restEl.style.display = 'none';
+        submitWrap.style.display = 'none';
+        pendingEl.style.display = 'block';
+        pendingEl.innerHTML = renderPendingBlockHtml(pending);
+      } else {
+        restEl.style.display = 'contents';
+        submitWrap.style.display = 'block';
+        pendingEl.style.display = 'none';
+        pendingEl.innerHTML = '';
+      }
+    };
+
+    const doLookup = async ()=>{
+      const val = nimEl.value.trim();
+      roleEl.value = ''; namaEl.value = ''; emailEl.value = '';
+      setPendingView(null);
+      if(!val){ hintEl.innerHTML = ''; return; }
+      hintEl.style.color = 'var(--muted)';
+      hintEl.textContent = 'Mencari data induk...';
+      try{
+        const res = await callServer('lookupIdentityByNimNip', val);
+        if(res && res.found){
+          roleEl.value = res.Role;
+          namaEl.value = res.Nama;
+          emailEl.value = res.Email;
+          hintEl.style.color = '#1a7f37';
+          hintEl.innerHTML = 'Ditemukan di data induk (' + esc(res.Role) + ')<br>'
+            + '<b>' + esc(res.Nama) + '</b><br>' + esc(res.Email);
+
+          // NIM/NIP ditemukan — cek apakah masih ada pengajuan (jenis
+          // layanan apa pun) yang belum berstatus 'Selesai'. Kalau ada,
+          // sembunyikan sisa form & tampilkan riwayat yang belum selesai itu
+          // saja; pemohon harus menuntaskannya lebih dulu lewat Admin/Tendik.
+          const pending = await callServer('getPendingRequestsByNimNip', val);
+          setPendingView(pending);
+        } else {
+          hintEl.style.color = '#b42318';
+          hintEl.textContent = 'NIM/NIP tidak ditemukan di data induk.';
+        }
+      } catch(err){
+        hintEl.innerHTML = '';
+      }
+    };
+
+    nimEl.addEventListener('input', ()=>{
+      clearTimeout(lookupTimer);
+      lookupTimer = setTimeout(doLookup, 500);
+    });
+    nimEl.addEventListener('blur', doLookup);
+  }
 
   document.getElementById('svcForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const btn = document.getElementById('svcSubmitBtn');
     const msgBox = document.getElementById('svcMsg');
     msgBox.innerHTML = '';
+
+    if(isGuest && !document.getElementById('svcGuestNama').value){
+      msgBox.innerHTML = '<div class="msg error">NIM/NIP belum ditemukan di data induk. Periksa kembali NIM/NIP Anda sebelum mengirim.</div>';
+      return;
+    }
+    if(isGuest && guestHasPending){
+      msgBox.innerHTML = '<div class="msg error">Anda masih memiliki pengajuan yang belum selesai. Selesaikan pengajuan tersebut terlebih dahulu.</div>';
+      return;
+    }
     btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Mengirim...';
     const fd = new FormData(e.target);
     const payload = {};
     fd.forEach((v,k)=> payload[k]=v);
-    payload.NamaPemohon = CURRENT_USER.Nama;
-    payload.NamaMahasiswa = CURRENT_USER.Nama;
-    payload.Email = CURRENT_USER.Email;
-    payload.Role = CURRENT_USER.Role;
-    payload.NIMNIP = CURRENT_USER.NIM_NIP;
-    payload.NIMNIPNIDN = CURRENT_USER.NIM_NIP;
-    payload.NIM = CURRENT_USER.NIM_NIP;
-    if(!payload.Prodi) payload.Prodi = CURRENT_USER.ProdiUnit || '';
+
+    if(isGuest){
+      payload.NamaPemohon = payload._guestNama;
+      payload.NamaMahasiswa = payload._guestNama;
+      payload.Email = payload._guestEmail;
+      payload.Role = payload._guestRole;
+      payload.NIMNIP = payload._guestNimNip;
+      payload.NIMNIPNIDN = payload._guestNimNip;
+      payload.NIM = payload._guestNimNip;
+      delete payload._guestNama; delete payload._guestEmail; delete payload._guestRole; delete payload._guestNimNip;
+    } else {
+      payload.NamaPemohon = CURRENT_USER.Nama;
+      payload.NamaMahasiswa = CURRENT_USER.Nama;
+      payload.Email = CURRENT_USER.Email;
+      payload.Role = CURRENT_USER.Role;
+      payload.NIMNIP = CURRENT_USER.NIM_NIP;
+      payload.NIMNIPNIDN = CURRENT_USER.NIM_NIP;
+      payload.NIM = CURRENT_USER.NIM_NIP;
+      if(!payload.Prodi) payload.Prodi = CURRENT_USER.ProdiUnit || '';
+    }
 
     try{
       const res = await callServer('submitRequest', key, payload);
@@ -1061,9 +1464,10 @@ async function renderServiceForm(key){
         msgBox.innerHTML = '<div class="msg success">'+esc(res.message)+' Nomor referensi: <b>'+esc(res.id)+'</b></div>';
         e.target.reset();
         toast('Pengajuan terkirim', 'success');
-        loadSvcHistory(key);
+        if(!isGuest) loadSvcHistory(key);
       } else {
-        msgBox.innerHTML = '<div class="msg error">'+esc(res.message)+'</div>';
+        const pendingExtra = (res.pending && res.pending.length) ? renderPendingBlockHtml(res.pending) : '';
+        msgBox.innerHTML = '<div class="msg error">'+esc(res.message)+'</div>' + pendingExtra;
       }
     } catch(err){
       msgBox.innerHTML = '<div class="msg error">Gagal mengirim: '+esc(err)+'</div>';
@@ -1072,7 +1476,7 @@ async function renderServiceForm(key){
     }
   });
 
-  loadSvcHistory(key);
+  if(!isGuest) loadSvcHistory(key);
 }
 
 async function loadSvcHistory(key){
@@ -1177,7 +1581,10 @@ async function renderAdminRequests(){
 async function loadAdminReqTable(){
   const box = document.getElementById('adminReqTable');
   box.innerHTML = '<div class="center-load"><span class="loader"></span></div>';
-  let rows = await callServer('getAllRequests', adminReqTab);
+  // Kirim Role & ProdiUnit aktor: server memfilter otomatis ke Program Studi
+  // sendiri kalau CURRENT_USER.Role === 'Pimpinan Prodi'. Role lain (Tendik,
+  // Admin, Pimpinan Fakultas) tetap melihat seluruh data seperti sebelumnya.
+  let rows = await callServer('getAllRequests', adminReqTab, CURRENT_USER.Role, CURRENT_USER.ProdiUnit);
   const statusFilter = document.getElementById('filterStatus').value;
   const search = document.getElementById('filterSearch').value.toLowerCase();
   if(statusFilter) rows = rows.filter(r=>r.Status===statusFilter);
@@ -1188,12 +1595,13 @@ async function loadAdminReqTable(){
     return;
   }
   box.innerHTML = `<div class="card tbl-wrap"><table>
-    <thead><tr><th>ID</th><th>Pemohon</th><th>Email</th><th>Tanggal</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>ID</th><th>Pemohon</th><th>Email</th><th>Prodi/Unit</th><th>Tanggal</th><th>Status</th><th></th></tr></thead>
     <tbody>${rows.map(r=>`
       <tr>
         <td class="mono">${esc(r.ID)}</td>
         <td>${esc(r.NamaPemohon||r.NamaMahasiswa||'-')}</td>
         <td>${esc(r.Email)}</td>
+        <td>${esc(r.ProdiUnit||r.Prodi||'-')}</td>
         <td>${fmtDate(r.TanggalPengajuan)}</td>
         <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
         <td><button class="btn btn-ghost btn-sm" onclick='openReqModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Kelola</button></td>
@@ -1212,6 +1620,7 @@ function openReqModal(row){
       <div class="modal-body">
         <div class="mono" style="margin-bottom:10px;">${esc(row.ID)}</div>
         <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Pemohon</div><div style="font-size:13px;">${esc(row.NamaPemohon||row.NamaMahasiswa)} (${esc(row.Role||'Mahasiswa')}) — ${esc(row.Email)}</div></div>
+        <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Program Studi / Unit</div><div style="font-size:13px;">${esc(row.ProdiUnit||row.Prodi||'-')}</div></div>
         ${detailRows}
         <div class="field"><label>Status</label>
           <select id="modalStatus">${SERVICE_META.statusList.map(s=>`<option ${s===row.Status?'selected':''}>${s}</option>`).join('')}</select>
@@ -1240,7 +1649,7 @@ function openReqModal(row){
     const nomorEl = overlay.querySelector('#modalNomorSurat');
     if(nomorEl) updates.NomorSurat = nomorEl.value;
     try{
-      const res = await callServer('updateRequestStatus', row._jenis, row.ID, updates, CURRENT_USER.Email);
+      const res = await callServer('updateRequestStatus', row._jenis, row.ID, updates, CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit);
       toast(res.message, res.success?'success':'error');
       close();
       loadAdminReqTable();
@@ -1249,6 +1658,131 @@ function openReqModal(row){
       btn.disabled = false; btn.textContent = 'Simpan';
     }
   });
+}
+
+/* ============================================================
+   9b. ADMIN/TENDIK — DATA RUANG & BARANG/INV.
+   ============================================================ */
+const MASTER_CONFIG = {
+  MASTER_RUANG: {
+    label: 'Ruang',
+    nameField: 'NamaRuang',
+    fields: [
+      {key:'NamaRuang', label:'Nama Ruang', type:'text'},
+      {key:'Lokasi', label:'Lokasi', type:'text'},
+      {key:'Kapasitas', label:'Kapasitas', type:'number'},
+      {key:'Keterangan', label:'Keterangan', type:'text'}
+    ]
+  },
+  MASTER_BARANG: {
+    label: 'Barang/Inv.',
+    nameField: 'NamaBarang',
+    fields: [
+      {key:'NamaBarang', label:'Nama Barang/Inventaris', type:'text'},
+      {key:'Kategori', label:'Kategori', type:'text'},
+      {key:'JumlahTersedia', label:'Jumlah Tersedia', type:'number'},
+      {key:'Keterangan', label:'Keterangan', type:'text'}
+    ]
+  }
+};
+let adminMasterTab = 'MASTER_RUANG';
+
+async function renderAdminMaster(){
+  const content = document.getElementById('content');
+  const tabs = Object.keys(MASTER_CONFIG).map(key=>
+    `<button class="tab ${key===adminMasterTab?'active':''}" data-tab="${key}">${esc(MASTER_CONFIG[key].label)}</button>`
+  ).join('');
+  content.innerHTML = `
+    <div class="tabs">${tabs}</div>
+    <div class="filter-bar">
+      <input type="text" id="masterSearch" placeholder="Cari nama / lokasi / kategori...">
+      <span style="margin-left:auto;"></span>
+      <button class="btn btn-gold btn-sm" id="addMasterBtn">+ Tambah ${esc(MASTER_CONFIG[adminMasterTab].label)}</button>
+    </div>
+    <div id="masterTable"></div>
+  `;
+  content.querySelectorAll('.tab').forEach(t=> t.addEventListener('click', ()=>{ adminMasterTab = t.dataset.tab; renderAdminMaster(); }));
+  document.getElementById('masterSearch').addEventListener('input', loadMasterTable);
+  document.getElementById('addMasterBtn').addEventListener('click', ()=> openMasterModal(null));
+  loadMasterTable();
+}
+
+async function loadMasterTable(){
+  const box = document.getElementById('masterTable');
+  box.innerHTML = '<div class="center-load"><span class="loader"></span></div>';
+  const cfg = MASTER_CONFIG[adminMasterTab];
+  let rows = await callServer('getAllMasterItems', adminMasterTab);
+  const search = document.getElementById('masterSearch').value.toLowerCase();
+  if(search) rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(search));
+
+  if(!rows.length){
+    box.innerHTML = `<div class="card"><div class="empty"><div class="em-icon">&#128230;</div><h3>Belum ada data</h3><p>Tambahkan data ${esc(cfg.label)} pertama lewat tombol di atas.</p></div></div>`;
+    return;
+  }
+  box.innerHTML = `<div class="card tbl-wrap"><table>
+    <thead><tr>${cfg.fields.map(f=>`<th>${esc(f.label)}</th>`).join('')}<th>Status</th><th></th></tr></thead>
+    <tbody>${rows.map(r=>`
+      <tr>
+        ${cfg.fields.map(f=>`<td>${r[f.key]!==undefined && r[f.key]!==''? esc(r[f.key]) : '-'}</td>`).join('')}
+        <td><span class="pill ${r.Status==='Aktif'?'Disetujui':'Ditolak'}">${esc(r.Status||'Aktif')}</span></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost btn-sm" onclick='openMasterModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleMasterStatus('${r.ID}')">${r.Status==='Aktif'?'Nonaktifkan':'Aktifkan'}</button>
+          <button class="btn btn-danger btn-sm" onclick='removeMasterItem("${r.ID}","${esc(r[cfg.nameField]||'')}")'>Hapus</button>
+        </td>
+      </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openMasterModal(row){
+  const cfg = MASTER_CONFIG[adminMasterTab];
+  const isEdit = !!row;
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-head"><h3>${isEdit?'Edit':'Tambah'} ${esc(cfg.label)}</h3><button class="modal-close">&times;</button></div>
+      <div class="modal-body">
+        ${cfg.fields.map(f=>`<div class="field"><label>${esc(f.label)}</label><input type="${f.type}" id="mf_${f.key}" value="${isEdit ? esc(row[f.key]||'') : ''}"></div>`).join('')}
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost modal-close-btn">Batal</button>
+        <button class="btn btn-primary" id="masterSaveBtn">Simpan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = ()=> overlay.remove();
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.querySelector('.modal-close-btn').addEventListener('click', close);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+
+  overlay.querySelector('#masterSaveBtn').addEventListener('click', async ()=>{
+    const btn = overlay.querySelector('#masterSaveBtn');
+    const payload = {};
+    cfg.fields.forEach(f=> payload[f.key] = overlay.querySelector('#mf_'+f.key).value.trim());
+    if(!payload[cfg.nameField]){ toast('Nama wajib diisi.', 'error'); return; }
+    btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+    try{
+      const res = isEdit
+        ? await callServer('updateMasterItem', adminMasterTab, row.ID, payload, CURRENT_USER.Email)
+        : await callServer('addMasterItem', adminMasterTab, payload, CURRENT_USER.Email);
+      toast(res.message, res.success?'success':'error');
+      if(res.success){ close(); loadMasterTable(); }
+      else { btn.disabled=false; btn.textContent='Simpan'; }
+    } catch(err){ toast('Gagal menyimpan: '+err, 'error'); btn.disabled=false; btn.textContent='Simpan'; }
+  });
+}
+
+async function toggleMasterStatus(id){
+  const res = await callServer('toggleMasterItemStatus', adminMasterTab, id, CURRENT_USER.Email);
+  toast(res.message, res.success?'success':'error');
+  loadMasterTable();
+}
+async function removeMasterItem(id, nama){
+  if(!confirm('Hapus "'+nama+'"? Tindakan ini tidak dapat dibatalkan.')) return;
+  const res = await callServer('deleteMasterItem', adminMasterTab, id, CURRENT_USER.Email);
+  toast(res.message, res.success?'success':'error');
+  loadMasterTable();
 }
 
 /* ============================================================
@@ -1365,16 +1899,18 @@ async function removeUser(id, nama){
 }
 
 /* ============================================================
-   11. INIT — cek sesi tersimpan
+   11. INIT — langsung tampil dasbor; pulihkan sesi Tendik/Admin
+   jika sebelumnya sudah masuk. Layar login hanya diakses lewat
+   menu "Akun > Masuk (Tendik)" di dasbor.
    ============================================================ */
 (async function init(){
   try{
     const saved = sessionStorage.getItem('lp_user');
     if(saved){
       CURRENT_USER = JSON.parse(saved);
-      await bootApp();
     }
   } catch(e){ /* ignore */ }
+  await bootApp();
 })();
 </script>
 </body>

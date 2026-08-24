@@ -203,6 +203,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   border:1px solid rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex:none;
 }
 .sb-icon{width:17px; text-align:center; flex:none; font-size:14px;}
+.sb-group-label{
+  display:flex; align-items:center; gap:11px; padding:9px 10px 3px 10px; font-size:13.5px;
+  color:#8890a8; font-weight:700; margin-top:2px;
+}
+.sb-group-label .sb-num{border-color:rgba(255,255,255,0.12); color:#8890a8;}
+.sb-link.sb-sub{padding-left:41px; font-size:12.5px; color:#a7acc0;}
+.sb-link.sb-sub:before{content:'\2013'; margin-right:6px; opacity:.6;}
 
 .main{flex:1 1 auto; min-width:0; display:flex; flex-direction:column;}
 .topbar{
@@ -275,6 +282,21 @@ tbody tr:hover{background:#faf9f4;}
 
 .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
 .form-grid .full{grid-column:1/-1;}
+.room-check-list{display:flex; flex-direction:column; gap:8px; margin-top:2px; max-height:340px; overflow-y:auto; padding-right:2px;}
+.room-check-item{
+  display:flex; align-items:flex-start; gap:11px; padding:11px 13px;
+  border:1.3px solid var(--line); border-radius:8px; cursor:pointer;
+  transition:border-color .12s, background .12s;
+}
+.room-check-item:hover{border-color:var(--navy-600);}
+.room-check-item.is-checked{border-color:var(--navy-700); background:var(--gold-100);}
+.room-check-item input[type=checkbox]{
+  width:18px; height:18px; margin:1px 0 0; accent-color:var(--navy-800); flex:0 0 auto; cursor:pointer;
+}
+.room-check-info{display:flex; flex-direction:column; gap:2px;}
+.room-check-name{font-weight:600; font-size:13.5px;}
+.room-check-meta{font-size:12px; color:var(--muted);}
+.room-check-empty{font-size:13px; color:var(--muted); padding:10px 0;}
 .two-col{display:grid; grid-template-columns:1.15fr 0.85fr; gap:20px; align-items:start;}
 @media (max-width:980px){ .two-col{grid-template-columns:1fr;} }
 
@@ -457,14 +479,15 @@ tbody tr:hover{background:#faf9f4;}
       <div class="tn-item" data-group="ajukan">
         <button class="tn-toggle">Ajukan Layanan <span class="chev">&#9662;</span></button>
         <div class="tn-dropdown">
-          <button class="sb-link" data-page="svc-PEMINJAMAN"><span class="sb-num">01</span> Peminjaman Barang</button>
-          <button class="sb-link" data-page="svc-PEMINJAMAN_RUANG"><span class="sb-num">02</span> Peminjaman Ruang</button>
+          <button class="sb-link" data-page="svc-PEMINJAMAN_RUANG"><span class="sb-num">01</span> Peminjaman Ruang</button>
+          <button class="sb-link" data-page="svc-PEMINJAMAN"><span class="sb-num">02</span> Peminjaman Barang</button>
+          <div class="sb-group-label">Permohonan Surat</div>
           <button class="sb-link" data-page="svc-SURAT_KET_IJIN"><span class="sb-num">03</span> Surat Keterangan/Izin</button>
           <button class="sb-link" data-page="svc-SURAT_TUGAS"><span class="sb-num">04</span> Surat Tugas/Rekomendasi</button>
           <button class="sb-link" data-page="svc-TUGAS_AKHIR"><span class="sb-num">05</span> Judul &amp; Pembimbing TA</button>
-          <button class="sb-link" data-page="svc-YUDISIUM"><span class="sb-num">06</span> Yudisium</button>
-          <button class="sb-link" data-page="svc-SKL"><span class="sb-num">07</span> Surat Keterangan Lulus</button>
-          <button class="sb-link" data-page="svc-LAINNYA"><span class="sb-num">08</span> Lain-lain</button>
+          <button class="sb-link" data-page="svc-YUDISIUM"><span class="sb-num">06</span> Pendaftaran Yudisium</button>
+          <button class="sb-link" data-page="svc-LEGALISASI"><span class="sb-num">07</span> Legalisasi Dokumen</button>
+          <button class="sb-link" data-page="svc-LAINNYA"><span class="sb-num">08</span> Permohonan Lainnya</button>
         </div>
       </div>
 
@@ -569,7 +592,7 @@ const DemoBackend = (function(){
   function seed(){
     return {
       users: [{ID:'u-admin',Nama:'Administrator Fakultas',Email:'admin@fpsh.ac.id',NIM_NIP:'ADMIN001',Role:'Admin',ProdiUnit:'Fakultas',NoHP:'-',Password:'admin123',Status:'Aktif',TanggalDibuat:new Date().toISOString()}],
-      PEMINJAMAN:[], PEMINJAMAN_RUANG:[], SURAT_KET_IJIN:[], SURAT_TUGAS:[], TUGAS_AKHIR:[], YUDISIUM:[], SKL:[], LAINNYA:[],
+      PEMINJAMAN:[], PEMINJAMAN_RUANG:[], SURAT_KET_IJIN:[], SURAT_TUGAS:[], TUGAS_AKHIR:[], YUDISIUM:[], LEGALISASI:[], SKL:[], LAINNYA:[],
       MASTER_RUANG: [
         {ID:'r-1', NamaRuang:'Ruang Rapat Dekanat', Lokasi:'Gedung A Lt.2', Kapasitas:20, Keterangan:'', Status:'Aktif'},
         {ID:'r-2', NamaRuang:'Aula Fakultas', Lokasi:'Gedung A Lt.1', Kapasitas:150, Keterangan:'', Status:'Aktif'},
@@ -596,12 +619,28 @@ const DemoBackend = (function(){
     }catch(e){ return defaults; }
   }
   function save(db){ try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){ /* penyimpanan tidak tersedia (mis. dibuka lewat file://) — lanjut tanpa persist */ } }
-  const LABELS = {PEMINJAMAN:'Peminjaman/Penggunaan Barang & Inventaris',PEMINJAMAN_RUANG:'Peminjaman/Penggunaan Ruang',SURAT_KET_IJIN:'Surat Keterangan / Izin',SURAT_TUGAS:'Surat Tugas / Rekomendasi',TUGAS_AKHIR:'Judul & Pembimbing Tugas Akhir',YUDISIUM:'Yudisium',SKL:'Surat Keterangan Lulus',LAINNYA:'Layanan Lain-lain'};
+  const LABELS = {PEMINJAMAN:'Peminjaman/Penggunaan Barang & Inventaris',PEMINJAMAN_RUANG:'Peminjaman/Penggunaan Ruang',SURAT_KET_IJIN:'Surat Keterangan / Izin',SURAT_TUGAS:'Surat Tugas / Rekomendasi',TUGAS_AKHIR:'Judul & Pembimbing Tugas Akhir',YUDISIUM:'Yudisium',LEGALISASI:'Legalisasi Dokumen (Ijazah, Transkrip, Sertifikat)',SKL:'Surat Keterangan Lulus',LAINNYA:'Permohonan Lainnya'};
   const genId = () => 'REQ-DEMO-' + Math.random().toString(36).slice(2,7).toUpperCase();
   const SELF_REGISTER_ROLES = ['Mahasiswa','Dosen','Tendik'];
   const isProcessingRole = role => ['Tendik','Admin','Pimpinan Prodi','Pimpinan Fakultas'].indexOf(role) > -1;
   const isProdiScopedRole = role => role === 'Pimpinan Prodi';
   const reqProdi = r => r.ProdiUnit || r.Prodi || '';
+  // Setara enrichObjekRuangDenganLokasi() di Code.gs (mode pratinjau lokal):
+  // melengkapi baris Peminjaman Ruang dengan Lokasi tiap ruang (dari
+  // MASTER_RUANG lokal) supaya kolom "Objek Dipinjam" konsisten dengan versi
+  // Apps Script.
+  function enrichObjekRuangDenganLokasi(rows, db){
+    const lokasiByNama = {};
+    (db.MASTER_RUANG||[]).forEach(m=>{ if(m.NamaRuang) lokasiByNama[String(m.NamaRuang).trim()] = m.Lokasi || ''; });
+    rows.forEach(r=>{
+      if(r._jenis !== 'PEMINJAMAN_RUANG' || !r.NamaRuang) return;
+      r.ObjekDipinjamDetail = String(r.NamaRuang).split(',').map(s=>s.trim()).filter(Boolean).map(nama=>{
+        const lokasi = lokasiByNama[nama];
+        return lokasi ? (nama+' ('+lokasi+')') : nama;
+      }).join(', ');
+    });
+    return rows;
+  }
 
   return {
     getServiceMeta(){ return {labels:LABELS, statusList:['Diajukan','Diproses','Disetujui','Ditolak','Selesai'], roleList:['Mahasiswa','Dosen','Tendik','Pimpinan Prodi','Pimpinan Fakultas','Admin'], webAppUrl:''}; },
@@ -641,12 +680,14 @@ const DemoBackend = (function(){
     getMyRequests(email){
       const db = load(); const out=[];
       Object.keys(LABELS).forEach(k=> db[k].filter(r=>r.Email===email).forEach(r=> out.push(Object.assign({_jenis:k,_label:LABELS[k]},r))));
+      enrichObjekRuangDenganLokasi(out, db);
       out.sort((a,b)=> new Date(b.TanggalPengajuan)-new Date(a.TanggalPengajuan));
       return out;
     },
     getAllRequests(key, actorRole, actorProdi){
       const db = load();
       let rows = db[key].map(r=>Object.assign({_jenis:key,_label:LABELS[key]},r));
+      enrichObjekRuangDenganLokasi(rows, db);
       if(isProdiScopedRole(actorRole) && actorProdi) rows = rows.filter(r=> reqProdi(r)===actorProdi);
       return rows.sort((a,b)=> new Date(b.TanggalPengajuan)-new Date(a.TanggalPengajuan));
     },
@@ -684,6 +725,8 @@ const DemoBackend = (function(){
         .filter(r => r[nameField] && (!r.Status || r.Status === 'Aktif'))
         .map(r => ({
           nama: r[nameField],
+          lokasi: isRuang ? (r.Lokasi || '') : '',
+          kapasitas: isRuang ? ((r.Kapasitas!=='' && r.Kapasitas!=null) ? r.Kapasitas : '') : '',
           keterangan: isRuang
             ? [r.Lokasi, (r.Kapasitas!=='' && r.Kapasitas!=null) ? ('Kapasitas '+r.Kapasitas) : ''].filter(Boolean).join(' • ')
             : [r.Kategori, (r.JumlahTersedia!=='' && r.JumlahTersedia!=null) ? ('Stok '+r.JumlahTersedia) : ''].filter(Boolean).join(' • ')
@@ -765,6 +808,18 @@ let SERVICE_META = null;
 let CURRENT_PAGE = 'dashboard';
 
 const SERVICE_FORM_CONFIG = {
+  PEMINJAMAN_RUANG: {
+    title:'Peminjaman/Penggunaan Ruang',
+    desc:'Ajukan peminjaman ruang kelas, aula, laboratorium, atau ruang rapat.',
+    fields:[
+      {key:'NamaRuang', label:'Nama Ruang', type:'checklist', full:true, master:'MASTER_RUANG'},
+      {key:'JumlahPeserta', label:'Jumlah', type:'number'},
+      {key:'TujuanPenggunaan', label:'Tujuan Penggunaan', type:'text', full:true},
+      {key:'TanggalPenggunaan', label:'Tanggal Penggunaan', type:'date'},
+      {key:'JamMulai', label:'Jam Mulai', type:'time'},
+      {key:'JamSelesai', label:'Jam Selesai', type:'time'}
+    ]
+  },
   PEMINJAMAN: {
     title:'Peminjaman/Penggunaan Barang & Inventaris',
     desc:'Ajukan peminjaman alat atau inventaris fakultas.',
@@ -774,18 +829,6 @@ const SERVICE_FORM_CONFIG = {
       {key:'TujuanPenggunaan', label:'Tujuan Penggunaan', type:'text'},
       {key:'TanggalPinjam', label:'Tanggal Pinjam', type:'date'},
       {key:'TanggalKembali', label:'Tanggal Kembali', type:'date'}
-    ]
-  },
-  PEMINJAMAN_RUANG: {
-    title:'Peminjaman/Penggunaan Ruang',
-    desc:'Ajukan peminjaman ruang kelas, aula, laboratorium, atau ruang rapat.',
-    fields:[
-      {key:'NamaRuang', label:'Nama Ruang', type:'text', full:true, master:'MASTER_RUANG'},
-      {key:'JumlahPeserta', label:'Perkiraan Jumlah Peserta', type:'number'},
-      {key:'TujuanPenggunaan', label:'Tujuan Penggunaan', type:'text', full:true},
-      {key:'TanggalPenggunaan', label:'Tanggal Penggunaan', type:'date'},
-      {key:'JamMulai', label:'Jam Mulai', type:'time'},
-      {key:'JamSelesai', label:'Jam Selesai', type:'time'}
     ]
   },
   SURAT_KET_IJIN: {
@@ -837,23 +880,32 @@ const SERVICE_FORM_CONFIG = {
       {key:'BuktiBebasLab', label:'Tautan Bukti Bebas Laboratorium', type:'text', full:true}
     ]
   },
-  SKL: {
-    title:'Permohonan Surat Keterangan Lulus',
-    desc:'Untuk keperluan yang memerlukan bukti kelulusan sebelum ijazah terbit.',
+  LEGALISASI: {
+    title:'Legalisasi Dokumen (Ijazah, Transkrip, Sertifikat)',
+    desc:'Ajukan legalisasi/pengesahan salinan ijazah, transkrip nilai, atau sertifikat.',
     fields:[
       {key:'Prodi', label:'Program Studi', type:'text'},
-      {key:'TanggalYudisium', label:'Tanggal Yudisium', type:'date'},
-      {key:'Keperluan', label:'Keperluan', type:'textarea', full:true}
+      {key:'JenisDokumen', label:'Jenis Dokumen', type:'select', options:['Ijazah','Transkrip Nilai','Sertifikat','Lainnya']},
+      {key:'JumlahLembar', label:'Jumlah Lembar/Salinan', type:'number'},
+      {key:'Keperluan', label:'Keperluan', type:'textarea', full:true},
+      {key:'FilePendukung', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'text', full:true}
     ]
   },
   LAINNYA: {
-    title:'Layanan Lain-lain',
+    title:'Permohonan Lainnya',
     desc:'Untuk permohonan yang belum tercakup pada kategori lainnya.',
     fields:[
       {key:'JudulPermohonan', label:'Judul Permohonan', type:'text', full:true},
       {key:'Deskripsi', label:'Deskripsi Permohonan', type:'textarea', full:true}
     ]
   }
+  // Catatan: SKL (Surat Keterangan Lulus) sengaja tidak lagi didaftarkan di
+  // sini atas permintaan — sehingga tidak lagi muncul di menu "Ajukan
+  // Layanan", kartu dasbor, maupun tab "Semua Pengajuan" pada Manajemen.
+  // Data pengajuan LAMA yang sudah pernah masuk untuk layanan ini TETAP
+  // AMAN tersimpan di sheet Surat_Keterangan_Lulus pada spreadsheet (tidak
+  // terhapus), hanya saja tidak lagi bisa diajukan baru atau dilihat lewat
+  // UI ini. Untuk mengaktifkan kembali, kembalikan blok SKL di atas.
 };
 
 /* ============================================================
@@ -1153,9 +1205,10 @@ async function renderDashboard(){
         <td class="mono">${esc(r.ID)}</td>
         <td>${esc(r._label)}</td>
         <td>${esc(r.NamaPemohon||r.NamaMahasiswa||'-')}</td>
+        <td>${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang||'-')}</td>
         <td>${fmtDate(r.TanggalPengajuan)}</td>
         <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
-      </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
+      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
 
     content.innerHTML = `
       <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">${Object.keys(SERVICE_FORM_CONFIG).length} kategori layanan tersedia</span></div>
@@ -1163,7 +1216,7 @@ async function renderDashboard(){
 
       <div class="section-title"><h2>Customer (Pemohon/Pengguna)</h2></div>
       <div class="card tbl-wrap"><table>
-        <thead><tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Tanggal</th><th>Status</th></tr></thead>
+        <thead><tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Objek Dipinjam</th><th>Tanggal</th><th>Status</th></tr></thead>
         <tbody>${guestRecentRows}</tbody>
       </table></div>
     `;
@@ -1197,9 +1250,10 @@ async function renderDashboard(){
       <td class="mono">${esc(r.ID)}</td>
       <td>${esc(r._label)}</td>
       <td>${esc(r.NamaPemohon||r.NamaMahasiswa||'-')}</td>
+      <td>${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang||'-')}</td>
       <td>${fmtDate(r.TanggalPengajuan)}</td>
       <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
-    </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
+    </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
 
   content.innerHTML = `
     <div class="stat-grid">${statCards}</div>
@@ -1209,7 +1263,7 @@ async function renderDashboard(){
 
     <div class="section-title"><h2>${isStaff() ? (isProdiScopedRole() ? 'Pemohon Program Studi Anda' : 'Customer (Pemohon/Pengguna)') : 'Pengajuan Terbaru Saya'}</h2></div>
     <div class="card tbl-wrap"><table>
-      <thead><tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Tanggal</th><th>Status</th></tr></thead>
+      <thead><tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Objek Dipinjam</th><th>Tanggal</th><th>Status</th></tr></thead>
       <tbody>${recentRows}</tbody>
     </table></div>
   `;
@@ -1229,6 +1283,7 @@ function renderPendingBlockHtml(pending){
     <tr>
       <td class="mono">${esc(p.ID)}</td>
       <td>${esc(p._label)}</td>
+      <td>${esc(p.ObjekDipinjamDetail||p.NamaRuang||p.NamaBarang||'-')}</td>
       <td>${fmtDate(p.TanggalPengajuan)}</td>
       <td><span class="pill ${esc(p.Status)}">${esc(p.Status)}</span></td>
     </tr>`).join('');
@@ -1237,7 +1292,7 @@ function renderPendingBlockHtml(pending){
       Anda masih memiliki <b>${pending.length}</b> pengajuan yang belum diselesaikan (belum berstatus <b>"Selesai"</b>) oleh Admin/Tendik. Selesaikan pengajuan berikut terlebih dahulu sebelum dapat mengajukan layanan baru.
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>ID</th><th>Layanan</th><th>Tanggal</th><th>Status</th></tr></thead>
+      <thead><tr><th>ID</th><th>Layanan</th><th>Objek Dipinjam</th><th>Tanggal</th><th>Status</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
   `;
@@ -1308,6 +1363,24 @@ async function renderServiceForm(key){
     if(f.type === 'textarea'){
       return `<div class="field ${fullClass}"><label>${esc(f.label)}</label><textarea name="${f.key}" rows="3" ${f.required===false?'':'required'}></textarea></div>`;
     }
+    if(f.type === 'checklist'){
+      const opts = masterOptionsByKey[f.key] || [];
+      const itemsHtml = opts.length ? opts.map(o=>{
+        const meta = [];
+        if(o.lokasi) meta.push('Lokasi: '+esc(o.lokasi));
+        if(o.kapasitas !== undefined && o.kapasitas !== null && o.kapasitas !== '') meta.push('Kapasitas: '+esc(o.kapasitas)+' orang');
+        return `<label class="room-check-item">
+          <input type="checkbox" name="${f.key}" value="${esc(o.nama)}">
+          <span class="room-check-info">
+            <span class="room-check-name">${esc(o.nama)}</span>
+            ${meta.length ? `<span class="room-check-meta">${meta.join(' &bull; ')}</span>` : ''}
+          </span>
+        </label>`;
+      }).join('') : `<div class="room-check-empty">Belum ada data induk terdaftar — hubungi Admin untuk menambahkan data di sheet data induk.</div>`;
+      return `<div class="field ${fullClass}"><label>${esc(f.label)}</label>
+        <div class="room-check-list" data-checklist-group="${f.key}">${itemsHtml}</div>
+        ${opts.length ? `<div class="field-hint" style="font-size:12px;color:var(--muted);margin-top:5px;">Boleh pilih lebih dari satu.</div>` : ''}</div>`;
+    }
     if(f.master){
       const opts = masterOptionsByKey[f.key] || [];
       const dlId = 'dl_' + f.key;
@@ -1343,6 +1416,20 @@ async function renderServiceForm(key){
       ${historyBlock}
     </div>
   `;
+
+  // Field bertipe 'checklist' (mis. Nama Ruang): tiap pilihan berbentuk kotak
+  // ceklist, dan pemohon BOLEH mencentang lebih dari satu (mis. butuh
+  // beberapa ruang sekaligus). Kelas 'is-checked' dipakai untuk menyorot
+  // kartu yang sedang terpilih — semua nilai yang tercentang digabung jadi
+  // satu string saat dikirim (lihat handler submit).
+  content.querySelectorAll('.room-check-list').forEach(group=>{
+    group.addEventListener('change', (e)=>{
+      const target = e.target;
+      if(!target || target.type !== 'checkbox') return;
+      const item = target.closest('.room-check-item');
+      if(item) item.classList.toggle('is-checked', target.checked);
+    });
+  });
 
   // Pencarian otomatis identitas (tamu saja): begitu NIM/NIP yang diketik
   // cocok dengan data induk (Master_Mahasiswa/Master_Dosen/Master_Tendik),
@@ -1433,10 +1520,30 @@ async function renderServiceForm(key){
       msgBox.innerHTML = '<div class="msg error">Anda masih memiliki pengajuan yang belum selesai. Selesaikan pengajuan tersebut terlebih dahulu.</div>';
       return;
     }
+    // Validasi field 'checklist' (mis. Nama Ruang): karena checkbox tidak
+    // mendukung atribut 'required' secara alami per-grup, wajib dicek manual
+    // supaya pemohon tidak bisa kirim tanpa memilih minimal satu pilihan
+    // (boleh mencentang lebih dari satu).
+    for(const f of cfg.fields.filter(x=>x.type==='checklist' && x.required!==false)){
+      if(!document.querySelector(`input[name="${f.key}"]:checked`)){
+        msgBox.innerHTML = '<div class="msg error">Silakan pilih minimal satu '+esc(f.label.toLowerCase())+' terlebih dahulu.</div>';
+        return;
+      }
+    }
     btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Mengirim...';
     const fd = new FormData(e.target);
     const payload = {};
     fd.forEach((v,k)=> payload[k]=v);
+
+    // Field 'checklist' bisa punya beberapa checkbox tercentang dengan nama
+    // yang sama — FormData hanya menyisakan nilai terakhir lewat forEach di
+    // atas, jadi di sini seluruh nilai yang tercentang digabung jadi satu
+    // string (dipisah koma) sebelum dikirim, karena kolom di sheet
+    // (mis. 'NamaRuang') tetap satu kolom teks.
+    cfg.fields.filter(f=>f.type==='checklist').forEach(f=>{
+      const values = Array.from(document.querySelectorAll(`input[name="${f.key}"]:checked`)).map(cb=>cb.value);
+      payload[f.key] = values.join(', ');
+    });
 
     if(isGuest){
       payload.NamaPemohon = payload._guestNama;
@@ -1463,6 +1570,7 @@ async function renderServiceForm(key){
       if(res.success){
         msgBox.innerHTML = '<div class="msg success">'+esc(res.message)+' Nomor referensi: <b>'+esc(res.id)+'</b></div>';
         e.target.reset();
+        content.querySelectorAll('.room-check-item.is-checked').forEach(item=>item.classList.remove('is-checked'));
         toast('Pengajuan terkirim', 'success');
         if(!isGuest) loadSvcHistory(key);
       } else {
@@ -1494,6 +1602,7 @@ async function loadSvcHistory(key){
         <span class="mono">${esc(r.ID)}</span>
         <span class="pill ${esc(r.Status)}">${esc(r.Status)}</span>
       </div>
+      ${(r.NamaRuang||r.NamaBarang) ? `<div style="font-size:13px;font-weight:600;margin-top:5px;">${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang)}</div>` : ''}
       <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${fmtDate(r.TanggalPengajuan)}</div>
       ${r.CatatanAdmin ? `<div style="font-size:12px;margin-top:6px;background:var(--paper);padding:8px 10px;border-radius:7px;">${esc(r.CatatanAdmin)}</div>` : ''}
     </div>
@@ -1578,6 +1687,17 @@ async function renderAdminRequests(){
   loadAdminReqTable();
 }
 
+// Tab yang tabelnya ditampilkan dengan gaya "tabel Kelola" (Data Ruang &
+// Barang/Inv.): kolom per-field masing-masing + tombol Edit/Hapus, selain
+// tombol Kelola (status) yang sudah ada untuk seluruh tab. Edit/Hapus di sini
+// mengubah/menghapus data pengajuan mentah, jadi dibatasi hanya untuk
+// Tendik/Admin (isManager()) — sama seperti pembatasan di tabel Ruang/Barang.
+// Catatan: tab PEMINJAMAN_RUANG sengaja TIDAK dimasukkan di sini lagi, atas
+// permintaan, supaya tabelnya memakai tampilan standar "Semua Pengajuan"
+// yang sama dengan tab lain (ID, Pemohon, Email, Prodi/Unit, Objek Dipinjam,
+// Tanggal, Status, Kelola) — bukan tampilan kolom per-field.
+const REQ_TABLE_LIKE_MASTER = ['PEMINJAMAN'];
+
 async function loadAdminReqTable(){
   const box = document.getElementById('adminReqTable');
   box.innerHTML = '<div class="center-load"><span class="loader"></span></div>';
@@ -1594,19 +1714,91 @@ async function loadAdminReqTable(){
     box.innerHTML = `<div class="card"><div class="empty"><div class="em-icon">&#128203;</div><h3>Tidak ada data</h3><p>Belum ada pengajuan pada kategori atau filter ini.</p></div></div>`;
     return;
   }
+
+  if(REQ_TABLE_LIKE_MASTER.includes(adminReqTab)){
+    const cfg = SERVICE_FORM_CONFIG[adminReqTab];
+    box.innerHTML = `<div class="card tbl-wrap"><table>
+      <thead><tr><th>ID</th><th>Pemohon</th><th>Email</th><th>Prodi/Unit</th>${cfg.fields.map(f=>`<th>${esc(f.label)}</th>`).join('')}<th>Status</th><th></th></tr></thead>
+      <tbody>${rows.map(r=>`
+        <tr>
+          <td class="mono">${esc(r.ID)}</td>
+          <td>${esc(r.NamaPemohon||r.NamaMahasiswa||'-')}</td>
+          <td>${esc(r.Email)}</td>
+          <td>${esc(r.ProdiUnit||r.Prodi||'-')}</td>
+          ${cfg.fields.map(f=>`<td>${r[f.key]!==undefined && r[f.key]!==''? esc(f.type==='date'?fmtDate(r[f.key]):r[f.key]) : '-'}</td>`).join('')}
+          <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-ghost btn-sm" onclick='openReqModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Kelola</button>
+            ${isManager() ? `
+            <button class="btn btn-ghost btn-sm" onclick='openReqEditModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Edit</button>
+            <button class="btn btn-danger btn-sm" onclick='removeRequestItem("${adminReqTab}","${esc(r.ID)}")'>Hapus</button>` : ''}
+          </td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+    return;
+  }
+
   box.innerHTML = `<div class="card tbl-wrap"><table>
-    <thead><tr><th>ID</th><th>Pemohon</th><th>Email</th><th>Prodi/Unit</th><th>Tanggal</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>ID</th><th>Pemohon</th><th>Email</th><th>Prodi/Unit</th><th>Objek Dipinjam</th><th>Tanggal</th><th>Status</th><th></th></tr></thead>
     <tbody>${rows.map(r=>`
       <tr>
         <td class="mono">${esc(r.ID)}</td>
         <td>${esc(r.NamaPemohon||r.NamaMahasiswa||'-')}</td>
         <td>${esc(r.Email)}</td>
         <td>${esc(r.ProdiUnit||r.Prodi||'-')}</td>
+        <td>${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang||'-')}</td>
         <td>${fmtDate(r.TanggalPengajuan)}</td>
         <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
         <td><button class="btn btn-ghost btn-sm" onclick='openReqModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Kelola</button></td>
       </tr>`).join('')}</tbody>
   </table></div>`;
+}
+
+// Modal "Edit" untuk tab Peminjaman Barang/Ruang — meniru openMasterModal()
+// di data induk Ruang/Barang/Inv., tapi mengedit field milik pengajuan itu
+// sendiri (bukan status). Field ID/Status/dsb tidak diubah lewat sini —
+// itu tetap lewat tombol "Kelola".
+function openReqEditModal(row){
+  const cfg = SERVICE_FORM_CONFIG[row._jenis];
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-head"><h3>Edit Pengajuan</h3><button class="modal-close">&times;</button></div>
+      <div class="modal-body">
+        <div class="mono" style="margin-bottom:10px;">${esc(row.ID)}</div>
+        ${cfg.fields.map(f=>`<div class="field"><label>${esc(f.label)}</label><input type="${f.type==='date'||f.type==='time'||f.type==='number'?f.type:'text'}" id="rf_${f.key}" value="${esc(row[f.key]||'')}"></div>`).join('')}
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost modal-close-btn">Batal</button>
+        <button class="btn btn-primary" id="reqEditSaveBtn">Simpan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = ()=> overlay.remove();
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.querySelector('.modal-close-btn').addEventListener('click', close);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+
+  overlay.querySelector('#reqEditSaveBtn').addEventListener('click', async ()=>{
+    const btn = overlay.querySelector('#reqEditSaveBtn');
+    const updates = {};
+    cfg.fields.forEach(f=> updates[f.key] = overlay.querySelector('#rf_'+f.key).value.trim());
+    btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+    try{
+      const res = await callServer('updateRequestFull', row._jenis, row.ID, updates, CURRENT_USER.Email);
+      toast(res.message, res.success?'success':'error');
+      if(res.success){ close(); loadAdminReqTable(); }
+      else { btn.disabled=false; btn.textContent='Simpan'; }
+    } catch(err){ toast('Gagal menyimpan: '+err, 'error'); btn.disabled=false; btn.textContent='Simpan'; }
+  });
+}
+
+async function removeRequestItem(sheetKey, id){
+  if(!confirm('Hapus pengajuan "'+id+'"? Tindakan ini tidak dapat dibatalkan.')) return;
+  const res = await callServer('deleteRequestItem', sheetKey, id, CURRENT_USER.Email);
+  toast(res.message, res.success?'success':'error');
+  loadAdminReqTable();
 }
 
 function openReqModal(row){

@@ -1,0 +1,116 @@
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f8fafc; padding: 30px; color: #1e293b; min-height: 100vh; box-sizing: border-box;">
+<div style="max-width: 1140px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px;">
+
+<!-- HEADER HERO BANNER (DILENGKAPI RUANG LOGO) -->
+<div style="background: linear-gradient(135deg, #8a151b 0%, #6b0f13 100%); border-radius: 16px; padding: 35px; color: #ffffff; box-shadow: 0 10px 25px rgba(138, 21, 27, 0.1); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+
+<!-- Box Logo Instansi -->
+<div style="background: #ffffff; width: 90px; height: 90px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"><!-- GANTI TEKS 'URL_LOGO_ANDA_DISINI' DENGAN LINK GAMBAR LOGO ANDA --><img style="font-size: 11px; font-weight: bold; letter-spacing: 0.55px; text-transform: uppercase;" src="https://fpsh.umm.ac.id/wp-content/uploads/2026/07/LOGO_cuma_LMT_FPSH-UMM.png" /></div>
+<div style="flex-grow: 1;">
+
+<span style="background: rgba(255, 255, 255, 0.15); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">Pusat Layanan Akademik</span>
+<h1 style="font-size: 26px; font-weight: bold; margin: 12px 0 6px 0; letter-spacing: -0.5px;">Laboratorium Microteaching</h1>
+<p style="font-size: 14px; color: #f3d1d2; margin: 0; font-weight: 500;">Fakultas Pendidikan, Sains, dan Humaniora (FPSH) Universitas Muhammadiyah Malang</p>
+
+</div>
+</div>
+<!-- SISTEM TATA LETAK 2 KOLOM (FLEXBOX) -->
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
+<!-- KOLOM KIRI: Informasi Utama & Grid Keunggulan -->
+<div style="flex: 2; min-width: 320px; display: flex; flex-direction: column; gap: 8px;">
+
+<!-- Kartu Deskripsi -->
+<div style="background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(15, 23, 42, 0.01);">
+<h2 style="font-size: 15px; font-weight: bold; color: #8a151b; margin: 0 0 12px 0; border-left: 4px solid #cca43b; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.03em;">Tentang Fasilitas</h2>
+<p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0; text-align: justify;">Laboratorium Microteaching Fakultas Pendidikan, Sains, dan Humaniora (FPSH) Universitas Muhammadiyah Malang (UMM) merupakan fasilitas pembelajaran inovatif yang dirancang untuk membentuk kompetensi profesional calon pendidik. Sebagai pusat pengembangan keterampilan mengajar, laboratorium ini mengintegrasikan teknologi audio-visual mutakhir dengan konsep simulasi kelas yang representatif.</p>
+
+</div>
+<!-- Seksi Keunggulan (Grid Kompact) -->
+<div>
+<h2 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.03em;">Poin Keunggulan Laboratorium</h2>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; gap: 8px; align-items: flex-start;">
+
+<span style="background: #fff1f2; color: #8a151b; font-weight: bold; font-size: 13px; padding: 6px 10px; border-radius: 8px; flex-shrink: 0;">A</span>
+<div>
+<h3 style="font-size: 14px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Fasilitas Berbasis Teknologi</h3>
+<p style="font-size: 13px; line-height: 1.5; color: #64748b; margin: 0;">Dilengkapi dengan sistem perekaman digital kamera ganda (multi-angle) dan interkom untuk observasi real-time.</p>
+
+</div>
+</div>
+<div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; gap: 8px; align-items: flex-start;">
+
+<span style="background: #fff1f2; color: #8a151b; font-weight: bold; font-size: 13px; padding: 6px 10px; border-radius: 8px; flex-shrink: 0;">B</span>
+<div>
+<h3 style="font-size: 14px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Klinik Pembelajaran</h3>
+<p style="font-size: 13px; line-height: 1.5; color: #64748b; margin: 0;">Berfungsi sebagai ruang refleksi di mana mahasiswa dapat menganalisis penampilan mengajar mereka melalui umpan balik visual dan bimbingan dosen pakar.</p>
+
+</div>
+</div>
+<div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; gap: 8px; align-items: flex-start;">
+
+<span style="background: #fff1f2; color: #8a151b; font-weight: bold; font-size: 13px; padding: 6px 10px; border-radius: 8px; flex-shrink: 0;">C</span>
+<div>
+<h3 style="font-size: 14px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Simulasi Kontekstual</h3>
+<p style="font-size: 13px; line-height: 1.5; color: #64748b; margin: 0;">Desain ruangan yang adaptif untuk berbagai model pembelajaran, mulai dari kelas klasikal hingga diskusi kelompok kecil.</p>
+
+</div>
+</div>
+<div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; gap: 8px; align-items: flex-start;">
+
+<span style="background: #fff1f2; color: #8a151b; font-weight: bold; font-size: 13px; padding: 6px 10px; border-radius: 8px; flex-shrink: 0;">D</span>
+<div>
+<h3 style="font-size: 14px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Integrasi Al-Islam &amp; Kemuhammadiyahan</h3>
+<p style="font-size: 13px; line-height: 1.5; color: #64748b; margin: 0;">Menanamkan nilai-nilai etika profesi guru yang berlandaskan karakter religius sesuai visi UMM.</p>
+
+</div>
+</div>
+<div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; gap: 8px; align-items: flex-start;">
+
+<span style="background: #fff1f2; color: #8a151b; font-weight: bold; font-size: 13px; padding: 6px 10px; border-radius: 8px; flex-shrink: 0;">E</span>
+<div>
+<h3 style="font-size: 14px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Standardisasi PLP</h3>
+<p style="font-size: 13px; line-height: 1.5; color: #64748b; margin: 0;">Menjadi kawah candradimuka bagi mahasiswa sebelum diterjunkan ke sekolah mitra dalam program Pengenalan Lapang Persekolahan (PLP).</p>
+
+</div>
+</div>
+</div>
+</div>
+<!-- Komitmen/Footer Text Box -->
+<div style="background-color: #f1f5f9; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
+<p style="font-size: 13px; line-height: 1.6; color: #475569; margin: 0; font-style: italic;">"Laboratorium ini berkomitmen menciptakan lulusan guru yang tidak hanya menguasai materi, tetapi juga memiliki keterampilan komunikasi, penguasaan kelas, dan pemanfaatan teknologi pendidikan yang mumpuni di era digital."</p>
+
+</div>
+</div>
+<!-- KOLOM KANAN: Navigasi Modul & Menu Akses Cepat -->
+<div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 8px;">
+
+<!-- Panel Navigasi Utama -->
+<div style="background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(15, 23, 42, 0.01);">
+<h2 style="font-size: 14px; font-weight: bold; color: #64748b; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.05em;">Navigasi Sistem</h2>
+<div style="display: flex; flex-direction: column; gap: 8px; text-align: center;"><a style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 14px 16px; border-radius: 10px; color: #1e293b; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #e2e8f0; transition: all 0.2s;" href="#">📋 TATA TERTIB LAB.
+<span style="color: #94a3b8;">→</span>
+</a>
+<a style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 14px 16px; border-radius: 10px; color: #1e293b; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #e2e8f0; transition: all 0.2s;" href="#">🔑 PENGGUNAAN LAB.
+<span style="color: #94a3b8;">→</span>
+</a>
+<a style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 14px 16px; border-radius: 10px; color: #1e293b; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #e2e8f0; transition: all 0.2s;" href="#">🖥️ MICROTEACHING
+<span style="color: #94a3b8;">→</span>
+</a>
+<a style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 14px 16px; border-radius: 10px; color: #1e293b; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #e2e8f0; transition: all 0.2s;" href="#">📖 PLP I &amp; II
+<span style="color: #94a3b8;">→</span>
+</a></div>
+</div>
+<!-- Panel Kontak Dedikatif -->
+<div style="background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 4px 6px rgba(15, 23, 42, 0.01);">
+<h2 style="font-size: 14px; font-weight: bold; color: #64748b; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.05em;">Bantuan</h2>
+<p style="font-size: 12px; color: #64748b; margin: 0 0 16px 0; line-height: 1.5;">Punya pertanyaan seputar jadwal atau kendala teknis operasional?</p>
+<a style="background-color: #cca43b; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: bold; padding: 12px 20px; border-radius: 8px; display: block; letter-spacing: 0.3px; border: 1px solid #b89332; text-transform: uppercase;" href="https://wa.me/6285649955997?text=mohon%20maaf!..Bapak/Sdr.%20Pimpinan/Administrator%20Yth.%20saya%20butuh%20bantuan%20Layanan%20Akademik%20LMT,%20FPSH%20-%20UMM." target="_blank" rel="noopener">📞 HUBUNGI KAMI
+</a>
+
+</div>
+</div>
+</div>
+</div>
+</div>

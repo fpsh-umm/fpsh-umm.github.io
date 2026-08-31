@@ -469,7 +469,7 @@ tbody tr:hover{background:#faf9f4;}
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Masuk</button>
         </form>
-        <button type="button" id="authBackBtn" class="btn btn-ghost btn-sm btn-block" style="margin-top:10px;">&larr; Kembali ke Dasboard</button>
+        <button type="button" id="authBackBtn" class="btn btn-ghost btn-sm btn-block" style="margin-top:10px;">&larr; Kembali ke Dashboard</button>
         <div class="demo-note" id="demoNote">Mode pratinjau lokal aktif — aplikasi ini belum terhubung ke Google Apps Script. Gunakan <b>admin@fpsh.ac.id</b> / <b>admin123</b> untuk mencoba, atau daftar akun baru. Lihat PANDUAN_SETUP.md untuk menghubungkan ke Spreadsheet sungguhan.</div>
       </div>
 
@@ -513,7 +513,7 @@ tbody tr:hover{background:#faf9f4;}
       <div class="tn-item" data-group="utama">
         <button class="tn-toggle">Utama <span class="chev">&#9662;</span></button>
         <div class="tn-dropdown">
-          <button class="sb-link" data-page="dashboard"><span class="sb-icon">&#9635;</span> Dasboard</button>
+          <button class="sb-link" data-page="dashboard"><span class="sb-icon">&#9635;</span> Dashboard</button>
           <button class="sb-link user-only hidden" data-page="riwayat"><span class="sb-icon">&#8635;</span> Riwayat Saya</button>
         </div>
       </div>
@@ -563,7 +563,7 @@ tbody tr:hover{background:#faf9f4;}
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:12px;">
         <div>
-          <h1 id="pageTitle">Dasboard</h1>
+          <h1 id="pageTitle">Dashboard</h1>
           <div class="crumb" id="pageCrumb">Ringkasan aktivitas Anda</div>
         </div>
       </div>
@@ -1346,7 +1346,7 @@ document.getElementById('guestLoginNavBtn').addEventListener('click', ()=>{
   showPanel('login');
 });
 
-/* Tombol "Kembali ke Dasboard" di layar login: batal masuk, kembali ke dasbor tamu */
+/* Tombol "Kembali ke Dashboard" di layar login: batal masuk, kembali ke dasbor tamu */
 document.getElementById('authBackBtn').addEventListener('click', ()=>{
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
@@ -1416,7 +1416,7 @@ updateTopClock();
 setInterval(updateTopClock, 1000);
 
 const PAGE_TITLES = {
-  dashboard:['Dasboard','Ringkasan Aktivitas'],
+  dashboard:['Dashboard','Ringkasan Aktivitas'],
   riwayat:['Riwayat Saya','Seluruh pengajuan yang pernah Anda kirim'],
   akun:['Ubah Kata Sandi','Perbarui kredensial akun Anda'],
   'admin-requests':['Semua Pengajuan','Kelola seluruh pengajuan layanan fakultas'],

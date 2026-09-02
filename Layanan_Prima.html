@@ -469,7 +469,7 @@ tbody tr:hover{background:#faf9f4;}
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Masuk</button>
         </form>
-        <button type="button" id="authBackBtn" class="btn btn-ghost btn-sm btn-block" style="margin-top:10px;">&larr; Kembali ke Dashboard</button>
+        <button type="button" id="authBackBtn" class="btn btn-ghost btn-sm btn-block" style="margin-top:10px;">&larr; Kembali ke Dasboard</button>
         <div class="demo-note" id="demoNote">Mode pratinjau lokal aktif — aplikasi ini belum terhubung ke Google Apps Script. Gunakan <b>admin@fpsh.ac.id</b> / <b>admin123</b> untuk mencoba, atau daftar akun baru. Lihat PANDUAN_SETUP.md untuk menghubungkan ke Spreadsheet sungguhan.</div>
       </div>
 
@@ -513,7 +513,7 @@ tbody tr:hover{background:#faf9f4;}
       <div class="tn-item" data-group="utama">
         <button class="tn-toggle">Utama <span class="chev">&#9662;</span></button>
         <div class="tn-dropdown">
-          <button class="sb-link" data-page="dashboard"><span class="sb-icon">&#9635;</span> Dashboard</button>
+          <button class="sb-link" data-page="dashboard"><span class="sb-icon">&#9635;</span> Dasboard</button>
           <button class="sb-link user-only hidden" data-page="riwayat"><span class="sb-icon">&#8635;</span> Riwayat Saya</button>
         </div>
       </div>
@@ -563,7 +563,7 @@ tbody tr:hover{background:#faf9f4;}
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:12px;">
         <div>
-          <h1 id="pageTitle">Dashboard</h1>
+          <h1 id="pageTitle">Dasboard</h1>
           <div class="crumb" id="pageCrumb">Ringkasan aktivitas Anda</div>
         </div>
       </div>
@@ -679,7 +679,7 @@ const DemoBackend = (function(){
   // (jadwal masa depan, kuncinya belum diambil) yang tidak berlaku untuk
   // Peminjaman Barang.
   const ROOM_STATUS_LIST = ['Diajukan','Diagendakan','Selesai'];
-  function simpleFlowStatusListFor(key){ return key==='PEMINJAMAN_RUANG' ? ROOM_STATUS_LIST : SIMPLE_STATUS_LIST; }
+  function simpleFlowStatusListFor(key){ return (key==='PEMINJAMAN_RUANG' || key==='PEMINJAMAN') ? ROOM_STATUS_LIST : SIMPLE_STATUS_LIST; }
   // Setara roomKey_()/parseRoomEntries_() di Code.gs (mode pratinjau lokal) —
   // lihat komentar roomAvailKey()/roomCompositeValue() di bagian utama skrip.
   function parseRoomEntriesDemo(namaRuangStr){
@@ -742,9 +742,9 @@ const DemoBackend = (function(){
       }
       const row = Object.assign({ID:genId(), TanggalPengajuan:new Date().toISOString(), TanggalUpdate:new Date().toISOString(), Status:'Diajukan', CatatanAdmin:'', Petugas:'', NomorSurat:'', ProdiUnit:prodi}, formData);
       // Setara logika 'Diagendakan' di submitRequest() Code.gs — lihat
-      // komentar ROOM_STATUS_LIST di atas.
-      if(key === 'PEMINJAMAN_RUANG'){
-        const targetDate = String(formData.TanggalPenggunaan||'').slice(0,10);
+      // komentar ROOM_STATUS_LIST di atas (berlaku utk Ruang & Barang).
+      if(key === 'PEMINJAMAN_RUANG' || key === 'PEMINJAMAN'){
+        const targetDate = String((key==='PEMINJAMAN_RUANG'?formData.TanggalPenggunaan:formData.TanggalPinjam)||'').slice(0,10);
         if(targetDate && targetDate > todayDateStr()) row.Status = 'Diagendakan';
       }
       db[key].push(row); save(db);
@@ -780,6 +780,18 @@ const DemoBackend = (function(){
         return {success:false, message:'Anda hanya dapat memproses pengajuan dari Program Studi Anda sendiri.'};
       }
       Object.assign(row, updates, {TanggalUpdate:new Date().toISOString(), Petugas:petugas||row.Petugas});
+      // Setara logika auto-isi WaktuSelesaiDigunakan/WaktuDikembalikan di
+      // updateRequestStatus() Code.gs (mode pratinjau lokal) — lihat
+      // komentar lengkap pada versi Code.gs untuk penjelasan alurnya.
+      if(updates.Status === 'Selesai'){
+        if(key === 'PEMINJAMAN_RUANG' && !row.WaktuSelesaiDigunakan){
+          row.SelesaiDigunakan = 'Ya';
+          row.WaktuSelesaiDigunakan = new Date().toISOString();
+        } else if(key === 'PEMINJAMAN' && !row.WaktuDikembalikan){
+          row.Dikembalikan = 'Ya';
+          row.WaktuDikembalikan = new Date().toISOString();
+        }
+      }
       save(db);
       return {success:true, message:'Status diperbarui.'};
     },
@@ -1013,9 +1025,8 @@ const SERVICE_FORM_CONFIG = {
     title:'Peminjaman/Penggunaan Barang & Inventaris',
     desc:'Ajukan peminjaman alat atau inventaris fakultas.',
     fields:[
-      {key:'NamaBarang', label:'Nama Barang/Inventaris', type:'text', full:true, master:'MASTER_BARANG'},
-      {key:'Jumlah', label:'Jumlah', type:'number'},
-      {key:'TujuanPenggunaan', label:'Tujuan Penggunaan', type:'text'},
+      {key:'NamaBarang', label:'Barang Tersedia', type:'qtylist', full:true, master:'MASTER_BARANG'},
+      {key:'TujuanPenggunaan', label:'Tujuan Penggunaan', type:'text', full:true},
       {key:'TanggalPinjam', label:'Tanggal Pinjam', type:'date'},
       {key:'TanggalKembali', label:'Tanggal Kembali', type:'date'}
     ]
@@ -1199,6 +1210,12 @@ function jamSelesaiDisplay(r){
   if(r.Status === 'Selesai' && r.WaktuSelesaiDigunakan){
     return fmtDateWithDay(r.WaktuSelesaiDigunakan) + ', ' + fmtTime24(r.WaktuSelesaiDigunakan);
   }
+  // Analog persis di atas, untuk Peminjaman Barang & Inventaris —
+  // 'WaktuDikembalikan' diisi kembalikanBarang() di Code.gs begitu barang
+  // ditandai dikembalikan lewat tabel "Sedang Dipinjam".
+  if(r.Status === 'Selesai' && r.WaktuDikembalikan){
+    return fmtDateWithDay(r.WaktuDikembalikan) + ', ' + fmtTime24(r.WaktuDikembalikan);
+  }
   if(r.JamSelesai) return esc(r.JamSelesai);
   return '-';
 }
@@ -1211,6 +1228,13 @@ function jamSelesaiDisplay(r){
 // (roomAvailKey) — harus sama persis dengan roomKey_() di Code.gs.
 function roomCompositeValue(nama, lokasi){ return lokasi ? (nama+' ('+lokasi+')') : nama; }
 function roomAvailKey(nama, lokasi){ return String(nama||'').trim()+'@@'+String(lokasi||'').trim(); }
+// Barang (form Peminjaman/Penggunaan Barang & Inventaris): mekanisme yang
+// SAMA seperti Ruang di atas, tapi nilai yang dikirim/disimpan menyertakan
+// JUMLAH juga — format "Nama (Kategori) xJumlah" — karena satu jenis barang
+// bisa dipinjam sejumlah unit sekaligus (beda dari Ruang yang selalu x1).
+// Harus sama persis dengan barangKey_()/parseBarangEntries_() di Code.gs.
+function barangCompositeValue(nama, kategori, qty){ return (kategori ? (nama+' ('+kategori+')') : nama) + ' x' + qty; }
+function barangAvailKey(nama, kategori){ return String(nama||'').trim()+'@@'+String(kategori||'').trim(); }
 // "Staf pemroses": role yang berhak melihat & memproses/menyetujui pengajuan
 // lewat menu "Manajemen" > "Semua Pengajuan" — mencakup Tendik, Admin, dan
 // kedua role Pimpinan (Prodi/Fakultas). Cakupan datanya sendiri (semua
@@ -1346,7 +1370,7 @@ document.getElementById('guestLoginNavBtn').addEventListener('click', ()=>{
   showPanel('login');
 });
 
-/* Tombol "Kembali ke Dashboard" di layar login: batal masuk, kembali ke dasbor tamu */
+/* Tombol "Kembali ke Dasboard" di layar login: batal masuk, kembali ke dasbor tamu */
 document.getElementById('authBackBtn').addEventListener('click', ()=>{
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
@@ -1416,7 +1440,7 @@ updateTopClock();
 setInterval(updateTopClock, 1000);
 
 const PAGE_TITLES = {
-  dashboard:['Dashboard','Ringkasan Aktivitas'],
+  dashboard:['Dasboard','Ringkasan Aktivitas'],
   riwayat:['Riwayat Saya','Seluruh pengajuan yang pernah Anda kirim'],
   akun:['Ubah Kata Sandi','Perbarui kredensial akun Anda'],
   'admin-requests':['Semua Pengajuan','Kelola seluruh pengajuan layanan fakultas'],
@@ -1509,8 +1533,9 @@ async function renderDashboard(){
         <td>${fmtDateWithDay(r.TanggalPengajuan)}</td>
         <td>${fmtTime24(r.TanggalPengajuan)}</td>
         <td>${jamSelesaiDisplay(r)}</td>
+        <td>${esc(r.Petugas||'-')}</td>
         <td><span class="pill ${esc(r.Status)}">${esc(customerStatusLabel(r.Status))}</span></td>
-      </tr>`).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
+      </tr>`).join('') : `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
 
     content.innerHTML = `
       <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">${Object.keys(SERVICE_FORM_CONFIG).length} kategori layanan tersedia</span></div>
@@ -1518,7 +1543,7 @@ async function renderDashboard(){
 
       <div class="section-title"><h2>Customer (Pemohon/Pengguna)</h2></div>
       <div class="card tbl-wrap"><table>
-        <thead><tr><th>ID</th><th>Layanan</th><th>Peminjam</th><th>Prodi</th><th>Objek Dipinjam</th><th>Hari &amp; Tanggal</th><th>JAM</th><th>SAMPAI</th><th>Status</th></tr></thead>
+        <thead><tr><th>ID</th><th>Layanan</th><th>Peminjam</th><th>Prodi</th><th>Objek Dipinjam</th><th>Hari &amp; Tanggal</th><th>JAM</th><th>SAMPAI</th><th>User</th><th>Status</th></tr></thead>
         <tbody>${guestRecentRows}</tbody>
       </table></div>
     `;
@@ -1557,8 +1582,9 @@ async function renderDashboard(){
       <td>${fmtDateWithDay(r.TanggalPengajuan)}</td>
       <td>${fmtTime24(r.TanggalPengajuan)}</td>
       <td>${jamSelesaiDisplay(r)}</td>
+      <td>${esc(r.Petugas||'-')}</td>
       <td><span class="pill ${esc(r.Status)}">${esc(customerStatusLabel(r.Status))}</span></td>
-    </tr>`).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
+    </tr>`).join('') : `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
 
   content.innerHTML = `
     <div class="stat-grid">${statCards}</div>
@@ -1568,7 +1594,7 @@ async function renderDashboard(){
 
     <div class="section-title"><h2>${isStaff() ? (isProdiScopedRole() ? 'Pemohon Program Studi Anda' : 'Customer (Pemohon/Pengguna)') : 'Pengajuan Terbaru Saya'}</h2></div>
     <div class="card tbl-wrap"><table>
-      <thead><tr><th>ID</th><th>Layanan</th><th>Peminjam</th><th>Prodi</th><th>Objek Dipinjam</th><th>Hari &amp; Tanggal</th><th>JAM</th><th>SAMPAI</th><th>Status</th></tr></thead>
+      <thead><tr><th>ID</th><th>Layanan</th><th>Peminjam</th><th>Prodi</th><th>Objek Dipinjam</th><th>Hari &amp; Tanggal</th><th>JAM</th><th>SAMPAI</th><th>User</th><th>Status</th></tr></thead>
       <tbody>${recentRows}</tbody>
     </table></div>
   `;
@@ -1600,10 +1626,21 @@ function renderPendingBlockHtml(pending, nimNip){
     // "Diagendakan") tapi TANPA tombol — Customer harus kembali lagi pada
     // harinya.
     const isScheduledRoom = p._jenis === 'PEMINJAMAN_RUANG' && p.Status === 'Diagendakan';
-    const canPickup = isScheduledRoom && normalizeDateStrClient(p.TanggalPenggunaan) <= todayStr;
-    const actionCell = canPickup
+    const canPickupRoom = isScheduledRoom && normalizeDateStrClient(p.TanggalPenggunaan) <= todayStr;
+    // Analog persis 'isScheduledRoom'/'canPickupRoom' di atas, untuk
+    // Peminjaman Barang & Inventaris ('TanggalPinjam' sbg acuan, bukan
+    // 'TanggalPenggunaan') — lihat ambilBarangTerjadwal() di Code.gs.
+    const isScheduledBarang = p._jenis === 'PEMINJAMAN' && p.Status === 'Diagendakan';
+    const canPickupBarang = isScheduledBarang && normalizeDateStrClient(p.TanggalPinjam) <= todayStr;
+    const actionCell = canPickupRoom
       ? `<button type="button" class="btn btn-primary btn-sm" onclick="handleAmbilKunciTerjadwal('${esc(p.ID)}', this)">Ambil Kunci</button>`
-      : (isScheduledRoom ? `<span style="font-size:12px;color:var(--muted);">Tanggal: ${esc(fmtDateWithDay(p.TanggalPenggunaan))}</span>` : '');
+      : canPickupBarang
+      ? `<button type="button" class="btn btn-primary btn-sm" onclick="handleAmbilBarangTerjadwal('${esc(p.ID)}', this)">Ambil Barang</button>`
+      : isScheduledRoom
+      ? `<span style="font-size:12px;color:var(--muted);">Tanggal: ${esc(fmtDateWithDay(p.TanggalPenggunaan))}</span>`
+      : isScheduledBarang
+      ? `<span style="font-size:12px;color:var(--muted);">Tanggal: ${esc(fmtDateWithDay(p.TanggalPinjam))}</span>`
+      : '';
     return `
     <tr data-pending-row="${esc(p.ID)}">
       <td class="mono">${esc(p.ID)}</td>
@@ -1648,6 +1685,25 @@ async function handleAmbilKunciTerjadwal(id, btnEl){
   } catch(err){
     toast('Gagal: '+err, 'error');
     btnEl.disabled = false; btnEl.textContent = 'Ambil Kunci';
+  }
+}
+
+// Analog persis 'handleAmbilKunciTerjadwal' di atas, untuk tombol "Ambil
+// Barang" pada blok pengajuan tertunda — mengaktifkan jadwal 'Diagendakan'
+// jadi 'Diajukan' (Digunakan) lewat ambilBarangTerjadwal() di Code.gs.
+async function handleAmbilBarangTerjadwal(id, btnEl){
+  const wrap = btnEl.closest('[data-pending-block]');
+  const nimNip = wrap ? wrap.getAttribute('data-pending-nimnip') : '';
+  if(!nimNip){ toast('NIM/NIP tidak ditemukan — silakan masukkan ulang NIM/NIP Anda.', 'error'); return; }
+  btnEl.disabled = true; btnEl.innerHTML = '<span class="loader"></span>';
+  try{
+    const res = await callServer('ambilBarangTerjadwal', id, nimNip, CURRENT_USER ? CURRENT_USER.Email : nimNip);
+    toast(res.message, res.success ? 'success' : 'error');
+    if(res.success) navigate(CURRENT_PAGE);
+    else { btnEl.disabled = false; btnEl.textContent = 'Ambil Barang'; }
+  } catch(err){
+    toast('Gagal: '+err, 'error');
+    btnEl.disabled = false; btnEl.textContent = 'Ambil Barang';
   }
 }
 
@@ -1703,6 +1759,23 @@ async function renderServiceForm(key){
       const avail = await callServer('getRoomAvailability', todayDateStr());
       masterOptionsByKey[roomField.key].forEach(o=>{ o.availability = avail[roomAvailKey(o.nama, o.lokasi)] || 'Kosong'; });
     }catch(e){ /* biarkan default 'Kosong' pada tabel kalau gagal diambil */ }
+  }
+
+  // Barang (Nama Barang): analog persis blok Ruang di atas, TAPI ketersediaan
+  // di sini berupa SISA STOK (bukan Kosong/Digunakan) untuk rentang Tanggal
+  // Pinjam–Kembali default form (hari ini, sampai tanggal kembali belum
+  // diisi = dianggap sama dgn Tanggal Pinjam) — lihat getBarangAvailability()
+  // di Code.gs. Diperbarui lagi kalau pemohon mengubah Tanggal Pinjam/Kembali
+  // (lihat listener setelah form dirender, di bawah).
+  const barangField = cfg.fields.find(f => f.master === 'MASTER_BARANG');
+  if(barangField && masterOptionsByKey[barangField.key] && masterOptionsByKey[barangField.key].length){
+    try{
+      const avail = await callServer('getBarangAvailability', todayDateStr(), todayDateStr());
+      masterOptionsByKey[barangField.key].forEach(o=>{
+        const a = avail[barangAvailKey(o.nama, o.kategori)];
+        o.availability = a || { total: Number(o.jumlahTersedia)||0, dipesan: 0, sisa: Number(o.jumlahTersedia)||0 };
+      });
+    }catch(e){ /* biarkan sisa = stok data induk apa adanya kalau gagal diambil */ }
   }
 
   // Tamu (belum masuk) hanya mengisi NIM/NIP. Peran/Nama/Email tidak lagi
@@ -1804,6 +1877,46 @@ async function renderServiceForm(key){
         <div data-checklist-group="${f.key}">${bodyHtml}</div>
         ${opts.length ? `<div class="field-hint" style="font-size:12px;color:var(--muted);margin-top:5px;">Klik baris atau kotak centang untuk memilih.</div>` : ''}</div>`;
     }
+    if(f.type === 'qtylist'){
+      // Barang (Nama Barang): analog tabel Ruang Tersedia di atas, TAPI
+      // pemohon mengisi JUMLAH per baris (bukan sekadar mencentang) karena
+      // satu jenis barang boleh dipinjam beberapa unit sekaligus & beberapa
+      // jenis barang berbeda sekaligus dalam satu pengajuan. Baris dengan
+      // sisa stok 0 pada rentang Tanggal Pinjam–Kembali yang dipilih
+      // DISEMBUNYIKAN (pola sama seperti tabel Ruang: tetap dirender di DOM,
+      // display:none, supaya refreshBarangAvailability() di bawah tinggal
+      // toggle & membatasi ulang atribut max tiap kotak Jumlah tanpa perlu
+      // render ulang seluruh tabel).
+      const opts = masterOptionsByKey[f.key] || [];
+      let bodyHtml;
+      if(!opts.length){
+        bodyHtml = `<div class="room-check-empty">Belum ada data induk terdaftar — hubungi Admin untuk menambahkan data di sheet data induk.</div>`;
+      } else {
+        const rowsHtml = opts.map((o,i)=>{
+          const sisa = (o.availability && typeof o.availability.sisa === 'number') ? o.availability.sisa : (Number(o.jumlahTersedia)||0);
+          const hidden = sisa <= 0;
+          const key = barangAvailKey(o.nama, o.kategori);
+          return `
+            <tr data-barang-row data-barang-key="${esc(key)}" data-barang-nama="${esc(o.nama)}" data-barang-kategori="${esc(o.kategori)}" style="cursor:default;${hidden?'display:none;':''}">
+              <td style="font-weight:600;">${esc(o.nama)}</td>
+              <td>${esc(o.kategori||'-')}</td>
+              <td>${esc(o.ket||'-')}</td>
+              <td data-barang-sisa>${sisa} unit</td>
+              <td onclick="event.stopPropagation();"><input type="number" name="${f.key}_qty_${i}" data-barang-qty min="0" max="${sisa}" step="1" placeholder="0" id="${f.key}_opt${i}"></td>
+            </tr>`;
+        }).join('');
+        const allUsed = opts.every(o=> ((o.availability && typeof o.availability.sisa==='number') ? o.availability.sisa : (Number(o.jumlahTersedia)||0)) <= 0);
+        bodyHtml = `<div class="room-table-wrap"><div class="room-table-scroll"><table>
+          <thead><tr><th>Nama Barang</th><th>Kategori</th><th>Keterangan</th><th>Sisa Stok</th><th>Jumlah Dipinjam</th></tr></thead>
+          <tbody>${rowsHtml}
+            <tr id="barangAllUsedMsg" style="${allUsed?'':'display:none;'}"><td colspan="5" class="room-check-empty">Seluruh barang sedang habis/dipinjam pihak lain pada rentang tanggal ini.</td></tr>
+          </tbody>
+        </table></div></div>`;
+      }
+      return `<div class="field ${fullClass}"><label>${esc(f.label)}</label>
+        <div data-qtylist-group="${f.key}">${bodyHtml}</div>
+        ${opts.length ? `<div class="field-hint" style="font-size:12px;color:var(--muted);margin-top:5px;">Isi Jumlah untuk tiap barang yang ingin dipinjam (boleh lebih dari satu jenis).</div>` : ''}</div>`;
+    }
     if(f.master){
       const opts = masterOptionsByKey[f.key] || [];
       const dlId = 'dl_' + f.key;
@@ -1813,35 +1926,39 @@ async function renderServiceForm(key){
         <input type="text" name="${f.key}" list="${dlId}" placeholder="${esc(hint)}" ${f.required===false?'':'required'} autocomplete="off">
         <datalist id="${dlId}">${dlHtml}</datalist></div>`;
     }
-    // 'TanggalPenggunaan' & 'JamMulai' (form Peminjaman Ruang) otomatis
-    // terisi tanggal/jam saat ini dari perangkat pemohon sebagai nilai awal
-    // yang wajar (bukan dipaksa) — pemohon tetap bebas mengubahnya kalau mau
-    // memakai ruang di hari/jam lain.
+    // 'TanggalPenggunaan'/'TanggalPinjam' (form Peminjaman Ruang/Barang) &
+    // 'JamMulai' (form Peminjaman Ruang) otomatis terisi tanggal/jam saat ini
+    // dari perangkat pemohon sebagai nilai awal yang wajar (bukan dipaksa) —
+    // pemohon tetap bebas mengubahnya kalau mau memakai/meminjam di hari/jam
+    // lain. 'TanggalKembali' TIDAK diisi otomatis (dibiarkan kosong) karena
+    // rentang peminjaman barang wajar bervariasi, tidak seperti satu hari
+    // penggunaan ruang.
     let defaultVal = '';
-    if(f.key === 'TanggalPenggunaan' && f.type === 'date') defaultVal = todayDateStr();
+    if((f.key === 'TanggalPenggunaan' || f.key === 'TanggalPinjam') && f.type === 'date') defaultVal = todayDateStr();
     if(f.key === 'JamMulai' && f.type === 'time') defaultVal = nowTimeStr();
-    // 'Tanggal Penggunaan': kotak yang tampil ke pemohon menampilkan format
-    // terformat lengkap dengan nama HARI (mis. "Sabtu, 29 Agu 2026",
-    // memakai fmtDateWithDay() yang sama seperti kolom "Hari & Tanggal" di
-    // seluruh tabel aplikasi) — BUKAN format mentah bawaan <input type="date">
-    // yang mengikuti locale/OS pemakai (mis. "29/08/2026" atau "8/29/2026",
-    // tidak seragam & tidak menyertakan nama hari). <input type="date"> ASLI
-    // tetap dipertahankan (kalender bawaan browser masih berfungsi normal
-    // untuk MEMILIH tanggal) tapi ditumpuk TRANSPARAN tepat di atas kotak
-    // tampilan (lihat .date-picker-wrap di CSS) — jadi yang terlihat pemohon
-    // hanyalah teks terformat, sementara input sungguhan yang dikirim form
-    // tetap 'YYYY-MM-DD' standar seperti sebelumnya, tidak berubah apa pun di
-    // sisi server. Kotak tampilan diperbarui live oleh listener 'change' pada
-    // <input type="date"> (lihat kode setelah form dirender, dekat
-    // 'refreshRoomAvailability') — sudah termasuk nama HARI di dalamnya,
-    // jadi hint terpisah "Hari: ..." yang dulu ada di bawahnya dihapus
-    // (informasinya sekarang sudah tampil langsung di kotak).
-    if(f.key === 'TanggalPenggunaan' && f.type === 'date'){
+    // 'Tanggal Penggunaan'/'Tanggal Pinjam'/'Tanggal Kembali': kotak yang
+    // tampil ke pemohon menampilkan format terformat lengkap dengan nama HARI
+    // (mis. "Sabtu, 29 Agu 2026", memakai fmtDateWithDay() yang sama seperti
+    // kolom "Hari & Tanggal" di seluruh tabel aplikasi) — BUKAN format mentah
+    // bawaan <input type="date"> yang mengikuti locale/OS pemakai (mis.
+    // "29/08/2026" atau "8/29/2026", tidak seragam & tidak menyertakan nama
+    // hari). <input type="date"> ASLI tetap dipertahankan (kalender bawaan
+    // browser masih berfungsi normal untuk MEMILIH tanggal) tapi ditumpuk
+    // TRANSPARAN tepat di atas kotak tampilan (lihat .date-picker-wrap di
+    // CSS) — jadi yang terlihat pemohon hanyalah teks terformat, sementara
+    // input sungguhan yang dikirim form tetap 'YYYY-MM-DD' standar seperti
+    // sebelumnya, tidak berubah apa pun di sisi server. Kotak tampilan
+    // diperbarui live oleh listener 'change' pada <input type="date"> (lihat
+    // kode setelah form dirender, dekat 'refreshRoomAvailability'/
+    // 'refreshBarangAvailability') — sudah termasuk nama HARI di dalamnya,
+    // jadi hint terpisah "Hari: ..." yang dulu ada di bawahnya tidak
+    // diperlukan lagi (informasinya sekarang sudah tampil langsung di kotak).
+    if((f.key === 'TanggalPenggunaan' || f.key === 'TanggalPinjam' || f.key === 'TanggalKembali') && f.type === 'date'){
       return `<div class="field ${fullClass}">
         <label>${esc(f.label)}</label>
         <div class="date-picker-wrap">
-          <div class="field-display-box" id="svcTanggalPenggunaanDisplay">${esc(fmtDateWithDay(defaultVal))}</div>
-          <input type="date" name="${f.key}" id="svcTanggalPenggunaan" value="${esc(defaultVal)}" ${f.required===false?'':'required'}>
+          <div class="field-display-box" id="svcTanggal_${f.key}_display">${esc(fmtDateWithDay(defaultVal))}</div>
+          <input type="date" name="${f.key}" id="svcTanggal_${f.key}" value="${esc(defaultVal)}" ${f.required===false?'':'required'}>
         </div>
       </div>`;
     }
@@ -1896,6 +2013,17 @@ async function renderServiceForm(key){
     </div>
   ` : '';
 
+  // Analog persis 'roomUsageBlock' di atas, khusus halaman "Peminjaman/
+  // Penggunaan Barang & Inventaris" ("Sedang Dipinjam") — diisi async oleh
+  // loadBarangUsageTable() di bawah.
+  const barangUsageBlock = key === 'PEMINJAMAN' ? `
+    <div class="card card-pad" style="margin-top:20px;">
+      <h3 style="margin:0 0 12px;font-size:14px;">Sedang Dipinjam</h3>
+      <div id="barangUsageMsg"></div>
+      <div id="barangUsageTableWrap"><div class="room-check-empty">Memuat data...</div></div>
+    </div>
+  ` : '';
+
   content.innerHTML = `
     <div class="${isGuest ? '' : 'two-col'}">
       <div class="card card-pad">
@@ -1912,6 +2040,7 @@ async function renderServiceForm(key){
       ${historyBlock}
     </div>
     ${roomUsageBlock}
+    ${barangUsageBlock}
   `;
 
   // Field bertipe 'checklist' (mis. Nama Ruang): ditampilkan sebagai tabel,
@@ -1992,47 +2121,110 @@ async function renderServiceForm(key){
     }
   }
 
-  // Kotak tampilan 'Tanggal Penggunaan' (mis. "Sabtu, 29 Agu 2026") —
-  // diperbarui live tiap kali pemohon memilih tanggal baru lewat <input
-  // type="date"> asli yang ditumpuk transparan di atasnya (lihat markup
-  // field & CSS '.date-picker-wrap'). Dibuat terpisah dari listener
-  // 'refreshRoomAvailability' di atas (tidak bergantung ada/tidaknya
-  // roomField) supaya tetap jalan pada layanan lain yang mungkin memakai
-  // field 'TanggalPenggunaan' di masa depan.
-  const svcTanggalInput = content.querySelector('#svcTanggalPenggunaan');
-  const svcTanggalDisplay = content.querySelector('#svcTanggalPenggunaanDisplay');
-  const syncTanggalDisplay = ()=>{
-    if(svcTanggalInput && svcTanggalDisplay) svcTanggalDisplay.textContent = fmtDateWithDay(svcTanggalInput.value);
-  };
-  // PENTING: <input type="date"> yang ditumpuk transparan (opacity:0) di atas
-  // kotak tampilan TIDAK selalu membuka kalender bawaan hanya dengan diklik
-  // di banyak browser desktop (Chrome dkk. hanya membuka kalender kalau
-  // pengguna mengenai ikon kalendernya secara presisi — ikon itu pun ikut
-  // tersembunyi karena opacity:0, jadi kotak terasa "terkunci"/tidak
-  // merespons). Diperbaiki dengan memanggil showPicker() secara eksplisit
-  // saat kotak tampilan diklik — didukung Chrome/Edge/Safari/Firefox versi
-  // baru; browser lama tanpa showPicker() jatuh ke .focus() sebagai
-  // cadangan (setidaknya bisa diisi lewat keyboard).
-  if(svcTanggalInput && svcTanggalDisplay){
-    svcTanggalDisplay.addEventListener('click', ()=>{
-      if(typeof svcTanggalInput.showPicker === 'function'){
-        try{ svcTanggalInput.showPicker(); } catch(err){ svcTanggalInput.focus(); }
-      } else {
-        svcTanggalInput.focus();
-      }
-    });
+  // Barang: analog persis 'refreshRoomAvailability' di atas, TAPI dipicu oleh
+  // PERUBAHAN Tanggal Pinjam MAUPUN Tanggal Kembali (keduanya menentukan
+  // rentang yang dicek — lihat getBarangAvailability()), dan alih-alih
+  // sekadar sembunyi/tampil, tiap baris juga punya SISA STOK yang berubah-
+  // ubah: kotak Jumlah dibatasi ulang (atribut max) sesuai sisa terbaru, dan
+  // kalau Jumlah yang sudah diisi pemohon melebihi sisa baru, otomatis
+  // dipangkas ke sisa maksimum yang baru itu.
+  let refreshBarangAvailability = async ()=>{};
+  if(barangField){
+    const pinjamInput = content.querySelector('[name="TanggalPinjam"]');
+    const kembaliInput = content.querySelector('[name="TanggalKembali"]');
+    if(pinjamInput){
+      refreshBarangAvailability = async ()=>{
+        if(!pinjamInput.value) return;
+        let avail = {};
+        try{ avail = await callServer('getBarangAvailability', pinjamInput.value, kembaliInput && kembaliInput.value ? kembaliInput.value : pinjamInput.value); }
+        catch(e){ return; }
+        let anyVisible = false;
+        content.querySelectorAll('[data-barang-row]').forEach(row=>{
+          const a = avail[row.dataset.barangKey];
+          const sisa = a ? a.sisa : 0;
+          const hidden = sisa <= 0;
+          row.style.display = hidden ? 'none' : '';
+          const sisaCell = row.querySelector('[data-barang-sisa]');
+          if(sisaCell) sisaCell.textContent = sisa + ' unit';
+          const qtyInput = row.querySelector('[data-barang-qty]');
+          if(qtyInput){
+            qtyInput.max = sisa;
+            if(hidden){
+              if(qtyInput.value){ qtyInput.value = ''; qtyInput.dispatchEvent(new Event('change',{bubbles:true})); }
+            } else {
+              anyVisible = true;
+              if(qtyInput.value && Number(qtyInput.value) > sisa){ qtyInput.value = sisa; qtyInput.dispatchEvent(new Event('change',{bubbles:true})); }
+            }
+          }
+        });
+        const allUsedMsg = content.querySelector('#barangAllUsedMsg');
+        if(allUsedMsg) allUsedMsg.style.display = anyVisible ? 'none' : '';
+      };
+      pinjamInput.addEventListener('change', refreshBarangAvailability);
+      if(kembaliInput) kembaliInput.addEventListener('change', refreshBarangAvailability);
+    }
   }
 
-  // Tombol kirim untuk 'Peminjaman/Penggunaan Ruang' berganti label secara
-  // otomatis tergantung 'Tanggal Penggunaan' yang dipilih:
-  //  - Hari ini (atau tanggal yang sudah lewat): tetap 'Ambil Kunci' seperti
-  //    sebelumnya — pengajuan LANGSUNG dianggap 'Digunakan' begitu dikirim.
+  // Baris Barang (data-barang-row): kotak Jumlah diketik/diubah → baris
+  // disorot 'is-checked' kalau jumlahnya > 0, pola sama seperti checkbox
+  // Ruang di atas (dipakai CSS untuk menyorot baris yang sedang dipilih).
+  content.querySelectorAll('[data-qtylist-group]').forEach(group=>{
+    group.addEventListener('input', (e)=>{
+      const target = e.target;
+      if(!target || !target.hasAttribute('data-barang-qty')) return;
+      const row = target.closest('[data-barang-row]');
+      if(row) row.classList.toggle('is-checked', Number(target.value) > 0);
+    });
+  });
+
+  // Kotak tampilan tiap field Tanggal (mis. "Sabtu, 29 Agu 2026") —
+  // diperbarui live tiap kali pemohon memilih tanggal baru lewat <input
+  // type="date"> asli yang ditumpuk transparan di atasnya (lihat markup
+  // field & CSS '.date-picker-wrap'), berlaku untuk 'TanggalPenggunaan'
+  // (Ruang) maupun 'TanggalPinjam'/'TanggalKembali' (Barang) — dibuat lewat
+  // fungsi bantu supaya tidak menduplikasi kode utk tiap field.
+  function wireDatePickerDisplay(fieldKey){
+    const inputEl = content.querySelector('#svcTanggal_'+fieldKey);
+    const displayEl = content.querySelector('#svcTanggal_'+fieldKey+'_display');
+    if(!inputEl || !displayEl) return { input:null, sync:()=>{} };
+    const sync = ()=>{ displayEl.textContent = fmtDateWithDay(inputEl.value); };
+    // PENTING: <input type="date"> yang ditumpuk transparan (opacity:0) di
+    // atas kotak tampilan TIDAK selalu membuka kalender bawaan hanya dengan
+    // diklik di banyak browser desktop (Chrome dkk. hanya membuka kalender
+    // kalau pengguna mengenai ikon kalendernya secara presisi — ikon itu pun
+    // ikut tersembunyi karena opacity:0, jadi kotak terasa "terkunci"/tidak
+    // merespons). Diperbaiki dengan memanggil showPicker() secara eksplisit
+    // saat kotak tampilan diklik — didukung Chrome/Edge/Safari/Firefox versi
+    // baru; browser lama tanpa showPicker() jatuh ke .focus() sebagai
+    // cadangan (setidaknya bisa diisi lewat keyboard).
+    displayEl.addEventListener('click', ()=>{
+      if(typeof inputEl.showPicker === 'function'){
+        try{ inputEl.showPicker(); } catch(err){ inputEl.focus(); }
+      } else {
+        inputEl.focus();
+      }
+    });
+    return { input: inputEl, sync: sync };
+  }
+  const svcTanggalPenggunaan = wireDatePickerDisplay('TanggalPenggunaan');
+  const svcTanggalPinjam = wireDatePickerDisplay('TanggalPinjam');
+  const svcTanggalKembali = wireDatePickerDisplay('TanggalKembali');
+  const svcTanggalInput = svcTanggalPenggunaan.input; // alias lama, dipakai di bawah & handler submit
+  const syncTanggalDisplay = ()=>{ svcTanggalPenggunaan.sync(); svcTanggalPinjam.sync(); svcTanggalKembali.sync(); };
+
+  // Tombol kirim untuk 'Peminjaman/Penggunaan Ruang' & 'Peminjaman/
+  // Penggunaan Barang & Inventaris' berganti label secara otomatis
+  // tergantung Tanggal Penggunaan/Tanggal Pinjam yang dipilih:
+  //  - Hari ini (atau tanggal yang sudah lewat): tetap 'Ambil Kunci'/'Ambil
+  //    Barang' seperti sebelumnya — pengajuan LANGSUNG dianggap 'Digunakan'
+  //    begitu dikirim.
   //  - Tanggal MENDATANG: label berganti jadi 'Diajukan' — pengajuan hanya
   //    tercatat sebagai JADWAL (Status 'Diagendakan', lihat submitRequest()
-  //    di Code.gs), kuncinya BELUM diambil. Sebuah keterangan singkat
+  //    di Code.gs), kunci/barangnya BELUM diambil. Sebuah keterangan singkat
   //    (svcFutureDateHint) ditampilkan menjelaskan bahwa Customer wajib
   //    kembali memasukkan NIM/NIP pada hari yang dipesan untuk mengambil
-  //    kunci (lihat renderPendingBlockHtml() & tombol "Ambil Kunci" di sana).
+  //    kunci/barangnya (lihat renderPendingBlockHtml() & tombol "Ambil
+  //    Kunci"/"Ambil Barang" di sana).
   const svcSubmitBtnEl = content.querySelector('#svcSubmitBtn');
   const svcFutureDateHint = content.querySelector('#svcFutureDateHint');
   const updateRoomSubmitLabel = ()=>{
@@ -2044,10 +2236,33 @@ async function renderServiceForm(key){
       if(isFuture) svcFutureDateHint.innerHTML = 'Tanggal yang dipilih adalah untuk hari mendatang — pengajuan ini akan tercatat sebagai <b>Diagendakan</b>, kunci belum langsung diambil. Kembali ke halaman ini &amp; masukkan kembali NIM/NIP Anda pada <b>' + esc(fmtDateWithDay(svcTanggalInput.value)) + '</b> untuk mengambil kuncinya.';
     }
   };
+  // Analog persis 'updateRoomSubmitLabel' di atas, untuk Peminjaman Barang &
+  // Inventaris — memakai 'TanggalPinjam' sbg acuan (bukan
+  // 'TanggalPenggunaan'), & pesan hint disesuaikan ("barang"/"Ambil Barang").
+  const updateBarangSubmitLabel = ()=>{
+    if(key !== 'PEMINJAMAN' || !svcTanggalPinjam.input || !svcSubmitBtnEl) return;
+    const isFuture = svcTanggalPinjam.input.value && svcTanggalPinjam.input.value > todayDateStr();
+    svcSubmitBtnEl.textContent = isFuture ? 'Diajukan' : submitLabel;
+    if(svcFutureDateHint){
+      svcFutureDateHint.style.display = isFuture ? 'block' : 'none';
+      if(isFuture) svcFutureDateHint.innerHTML = 'Tanggal Pinjam yang dipilih adalah untuk hari mendatang — pengajuan ini akan tercatat sebagai <b>Diagendakan</b>, barang belum langsung diambil. Kembali ke halaman ini &amp; masukkan kembali NIM/NIP Anda pada <b>' + esc(fmtDateWithDay(svcTanggalPinjam.input.value)) + '</b> untuk mengambil barangnya.';
+    }
+  };
   if(svcTanggalInput){
     svcTanggalInput.addEventListener('change', ()=>{ syncTanggalDisplay(); updateRoomSubmitLabel(); });
     syncTanggalDisplay();
     updateRoomSubmitLabel();
+  }
+  // Analog blok di atas, untuk 'TanggalPinjam'/'TanggalKembali' (Barang) —
+  // 'TanggalKembali' cukup disinkronkan tampilannya saja (tidak memengaruhi
+  // label tombol kirim, hanya 'TanggalPinjam' yang menentukan Diagendakan).
+  if(svcTanggalPinjam.input){
+    svcTanggalPinjam.input.addEventListener('change', ()=>{ syncTanggalDisplay(); updateBarangSubmitLabel(); });
+    syncTanggalDisplay();
+    updateBarangSubmitLabel();
+  }
+  if(svcTanggalKembali.input){
+    svcTanggalKembali.input.addEventListener('change', syncTanggalDisplay);
   }
 
   // 'Pukul' (dulu 'Jam Mulai (24 Jam)'): kotak isian teks tunggal, format
@@ -2082,7 +2297,7 @@ async function renderServiceForm(key){
     }
 
     roomUsageWrap.innerHTML = `<div class="roomusage-table-wrap"><div class="room-table-scroll"><table>
-      <thead><tr><th>Jenis Ruang</th><th>Ruang</th><th>Peminjam</th><th>Prodi</th><th>Hari &amp; Tanggal</th><th>JAM</th><th>NIM/NIP Peminjam</th><th></th></tr></thead>
+      <thead><tr><th>Jenis Ruang</th><th>Ruang</th><th>Peminjam</th><th>Prodi</th><th>Hari &amp; Tanggal</th><th>JAM</th><th>Catatan/Keterangan</th><th></th></tr></thead>
       <tbody>${rows.map(r=>`
         <tr data-usage-row="${esc(r.id)}">
           <td style="font-weight:600;">${esc(r.namaRuang||'-')}</td>
@@ -2091,38 +2306,118 @@ async function renderServiceForm(key){
           <td>${esc(r.prodi||'-')}</td>
           <td>${fmtDateWithDay(r.tanggalPenggunaan)}</td>
           <td>${fmtTime24(r.tanggalPengajuan)}</td>
-          <td><input type="text" class="roomusage-nim-input" data-usage-nim placeholder="Ketik NIM/NIP peminjam" autocomplete="off"></td>
+          ${isManager() ? `
+          <td><input type="text" class="roomusage-nim-input" data-usage-catatan placeholder="Catatan/keterangan (opsional)" autocomplete="off"></td>
           <td><button type="button" class="btn btn-primary btn-sm" data-usage-selesai-btn>Selesai</button></td>
+          ` : `
+          <td colspan="2" style="text-align:center;color:var(--muted);font-size:12.5px;">Hanya Tendik/Admin yang bisa menandai selesai</td>
+          `}
         </tr>`).join('')}</tbody>
     </table></div></div>`;
 
+    // Tombol "Selesai" & kotak Catatan/Keterangan HANYA dirender (lihat
+    // isManager() di atas) untuk Admin/Tendik Fak./Tendik Prodi — jadi query
+    // listener di bawah ini otomatis tidak menemukan apa-apa (aman, tidak
+    // error) untuk peran lain/pemohon tamu. Verifikasi akses SEBENARNYA tetap
+    // dilakukan di server (assertManagerRole() dalam
+    // selesaikanPenggunaanRuang() di Code.gs) — bagian frontend ini hanya
+    // menyembunyikan tombolnya dari peran yang tidak berhak, bukan satu-
+    // satunya lapisan keamanan.
     roomUsageWrap.querySelectorAll('[data-usage-selesai-btn]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         const row = btn.closest('[data-usage-row]');
         const id = row.dataset.usageRow;
-        const nimInput = row.querySelector('[data-usage-nim]');
-        const nimVal = (nimInput.value||'').trim();
-        if(!nimVal){ nimInput.focus(); toast('Isi dulu NIM/NIP peminjam.', 'error'); return; }
-        btn.disabled = true; nimInput.disabled = true;
+        const catatanInput = row.querySelector('[data-usage-catatan]');
+        const catatanVal = (catatanInput.value||'').trim();
+        btn.disabled = true; catatanInput.disabled = true;
         const originalLabel = btn.textContent;
         btn.textContent = 'Memproses...';
         try{
-          const res = await callServer('selesaikanPenggunaanRuang', id, nimVal, CURRENT_USER ? CURRENT_USER.Email : '');
+          const res = await callServer('selesaikanPenggunaanRuang', id, catatanVal, CURRENT_USER ? CURRENT_USER.Email : '');
           if(res && res.success){
             toast(res.message || 'Ruang berhasil ditandai selesai.', 'success');
             await Promise.all([loadRoomUsageTable(), refreshRoomAvailability()]);
           } else {
             toast((res && res.message) || 'Gagal menandai selesai.', 'error');
-            btn.disabled = false; nimInput.disabled = false; btn.textContent = originalLabel;
+            btn.disabled = false; catatanInput.disabled = false; btn.textContent = originalLabel;
           }
         } catch(e){
           toast(e && e.message ? e.message : String(e), 'error');
-          btn.disabled = false; nimInput.disabled = false; btn.textContent = originalLabel;
+          btn.disabled = false; catatanInput.disabled = false; btn.textContent = originalLabel;
         }
       });
     });
   }
   if(key === 'PEMINJAMAN_RUANG') loadRoomUsageTable();
+
+  // Tabel "Sedang Dipinjam" (terpisah, di bawah): analog persis
+  // 'loadRoomUsageTable' di atas, untuk halaman "Peminjaman/Penggunaan
+  // Barang & Inventaris" — daftar pengajuan Barang yang SEDANG dipinjam
+  // (TIDAK dibatasi hari ini saja — lihat komentar getActiveBarangUsage() di
+  // Code.gs), dengan kotak isian NIM/NIP peminjam & tombol
+  // "Selesai/Kembalikan" per baris. Setelah berhasil, tabel ini dimuat ulang
+  // & sisa stok di tabel "Barang Tersedia" ikut disegarkan.
+  const barangUsageWrap = document.getElementById('barangUsageTableWrap');
+  async function loadBarangUsageTable(){
+    if(!barangUsageWrap) return;
+    let rows = [];
+    try{ rows = await callServer('getActiveBarangUsage'); }
+    catch(e){ barangUsageWrap.innerHTML = `<div class="room-check-empty">Gagal memuat data — coba muat ulang halaman.</div>`; return; }
+
+    if(!rows.length){
+      barangUsageWrap.innerHTML = `<div class="room-check-empty">Tidak ada barang yang sedang dipinjam.</div>`;
+      return;
+    }
+
+    barangUsageWrap.innerHTML = `<div class="roomusage-table-wrap"><div class="room-table-scroll"><table>
+      <thead><tr><th>Barang</th><th>Kategori</th><th>Peminjam</th><th>Prodi</th><th>Tanggal Pinjam</th><th>Tanggal Kembali</th><th>JAM</th><th>Catatan/Keterangan</th><th></th></tr></thead>
+      <tbody>${rows.map(r=>`
+        <tr data-busage-row="${esc(r.id)}">
+          <td style="font-weight:600;">${esc(r.namaBarang||'-')}</td>
+          <td>${esc(r.kategori||'-')}</td>
+          <td>${esc(r.namaPemohon||'-')}<div style="font-size:11.5px;color:var(--muted);">${esc(r.tujuanPenggunaan||'')}</div></td>
+          <td>${esc(r.prodi||'-')}</td>
+          <td>${fmtDateWithDay(r.tanggalPinjam)}</td>
+          <td>${fmtDateWithDay(r.tanggalKembali)}</td>
+          <td>${fmtTime24(r.tanggalPengajuan)}</td>
+          ${isManager() ? `
+          <td><input type="text" class="roomusage-nim-input" data-busage-catatan placeholder="Catatan/keterangan (opsional)" autocomplete="off"></td>
+          <td><button type="button" class="btn btn-primary btn-sm" data-busage-selesai-btn>Selesai</button></td>
+          ` : `
+          <td colspan="2" style="text-align:center;color:var(--muted);font-size:12.5px;">Hanya Tendik/Admin yang bisa menandai selesai</td>
+          `}
+        </tr>`).join('')}</tbody>
+    </table></div></div>`;
+
+    // Lihat komentar analog di loadRoomUsageTable() — tombol & kotak Catatan
+    // hanya dirender utk isManager(), verifikasi akses sebenarnya tetap di
+    // server (assertManagerRole() dalam kembalikanBarang() di Code.gs).
+    barangUsageWrap.querySelectorAll('[data-busage-selesai-btn]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const row = btn.closest('[data-busage-row]');
+        const id = row.dataset.busageRow;
+        const catatanInput = row.querySelector('[data-busage-catatan]');
+        const catatanVal = (catatanInput.value||'').trim();
+        btn.disabled = true; catatanInput.disabled = true;
+        const originalLabel = btn.textContent;
+        btn.textContent = 'Memproses...';
+        try{
+          const res = await callServer('kembalikanBarang', id, catatanVal, CURRENT_USER ? CURRENT_USER.Email : '');
+          if(res && res.success){
+            toast(res.message || 'Barang berhasil ditandai dikembalikan.', 'success');
+            await Promise.all([loadBarangUsageTable(), refreshBarangAvailability()]);
+          } else {
+            toast((res && res.message) || 'Gagal menandai dikembalikan.', 'error');
+            btn.disabled = false; catatanInput.disabled = false; btn.textContent = originalLabel;
+          }
+        } catch(e){
+          toast(e && e.message ? e.message : String(e), 'error');
+          btn.disabled = false; catatanInput.disabled = false; btn.textContent = originalLabel;
+        }
+      });
+    });
+  }
+  if(key === 'PEMINJAMAN') loadBarangUsageTable();
 
   // Pencarian otomatis identitas (tamu saja): begitu NIM/NIP yang diketik
   // cocok dengan data induk (Master_Mahasiswa/Master_Dosen/Master_Tendik),
@@ -2227,6 +2522,17 @@ async function renderServiceForm(key){
         return;
       }
     }
+    // Validasi field 'qtylist' (mis. Barang Tersedia): minimal SATU baris
+    // harus diisi Jumlah > 0 (kotak Jumlah individual sengaja tidak diberi
+    // atribut 'required' — pemohon boleh membiarkan kosong/0 untuk barang
+    // yang tidak dipinjam).
+    for(const f of cfg.fields.filter(x=>x.type==='qtylist' && x.required!==false)){
+      const anyQty = Array.from(document.querySelectorAll(`[data-qtylist-group="${f.key}"] [data-barang-qty]`)).some(inp=>Number(inp.value)>0);
+      if(!anyQty){
+        msgBox.innerHTML = '<div class="msg error">Silakan isi Jumlah minimal satu '+esc(f.label.toLowerCase())+' terlebih dahulu.</div>';
+        return;
+      }
+    }
     // Validasi field 'radio' yang opsi 'Lainnya'-nya sedang dipilih: kotak
     // keterangan wajib diisi (dipakai a.l. oleh Ormawa, Matakuliah/CoE,
     // Prodi, dll. untuk Kuliah Pengganti/Tambahan, Rapat, Koordinasi,
@@ -2281,6 +2587,30 @@ async function renderServiceForm(key){
       payload[f.key] = values.join(', ');
     });
 
+    // Field 'qtylist' (mis. Barang Tersedia): kumpulkan tiap baris yang
+    // Jumlahnya > 0 jadi satu string gabungan "Nama (Kategori) xJumlah"
+    // dipisah koma (format sama seperti dipakai getBarangAvailability() di
+    // Code.gs — lihat barangCompositeValue()/barangKey_()/
+    // parseBarangEntries_()), dan hapus kotak Jumlah individual
+    // ('<key>_qty_<i>') dari payload karena bukan kolom di sheet. Kolom
+    // 'Jumlah' (total keseluruhan, dijumlah dari semua baris) tetap diisi
+    // supaya sheet punya ringkasan angka total yang cepat dibaca.
+    cfg.fields.filter(f=>f.type==='qtylist').forEach(f=>{
+      let totalQty = 0;
+      const entries = [];
+      document.querySelectorAll(`[data-qtylist-group="${f.key}"] [data-barang-row]`).forEach(row=>{
+        const qtyInput = row.querySelector('[data-barang-qty]');
+        const qty = qtyInput ? Number(qtyInput.value) || 0 : 0;
+        if(qtyInput) delete payload[qtyInput.name];
+        if(qty > 0){
+          entries.push(barangCompositeValue(row.dataset.barangNama, row.dataset.barangKategori, qty));
+          totalQty += qty;
+        }
+      });
+      payload[f.key] = entries.join(', ');
+      payload.Jumlah = totalQty;
+    });
+
     if(isGuest){
       payload.NamaPemohon = payload._guestNama;
       payload.NamaMahasiswa = payload._guestNama;
@@ -2315,7 +2645,9 @@ async function renderServiceForm(key){
         // di sini supaya tidak ketinggalan menampilkan nilai sebelum reset.
         syncTanggalDisplay();
         updateRoomSubmitLabel();
+        updateBarangSubmitLabel();
         content.querySelectorAll('[data-room-row].is-checked').forEach(row=>row.classList.remove('is-checked'));
+        content.querySelectorAll('[data-barang-row].is-checked').forEach(row=>row.classList.remove('is-checked'));
         content.querySelectorAll('.radio-opt.is-checked').forEach(opt=>opt.classList.remove('is-checked'));
         toast('Pengajuan terkirim', 'success');
         if(!isGuest) loadSvcHistory(key);
@@ -2327,6 +2659,9 @@ async function renderServiceForm(key){
         // tabel "Sedang Digunakan" di bawahnya — tanpa perlu memuat ulang
         // halaman atau mengganti-ganti Tanggal Penggunaan secara manual.
         if(key === 'PEMINJAMAN_RUANG') await Promise.all([loadRoomUsageTable(), refreshRoomAvailability()]);
+        // Analog persis di atas, untuk Peminjaman/Penggunaan Barang &
+        // Inventaris — begitu klik "Ambil Barang" berhasil.
+        if(key === 'PEMINJAMAN') await Promise.all([loadBarangUsageTable(), refreshBarangAvailability()]);
       } else {
         const pendingExtra = (res.pending && res.pending.length) ? renderPendingBlockHtml(res.pending, payload.NIMNIP) : '';
         msgBox.innerHTML = '<div class="msg error">'+esc(res.message)+'</div>' + pendingExtra;
@@ -2446,11 +2781,13 @@ async function renderAdminRequests(){
 // tombol Kelola (status) yang sudah ada untuk seluruh tab. Edit/Hapus di sini
 // mengubah/menghapus data pengajuan mentah, jadi dibatasi hanya untuk
 // Tendik/Admin (isManager()) — sama seperti pembatasan di tabel Ruang/Barang.
-// Catatan: tab PEMINJAMAN_RUANG sengaja TIDAK dimasukkan di sini lagi, atas
-// permintaan, supaya tabelnya memakai tampilan standar "Semua Pengajuan"
-// yang sama dengan tab lain (ID, Pemohon, Email, Prodi/Unit, Objek Dipinjam,
-// Tanggal, Status, Kelola) — bukan tampilan kolom per-field.
-const REQ_TABLE_LIKE_MASTER = ['PEMINJAMAN'];
+// Catatan: KOSONG (baik PEMINJAMAN_RUANG maupun PEMINJAMAN) atas permintaan —
+// keduanya kini SAMA-SAMA memakai tampilan standar "Semua Pengajuan" seperti
+// tab lain (ID, Pemohon, Email, Prodi/Unit, Objek Dipinjam, Hari & Tanggal,
+// Status, Kelola), bukan tampilan kolom per-field. Array ini dipertahankan
+// (bukan dihapus) sebagai mekanisme yang tetap bisa dipakai lagi kalau suatu
+// saat dibutuhkan untuk tab lain.
+const REQ_TABLE_LIKE_MASTER = [];
 
 async function loadAdminReqTable(){
   const box = document.getElementById('adminReqTable');

@@ -184,6 +184,15 @@ const MENU = [
     { id:'sdm-karir', label:'Pengembangan Karir', sheet:'SDM_Karir' },
     { id:'sdm-aik', label:'Kegiatan AIK', sheet:'AIK_Kegiatan' },
   ]},
+  // Tab baru: gabungan hasil ekstraksi dokumen LKPS/DKPS BAN-PT 5 Program
+  // Studi — lihat AKREDITASI_SHEET_DEFS/setupAkreditasiSheets() di Code.gs.
+  // 'akr-banding' dirender custom (lihat renderAkreditasiBanding, dipanggil
+  // dari render()), 'akr-indeks' cukup memakai tabel generik (renderSubmenu)
+  // seperti submenu lain karena isinya cuma 3 kolom teks yang perlu dicari.
+  { id:'akreditasi', code:'06', label:'Akreditasi (LKPS/DKPS)', subs:[
+    { id:'akr-banding', label:'Perbandingan Antar-Prodi', sheet:'Akreditasi_Perbandingan' },
+    { id:'akr-indeks', label:'Pencarian Tabel LKPS/DKPS', sheet:'Akreditasi_Indeks' },
+  ]},
 ];
 
 // Petunjuk format kolom per sheet (indeks 0-based), disesuaikan dengan struktur header di Code.gs
@@ -203,6 +212,11 @@ const COLFMT = {
   SDM_Data:{ numCols:[5], statusCol:2 },
   SDM_Karir:{ statusCol:4 },
   AIK_Kegiatan:{ numCols:[4] },
+  // 'Akreditasi_Perbandingan' kolom (0-based): 0 Program Studi, 1 Rasio
+  // Dosen:Mahasiswa, 2 Jumlah Dosen Tetap, 3 IPK Rata-rata, 4 Rata-rata Masa
+  // Studi (Tahun), 5 Waktu Tunggu Kerja Cepat (%), 6 Publikasi, 7 Judul
+  // Penelitian, 8 Judul PkM, 9 Prestasi Mahasiswa, 10 Kerjasama Aktif.
+  Akreditasi_Perbandingan:{ numCols:[1,2,3,4,6,7,8,9,10], pctCols:[5] },
 };
 
 let DATA = {};
@@ -267,6 +281,12 @@ function render(){
   const sub = menu.subs.find(s=>s.id===activeSub);
   document.getElementById('crumbEyebrow').textContent = menu.label;
   document.getElementById('crumbTitle').textContent = sub.label;
+  // 'Perbandingan Antar-Prodi' butuh grafik & tata letak khusus (5 prodi x
+  // 10 indikator) — direnderkan custom, BUKAN lewat tabel generik
+  // renderSubmenu() yang dipakai submenu lain (termasuk 'Pencarian Tabel
+  // LKPS/DKPS' di tab yang sama, yang isinya cukup 3 kolom teks jadi masih
+  // cocok pakai tabel generik).
+  if(sub.id === 'akr-banding'){ renderAkreditasiBanding(content); return; }
   renderSubmenu(content, menu, sub);
 }
 
@@ -336,6 +356,109 @@ function renderBeranda(content){
       options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}}, cutout:'62%' }
     });
   }
+}
+
+// Sub Menu "Perbandingan Antar-Prodi" (tab Akreditasi LKPS/DKPS): kartu KPI
+// ringkasan lintas-prodi, beberapa grafik batang perbandingan per indikator,
+// lalu tabel data lengkap (dengan pencarian & unduh CSV, memakai helper yang
+// sama dengan renderSubmenu()) di bagian bawah. Sumber: sheet
+// 'Akreditasi_Perbandingan' — lihat AKREDITASI_SHEET_DEFS di Code.gs untuk
+// metodologi ekstraksi & catatan definisi tiap kolom.
+function renderAkreditasiBanding(content){
+  const cfg = DATA.Akreditasi_Perbandingan || {headers:[],rows:[]};
+  const rows = cfg.rows; // 1 baris = 1 prodi
+  const prodiLabels = rows.map(r=>r[0]);
+  const col = { rasio:1, dosen:2, ipk:3, masaStudi:4, waktuTunggu:5, publikasi:6, penelitian:7, pkm:8, prestasi:9, kerjasama:10 };
+  const avg = (i)=> rows.length ? (rows.reduce((a,r)=>a+Number(r[i]||0),0)/rows.length) : 0;
+  const totalKerjasama = rows.reduce((a,r)=>a+Number(r[col.kerjasama]||0),0);
+  const totalPublikasi = rows.reduce((a,r)=>a+Number(r[col.publikasi]||0),0);
+
+  content.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><p class="lbl">Program Studi Dibandingkan</p><p class="val">${rows.length}</p><p class="sub">sumber: dokumen LKPS/DKPS BAN-PT</p></div>
+      <div class="kpi"><p class="lbl">Rata-rata Rasio Dosen:Mhs</p><p class="val">1:${avg(col.rasio).toFixed(1)}</p><p class="sub">rata-rata dari ${rows.length} prodi</p></div>
+      <div class="kpi"><p class="lbl">Rata-rata IPK Lulusan</p><p class="val">${avg(col.ipk).toFixed(2)}</p><p class="sub">tahun berjalan (TS)</p></div>
+      <div class="kpi"><p class="lbl">Total Publikasi</p><p class="val">${totalPublikasi.toLocaleString('id-ID')}</p><p class="sub">akumulasi 3 tahun terakhir</p></div>
+      <div class="kpi"><p class="lbl">Total Kerjasama Aktif</p><p class="val">${totalKerjasama.toLocaleString('id-ID')}</p><p class="sub">akumulasi ${rows.length} prodi</p></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h2>Rasio Dosen : Mahasiswa</h2><span class="hint">makin kecil makin ideal</span></div>
+        <div class="chart-box"><canvas id="chartRasio"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>IPK Rata-rata Lulusan (TS)</h2><span class="hint">skala 0&ndash;4</span></div>
+        <div class="chart-box"><canvas id="chartIpk"></canvas></div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h2>Produktivitas Riset (3 Tahun Terakhir)</h2><span class="hint">publikasi vs judul penelitian/PkM</span></div>
+        <div class="chart-box"><canvas id="chartRiset"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Kemahasiswaan &amp; Kerjasama</h2><span class="hint">prestasi mahasiswa vs kerjasama aktif</span></div>
+        <div class="chart-box"><canvas id="chartMhsKs"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Tabel Perbandingan Lengkap</h2><span class="hint">Sumber: sheet <b class="mono">Akreditasi_Perbandingan</b></span></div>
+      <p style="margin:0 0 14px;font-size:12.5px;color:var(--ink-faint);line-height:1.6;">
+        Catatan metodologi: PPKn &amp; Pendidikan Biologi memakai formulir DKPS/LKPS versi lama (kategori "Waktu Tunggu Kerja Cepat" = &lt;6 bulan);
+        3 prodi lainnya memakai formulir versi baru (&lt;3 bulan) &mdash; sehingga kolom tsb tidak 100% apple-to-apple antar ke-2 kelompok formulir.
+        Rasio, IPK, dan Masa Studi diambil dari tahun berjalan (TS); Publikasi/Judul Penelitian/Judul PkM dijumlah dari 3 tahun terakhir (TS-2 s.d. TS).
+      </p>
+      <div class="table-toolbar">
+        <div class="search">&#128269;<input id="searchBox" placeholder="Cari program studi..." oninput="filterTable(this.value)"></div>
+        <button class="btn" onclick="refreshSheet('Akreditasi_Perbandingan')">&#8635; Segarkan</button>
+        <button class="btn" onclick="exportCsv('Akreditasi_Perbandingan')">&#8681; Unduh CSV</button>
+        <span class="count-tag" id="rowCountTag">${rows.length} baris</span>
+      </div>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead><tr>${cfg.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(r=>`<tr>${r.map((v,i)=>`<td>${fmtCell('Akreditasi_Perbandingan',v,i)}</td>`).join('')}</tr>`).join('')
+              : `<tr><td colspan="${cfg.headers.length||1}" style="text-align:center;color:var(--ink-faint);padding:24px;">Belum ada data. Jalankan setupAkreditasiSheets() di Apps Script terlebih dahulu.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  if(typeof Chart === 'undefined' || !rows.length){
+    if(typeof Chart === 'undefined') console.warn('Chart.js tidak termuat — grafik dilewati, data tetap tampil.');
+    return;
+  }
+  const palette = ['#0E3D3B','#1C6E63','#C7962E','#2A5F8F','#B4432B'];
+  chartRefs.rasio = new Chart(document.getElementById('chartRasio'), {
+    type:'bar',
+    data:{ labels:prodiLabels, datasets:[{ label:'Mahasiswa per 1 Dosen', data:rows.map(r=>Number(r[col.rasio]||0)), backgroundColor:palette, borderRadius:5, maxBarThickness:40 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#EDEAE0'}}, x:{grid:{display:false}} } }
+  });
+  chartRefs.ipk = new Chart(document.getElementById('chartIpk'), {
+    type:'bar',
+    data:{ labels:prodiLabels, datasets:[{ label:'IPK Rata-rata', data:rows.map(r=>Number(r[col.ipk]||0)), backgroundColor:palette, borderRadius:5, maxBarThickness:40 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, min:0, max:4, grid:{color:'#EDEAE0'}}, x:{grid:{display:false}} } }
+  });
+  chartRefs.riset = new Chart(document.getElementById('chartRiset'), {
+    type:'bar',
+    data:{ labels:prodiLabels, datasets:[
+      { label:'Publikasi', data:rows.map(r=>Number(r[col.publikasi]||0)), backgroundColor:'#0E3D3B', borderRadius:4, maxBarThickness:22 },
+      { label:'Judul Penelitian', data:rows.map(r=>Number(r[col.penelitian]||0)), backgroundColor:'#1C6E63', borderRadius:4, maxBarThickness:22 },
+      { label:'Judul PkM', data:rows.map(r=>Number(r[col.pkm]||0)), backgroundColor:'#C7962E', borderRadius:4, maxBarThickness:22 },
+    ]},
+    options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}}, scales:{ y:{beginAtZero:true, grid:{color:'#EDEAE0'}}, x:{grid:{display:false}} } }
+  });
+  chartRefs.mhsKs = new Chart(document.getElementById('chartMhsKs'), {
+    type:'bar',
+    data:{ labels:prodiLabels, datasets:[
+      { label:'Prestasi Mahasiswa', data:rows.map(r=>Number(r[col.prestasi]||0)), backgroundColor:'#2A5F8F', borderRadius:4, maxBarThickness:26 },
+      { label:'Kerjasama Aktif', data:rows.map(r=>Number(r[col.kerjasama]||0)), backgroundColor:'#B4432B', borderRadius:4, maxBarThickness:26 },
+    ]},
+    options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}}, scales:{ y:{beginAtZero:true, grid:{color:'#EDEAE0'}}, x:{grid:{display:false}} } }
+  });
 }
 
 function renderSubmenu(content, menu, sub){

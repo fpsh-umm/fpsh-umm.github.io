@@ -1,0 +1,166 @@
+&nbsp;
+<div id="fpsh-verif-app" style="max-width: 1100px; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+
+  <div style="background: linear-gradient(135deg, #800000 0%, #4a0000 100%); padding: 40px 30px; text-align: center; color: #ffffff;">
+    <img class="aligncenter" src="https://fpsh.umm.ac.id/wp-content/uploads/2026/08/FPSH-Koma-White-scaled.png" width="225" height="99" alt="FPSH UMM" />
+    <p style="margin: 5px 0 0 0; font-size: 14px; color: #e0e0e0; font-weight: 300;">Universitas Muhammadiyah Malang</p>
+  </div>
+
+  <!-- FORM INPUT KODE -->
+  <div id="fv-form-wrap" style="padding: 30px 30px 10px 30px;">
+    <p style="text-align:center; color:#555; font-size:14px; margin: 0 0 16px 0;">Masukkan kode verifikasi yang tertera pada dokumen/sertifikat Anda.</p>
+    <div style="display:flex; gap:10px; max-width:460px; margin:0 auto; flex-wrap:wrap; justify-content:center;">
+      <input id="fv-kode-input" type="text" placeholder="Contoh: FPSH-259-2026" style="flex:1 1 260px; padding:12px 16px; border:1px solid #ddd; border-radius:10px; font-size:14px; outline:none;" />
+      <button id="fv-cek-btn" style="padding:12px 26px; background:#800000; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer;">Cek Sekarang</button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="fv-loading" style="display:none; padding: 40px 30px; text-align:center; color:#888; font-size:14px;">
+    Memeriksa kode verifikasi…
+  </div>
+
+  <!-- NOT FOUND / ERROR -->
+  <div id="fv-notfound" style="display:none; padding: 20px 30px 40px 30px; text-align:center;">
+    <div style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #ffffff; padding: 12px 28px; border-radius: 50px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">KODE TIDAK DITEMUKAN</div>
+    <p id="fv-notfound-msg" style="color:#888; font-size:13px; margin-top:16px;">Pastikan kode yang Anda masukkan sudah benar, atau hubungi Tendik FPSH untuk konfirmasi.</p>
+  </div>
+
+  <!-- RESULT -->
+  <div id="fv-result" style="display:none;">
+    <div style="padding: 30px 30px 10px 30px; text-align: center;">
+      <div style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; padding: 12px 28px; border-radius: 50px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">SURAT TERVERIFIKASI &amp; VALID</div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 30px; justify-content: center;">
+
+      <div style="flex: 1 1 300px; max-width: 340px; background: #ffffff; border-radius: 16px; border: 1px solid #eef2f6; border-top: 5px solid #800000; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px;">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #800000;">Data</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">NIM / NIP</span><strong id="fv-nim" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Nama Lengkap</span><strong id="fv-nama" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Program Studi</span><strong id="fv-prodi" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 300px; max-width: 340px; background: #ffffff; border-radius: 16px; border: 1px solid #eef2f6; border-top: 5px solid #800000; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px;">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #800000;">Tendik / Fasilitator</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Nama Tendik</span><strong id="fv-tendik-nama" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">NIP-UMM</span><strong id="fv-tendik-nip" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Fasilitator</span><strong id="fv-fasilitator" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 300px; max-width: 340px; background: #ffffff; border-radius: 16px; border: 1px solid #eef2f6; border-top: 5px solid #800000; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px;">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #800000;">Detail Dokumen</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Jenis Dokumen</span><strong id="fv-jenis" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Nomor:</span><strong id="fv-nomor" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Berlaku hingga</span><strong id="fv-berlaku" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Keterangan</span><span id="fv-keterangan" style="color: #555555; font-size: 13px; line-height: 1.4; display: block;">-</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center; padding: 0 30px 20px 30px;">
+      <button id="fv-cek-lagi-btn" style="padding:10px 22px; background:#fff; color:#800000; border:1px solid #800000; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer;">Cek kode lain</button>
+    </div>
+  </div>
+
+  <div style="background: #fafbfc; padding: 20px 30px; border-top: 1px solid #f0f0f0; text-align: center; font-size: 12px; color: #888888;">© 2026. Design by Tendik LMT FPSH — UMM</div>
+</div>
+&nbsp;
+
+<script>
+(function () {
+  var CONFIG = {
+    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyiPa3PDWsSU0jhXPJRyTSerlW8gD5u_KjlSZlOfIBrAGc5Ad78az7vI3c3GmmMw8VsAA/exec"
+  };
+
+  var el = {
+    formWrap: document.getElementById('fv-form-wrap'),
+    input: document.getElementById('fv-kode-input'),
+    cekBtn: document.getElementById('fv-cek-btn'),
+    cekLagiBtn: document.getElementById('fv-cek-lagi-btn'),
+    loading: document.getElementById('fv-loading'),
+    notfound: document.getElementById('fv-notfound'),
+    notfoundMsg: document.getElementById('fv-notfound-msg'),
+    result: document.getElementById('fv-result')
+  };
+
+  function showOnly(section) {
+    el.formWrap.style.display = (section === 'form') ? 'block' : 'none';
+    el.loading.style.display = (section === 'loading') ? 'block' : 'none';
+    el.notfound.style.display = (section === 'notfound') ? 'block' : 'none';
+    el.result.style.display = (section === 'result') ? 'block' : 'none';
+  }
+
+  function fillResult(data) {
+    document.getElementById('fv-nim').textContent = data['NIM / NIP'] || '-';
+    document.getElementById('fv-nama').textContent = data['Nama Lengkap'] || '-';
+    document.getElementById('fv-prodi').textContent = data['Program Studi'] || '-';
+    document.getElementById('fv-tendik-nama').textContent = data['Nama Tendik'] || '-';
+    document.getElementById('fv-tendik-nip').textContent = data['NIP-UMM'] || '-';
+    document.getElementById('fv-fasilitator').textContent = data['Fasilitator'] || '-';
+    document.getElementById('fv-jenis').textContent = data['Jenis Dokumen'] || '-';
+    document.getElementById('fv-nomor').textContent = data['Nomor Dokumen'] || '-';
+    document.getElementById('fv-berlaku').textContent = data['Berlaku Hingga'] || '-';
+    document.getElementById('fv-keterangan').textContent = data['Keterangan'] || '-';
+  }
+
+  function cekKode(kode) {
+    kode = (kode || '').trim();
+    if (!kode) return;
+
+    var isConfigured = CONFIG.SCRIPT_URL && CONFIG.SCRIPT_URL.indexOf('https://script.google.com/macros/') === 0;
+    if (!isConfigured) {
+      showOnly('notfound');
+      el.notfoundMsg.textContent = 'Sistem belum terhubung ke spreadsheet (SCRIPT_URL belum diisi dengan benar). Lihat SETUP.md.';
+      return;
+    }
+
+    showOnly('loading');
+
+    fetch(CONFIG.SCRIPT_URL + '?kode=' + encodeURIComponent(kode))
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        if (json && json.success) {
+          fillResult(json.data);
+          showOnly('result');
+        } else {
+          el.notfoundMsg.textContent = (json && json.message) || 'Kode verifikasi tidak ditemukan.';
+          showOnly('notfound');
+        }
+      })
+      .catch(function () {
+        el.notfoundMsg.textContent = 'Gagal menghubungi server verifikasi. Coba lagi beberapa saat.';
+        showOnly('notfound');
+      });
+  }
+
+  el.cekBtn.addEventListener('click', function () { cekKode(el.input.value); });
+  el.input.addEventListener('keydown', function (e) { if (e.key === 'Enter') cekKode(el.input.value); });
+  el.cekLagiBtn.addEventListener('click', function () {
+    el.input.value = '';
+    showOnly('form');
+  });
+
+  // Auto-cek jika ada ?kode=... di URL (dari QR code di sertifikat)
+  var params = new URLSearchParams(window.location.search);
+  var kodeFromUrl = params.get('kode');
+  if (kodeFromUrl) {
+    el.input.value = kodeFromUrl;
+    cekKode(kodeFromUrl);
+  } else {
+    showOnly('form');
+  }
+})();
+</script>

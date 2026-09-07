@@ -1467,6 +1467,17 @@
         const QR_VERIFY_URL_DEFAULT = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F";
         const QR_VERIFY_URL_AKUMULASI = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F";
 
+        // Membuat URL gambar QR-code (via api.qrserver.com) yang, saat discan, mengarah ke
+        // halaman verifikasi e-Sertifikat (https://fpsh.umm.ac.id/fasilitas/verifikasi/)
+        // dengan parameter identitas yang berbeda-beda tergantung jenis penerima:
+        // NIM (Mahasiswa), Nama Lengkap (Guru Pamong), atau NIDN (DPL).
+        function buildVerifikasiQrUrl(queryParams) {
+            const baseUrl = 'https://fpsh.umm.ac.id/fasilitas/verifikasi/';
+            const qs = new URLSearchParams(queryParams).toString();
+            const targetUrl = qs ? `${baseUrl}?${qs}` : baseUrl;
+            return `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(targetUrl)}`;
+        }
+
         // "Kursor" halaman sederhana: melacak posisi Y berjalan & pindah halaman otomatis
         // (memakai kop lampiran + margin atas yang sudah disesuaikan) begitu ruang yang
         // tersisa di halaman berjalan tidak lagi cukup untuk blok konten berikutnya.
@@ -3491,7 +3502,7 @@
             doc.text('D e k a n,', cx, 229, { align: 'center' });
 
             try {
-                const qr = await imageUrlToDataUri(QR_VERIFY_URL_DEFAULT);
+                const qr = await imageUrlToDataUri(buildVerifikasiQrUrl({ nim: student.nim }));
                 if (qr) doc.addImage(qr, 'PNG', cx - 9, 233, 18, 18);
             } catch (e) { /* offline: sertifikat tetap dicetak tanpa QR */ }
 
@@ -3588,7 +3599,7 @@
             doc.text('D e k a n,', cx, 229, { align: 'center' });
 
             try {
-                const qr = await imageUrlToDataUri(QR_VERIFY_URL_DEFAULT);
+                const qr = await imageUrlToDataUri(buildVerifikasiQrUrl({ nidn: dplUser.nidn }));
                 if (qr) doc.addImage(qr, 'PNG', cx - 9, 233, 18, 18);
             } catch (e) { /* offline: sertifikat tetap dicetak tanpa QR */ }
 
@@ -3675,7 +3686,7 @@
             doc.text('D e k a n,', cx, 229, { align: 'center' });
 
             try {
-                const qr = await imageUrlToDataUri(QR_VERIFY_URL_DEFAULT);
+                const qr = await imageUrlToDataUri(buildVerifikasiQrUrl({ nama: pamongUser.nama }));
                 if (qr) doc.addImage(qr, 'PNG', cx - 9, 233, 18, 18);
             } catch (e) { /* offline: sertifikat tetap dicetak tanpa QR */ }
 

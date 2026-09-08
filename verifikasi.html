@@ -89,10 +89,6 @@
       </div>
 
     </div>
-
-    <div style="text-align:center; padding: 0 30px 20px 30px;">
-      <button id="fv-cek-lagi-btn" style="padding:10px 22px; background:#fff; color:#800000; border:1px solid #800000; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer;">Cek kode lain</button>
-    </div>
   </div>
 
   <div style="background: #fafbfc; padding: 20px 30px; border-top: 1px solid #f0f0f0; text-align: center; font-size: 12px; color: #888888;">© 2026. Design by Tendik LMT FPSH — UMM</div>
@@ -109,7 +105,6 @@
     formWrap: document.getElementById('fv-form-wrap'),
     input: document.getElementById('fv-kode-input'),
     cekBtn: document.getElementById('fv-cek-btn'),
-    cekLagiBtn: document.getElementById('fv-cek-lagi-btn'),
     loading: document.getElementById('fv-loading'),
     notfound: document.getElementById('fv-notfound'),
     notfoundMsg: document.getElementById('fv-notfound-msg'),
@@ -169,10 +164,6 @@
 
   el.cekBtn.addEventListener('click', function () { cekKode(el.input.value); });
   el.input.addEventListener('keydown', function (e) { if (e.key === 'Enter') cekKode(el.input.value); });
-  el.cekLagiBtn.addEventListener('click', function () {
-    el.input.value = '';
-    showOnly('form');
-  });
 
   // Auto-cek jika ada ?kode=... ATAU ?nim=... di URL (dari QR code di sertifikat)
   // - QR baru (format terbaru): ?kode=FPSH-259-2026

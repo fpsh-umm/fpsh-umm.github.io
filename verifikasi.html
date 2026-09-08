@@ -1,5 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verifikasi Dokumen - FPSH UMM</title>
+  <link rel="icon" href="https://fpsh.umm.ac.id/wp-content/uploads/2024/10/Logo-UMM.png" />
+  <style>
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      background: #f4f5f7;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
 &nbsp;
 <div id="fpsh-verif-app" style="max-width: 1100px; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;">
+
 
   <div style="background: linear-gradient(135deg, #800000 0%, #4a0000 100%); padding: 40px 30px; text-align: center; color: #ffffff;">
     <img class="aligncenter" src="https://fpsh.umm.ac.id/wp-content/uploads/2026/08/FPSH-Koma-White-scaled.png" width="225" height="99" alt="FPSH UMM" />
@@ -22,7 +42,7 @@
 
   <!-- NOT FOUND / ERROR -->
   <div id="fv-notfound" style="display:none; padding: 20px 30px 40px 30px; text-align:center;">
-    <div style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #ffffff; padding: 12px 28px; border-radius: 50px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">KODE TIDAK DITEMUKAN</div>
+    <div style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #ffffff; padding: 12px 28px; border-radius: 50px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">DOKUMEN TIDAK VALID</div>
     <p id="fv-notfound-msg" style="color:#888; font-size:13px; margin-top:16px;">Pastikan kode yang Anda masukkan sudah benar, atau hubungi Tendik FPSH untuk konfirmasi.</p>
   </div>
 
@@ -116,9 +136,10 @@
     document.getElementById('fv-keterangan').textContent = data['Keterangan'] || '-';
   }
 
-  function cekKode(kode) {
+  function cekKode(kode, param) {
     kode = (kode || '').trim();
     if (!kode) return;
+    param = param || 'kode'; // 'kode' (Kode Verifikasi) atau 'nim' (NIM/NIP) — tergantung sumber QR
 
     var isConfigured = CONFIG.SCRIPT_URL && CONFIG.SCRIPT_URL.indexOf('https://script.google.com/macros/') === 0;
     if (!isConfigured) {
@@ -129,7 +150,7 @@
 
     showOnly('loading');
 
-    fetch(CONFIG.SCRIPT_URL + '?kode=' + encodeURIComponent(kode))
+    fetch(CONFIG.SCRIPT_URL + '?' + param + '=' + encodeURIComponent(kode))
       .then(function (res) { return res.json(); })
       .then(function (json) {
         if (json && json.success) {
@@ -153,14 +174,24 @@
     showOnly('form');
   });
 
-  // Auto-cek jika ada ?kode=... di URL (dari QR code di sertifikat)
+  // Auto-cek jika ada ?kode=... ATAU ?nim=... di URL (dari QR code di sertifikat)
+  // - QR baru (format terbaru): ?kode=FPSH-259-2026
+  // - QR lama (masih beredar di sertifikat lama): ?nim=202310080311043
   var params = new URLSearchParams(window.location.search);
   var kodeFromUrl = params.get('kode');
+  var nimFromUrl = params.get('nim');
+
   if (kodeFromUrl) {
     el.input.value = kodeFromUrl;
-    cekKode(kodeFromUrl);
+    cekKode(kodeFromUrl, 'kode');
+  } else if (nimFromUrl) {
+    el.input.value = nimFromUrl;
+    cekKode(nimFromUrl, 'nim');
   } else {
     showOnly('form');
   }
 })();
 </script>
+
+</body>
+</html>

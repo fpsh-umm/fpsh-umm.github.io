@@ -156,7 +156,7 @@
   function cekKode(kode, param) {
     kode = (kode || '').trim();
     if (!kode) return;
-    param = param || 'kode'; // 'kode' (Kode Verifikasi) atau 'nim' (NIM/NIP) — tergantung sumber QR
+    param = param || 'kode'; // 'kode' (Kode Verifikasi), 'nim' (NIM), 'nidn' (NIDN), atau 'nuptk' (NUPTK) — tergantung sumber QR
 
     var isConfigured = CONFIG.SCRIPT_URL && CONFIG.SCRIPT_URL.indexOf('https://script.google.com/macros/') === 0;
     if (!isConfigured) {
@@ -187,19 +187,36 @@
   el.cekBtn.addEventListener('click', function () { cekKode(el.input.value); });
   el.input.addEventListener('keydown', function (e) { if (e.key === 'Enter') cekKode(el.input.value); });
 
-  // Auto-cek jika ada ?kode=... ATAU ?nim=... di URL (dari QR code di sertifikat)
+  // Auto-cek jika ada ?kode=... / ?nim=... / ?nidn=... / ?nuptk=... di URL (dari QR code di sertifikat)
   // - QR baru (format terbaru): ?kode=FPSH-259-2026
   // - QR lama (masih beredar di sertifikat lama): ?nim=202310080311043
+  // - QR Sertifikat DPL: ?nidn=...
+  // - QR Sertifikat Guru Pamong: ?nuptk=...
   var params = new URLSearchParams(window.location.search);
   var kodeFromUrl = params.get('kode');
   var nimFromUrl = params.get('nim');
+  var nidnFromUrl = params.get('nidn');
+  var nuptkFromUrl = params.get('nuptk');
 
-  if (kodeFromUrl) {
+  // Pakai "!== null" (bukan sekadar truthy) supaya QR yang parameternya ADA di URL tapi
+  // nilainya kosong/hilang tetap diproses (dan menampilkan pesan "tidak ditemukan" yang jelas),
+  // bukan diam-diam jatuh ke form input kosong tanpa penjelasan.
+  if (kodeFromUrl !== null && kodeFromUrl.trim()) {
     el.input.value = kodeFromUrl;
     cekKode(kodeFromUrl, 'kode');
-  } else if (nimFromUrl) {
+  } else if (nimFromUrl !== null && nimFromUrl.trim()) {
     el.input.value = nimFromUrl;
     cekKode(nimFromUrl, 'nim');
+  } else if (nidnFromUrl !== null && nidnFromUrl.trim()) {
+    el.input.value = nidnFromUrl;
+    cekKode(nidnFromUrl, 'nidn');
+  } else if (nuptkFromUrl !== null && nuptkFromUrl.trim()) {
+    el.input.value = nuptkFromUrl;
+    cekKode(nuptkFromUrl, 'nuptk');
+  } else if (kodeFromUrl !== null || nimFromUrl !== null || nidnFromUrl !== null || nuptkFromUrl !== null) {
+    // Parameter QR ada tapi nilainya kosong — beri tahu, jangan tampilkan form kosong begitu saja.
+    showOnly('notfound');
+    el.notfoundMsg.textContent = 'Kode/identitas pada QR ini kosong atau tidak valid. Hubungi Tendik FPSH untuk konfirmasi.';
   } else {
     showOnly('form');
   }

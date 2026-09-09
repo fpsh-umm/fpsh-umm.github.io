@@ -833,7 +833,7 @@
             <div id="view-akumulasi" class="hidden bg-white rounded-2xl shadow-sm border border-amber-200 p-6 space-y-6">
                 <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-4 rounded-xl flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-bold"><i class="fa-solid fa-crown mr-1"></i> Panel Akumulasi Penilai Super (Arif Setiawan, S.Pd., M.Pd.)</h3>
+                        <h3 class="text-base font-bold"><i class="fa-solid fa-crown mr-1"></i> Panel Akumulasi Penilai Super (Dr. Arif Setiawan, M.Pd.)</h3>
                         <p class="text-xs text-amber-100">Gabungkan & buat laporan komprehensif dari evaluasi Dosen Pendamping Laporan (DPL) dan seluruh Guru Pamong aktif.</p>
                     </div>
                 </div>
@@ -1178,7 +1178,7 @@
                                 <div class="my-1.5 flex justify-start">
                                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F" alt="QR Verification" class="h-14 w-14 border border-slate-200 p-0.5 bg-white rounded shadow-sm">
                                 </div>
-                                <p class="font-bold underline text-[10px]">Arif Setiawan, S.Pd., M.Pd.</p>
+                                <p class="font-bold underline text-[10px]">Dr. Arif Setiawan, M.Pd.</p>
                                 <p class="text-[9px] text-slate-500">NIDN 0702098801</p>
                             </div>
                             <div class="text-right flex flex-col items-end">
@@ -1312,7 +1312,7 @@
                                 <div class="my-1.5 flex justify-end">
                                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F" alt="QR Verification" class="h-12 w-12 border border-slate-200 p-0.5 bg-white rounded shadow-sm">
                                 </div>
-                                <p class="font-bold underline text-[10px]">Arif Setiawan, S.Pd., M.Pd.</p>
+                                <p class="font-bold underline text-[10px]">Dr. Arif Setiawan, M.Pd.</p>
                                 <p class="text-[9px] text-slate-500 font-medium">NIDN 0702098801</p>
                             </div>
                         </div>
@@ -3073,14 +3073,14 @@
                 await drawSignatureColumn(doc, pw - PDF_MARGIN_X, cur.y, 'right', [
                     { text: dateStr, size: 9 },
                     { text: 'Kepala Laboratorium Microteaching', bold: true, size: 9, qrHere: true },
-                    { text: 'Arif Setiawan, S.Pd., M.Pd.', bold: true, underline: true, size: 9 },
+                    { text: 'Dr. Arif Setiawan, M.Pd.', bold: true, underline: true, size: 9 },
                     { text: 'NIDN. 0702098801', size: 8 }
                 ], qrPenilai);
             } else {
                 await drawSignatureColumn(doc, PDF_MARGIN_X, cur.y, 'left', [
                     { text: 'Mengetahui,', size: 9 },
                     { text: 'Kepala Laboratorium Microteaching FPSH', bold: true, size: 9, qrHere: true },
-                    { text: 'Arif Setiawan, S.Pd., M.Pd.', bold: true, underline: true, size: 9 },
+                    { text: 'Dr. Arif Setiawan, M.Pd.', bold: true, underline: true, size: 9 },
                     { text: 'NIDN 0702098801', size: 8 }
                 ], qrKalab);
                 const roleLabel = String(record.penilaiRole).toLowerCase() === 'dpl' ? 'Dosen Pendamping Lapangan' : 'Guru Pamong Mitra';
@@ -3325,7 +3325,7 @@
             await drawSignatureColumn(doc, pw - PDF_MARGIN_X, cur.y, 'right', [
                 { text: dateStr, size: 9 },
                 { text: 'Kepala Laboratorium Microteaching FPSH', bold: true, size: 9, qrHere: true },
-                { text: 'Arif Setiawan, S.Pd., M.Pd.', bold: true, underline: true, size: 9 },
+                { text: 'Dr. Arif Setiawan, M.Pd.', bold: true, underline: true, size: 9 },
                 { text: 'NIDN. 0702098801', size: 8 }
             ], qr);
 
@@ -3406,7 +3406,7 @@
                 await drawSignatureColumn(doc, pw - PDF_MARGIN_X, sigY, 'right', [
                     { text: dateStr, size: 9 },
                     { text: 'Kepala Laboratorium Microteaching FPSH', bold: true, size: 9, qrHere: true },
-                    { text: 'Arif Setiawan, S.Pd., M.Pd.', bold: true, underline: true, size: 9 },
+                    { text: 'Dr. Arif Setiawan, M.Pd.', bold: true, underline: true, size: 9 },
                     { text: 'NIDN. 0702098801', size: 8 }
                 ], qr);
             } else {
@@ -3421,14 +3421,14 @@
                     await drawSignatureColumn(doc, pw - PDF_MARGIN_X, sigY, 'right', [
                         { text: dateStr, size: 9 },
                         { text: 'Kepala Laboratorium Microteaching', bold: true, size: 9, qrHere: true },
-                        { text: 'Arif Setiawan, S.Pd., M.Pd.', bold: true, underline: true, size: 9 },
+                        { text: 'Dr. Arif Setiawan, M.Pd.', bold: true, underline: true, size: 9 },
                         { text: 'NIDN. 0702098801', size: 8 }
                     ], qr);
                 } else {
                     await drawSignatureColumn(doc, PDF_MARGIN_X, sigY, 'left', [
                         { text: 'Mengetahui,', size: 9 },
                         { text: 'Kepala Laboratorium Microteaching FPSH', bold: true, size: 9, qrHere: true },
-                        { text: 'Arif Setiawan, S.Pd., M.Pd.', bold: true, underline: true, size: 9 },
+                        { text: 'Dr. Arif Setiawan, M.Pd.', bold: true, underline: true, size: 9 },
                         { text: 'NIDN 0702098801', size: 8 }
                     ], qr);
                     await drawSignatureColumn(doc, pw - PDF_MARGIN_X, sigY, 'right', [

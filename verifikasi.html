@@ -59,20 +59,20 @@
           <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #800000;">Data</h2>
         </div>
         <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
-          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">NIM / NIP</span><strong id="fv-nim" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span id="fv-nim-label" style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">NIM</span><strong id="fv-nim" style="color: #2c3e50; font-size: 14px;">-</strong></div>
           <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Nama Lengkap</span><strong id="fv-nama" style="color: #2c3e50; font-size: 14px;">-</strong></div>
-          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Program Studi</span><strong id="fv-prodi" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span id="fv-prodi-label" style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Program Studi</span><strong id="fv-prodi" style="color: #2c3e50; font-size: 14px;">-</strong></div>
         </div>
       </div>
 
       <div style="flex: 1 1 300px; max-width: 340px; background: #ffffff; border-radius: 16px; border: 1px solid #eef2f6; border-top: 5px solid #800000; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); display: flex; flex-direction: column;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px;">
-          <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #800000;">Tendik / Fasilitator</h2>
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #800000;">Disahkan oleh</h2>
         </div>
         <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
-          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Nama Tendik</span><strong id="fv-tendik-nama" style="color: #2c3e50; font-size: 14px;">-</strong></div>
-          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">NIP-UMM</span><strong id="fv-tendik-nip" style="color: #2c3e50; font-size: 14px;">-</strong></div>
-          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Fasilitator</span><strong id="fv-fasilitator" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Jabatan</span><strong id="fv-jabatan" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Nama Pejabat</span><strong id="fv-pejabat-nama" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">NIP</span><strong id="fv-pejabat-nip" style="color: #2c3e50; font-size: 14px;">-</strong></div>
         </div>
       </div>
 
@@ -83,7 +83,7 @@
         <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
           <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Jenis Dokumen</span><strong id="fv-jenis" style="color: #2c3e50; font-size: 14px;">-</strong></div>
           <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Nomor:</span><strong id="fv-nomor" style="color: #2c3e50; font-size: 14px;">-</strong></div>
-          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Berlaku hingga</span><strong id="fv-berlaku" style="color: #2c3e50; font-size: 14px;">-</strong></div>
+          <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Tanggal disahkan</span><strong id="fv-berlaku" style="color: #2c3e50; font-size: 14px;">-</strong></div>
           <div><span style="color: #888888; font-size: 12px; display: block; margin-bottom: 2px;">Keterangan</span><span id="fv-keterangan" style="color: #555555; font-size: 13px; line-height: 1.4; display: block;">-</span></div>
         </div>
       </div>
@@ -119,15 +119,37 @@
   }
 
   function fillResult(data) {
-    document.getElementById('fv-nim').textContent = data['NIM/NIP/NIDN'] || '-';
+    // "Kategori" menentukan label mana yang dipakai: Mahasiswa / Dosen / Guru.
+    var kategori = (data['Kategori'] || 'Mahasiswa').toString().trim().toLowerCase();
+
+    var idLabel = 'NIM';
+    if (kategori === 'dosen') idLabel = 'NIDN';
+    else if (kategori === 'guru') idLabel = 'NUPTK';
+
+    var prodiLabel = (kategori === 'guru') ? 'Instansi' : 'Program Studi';
+
+    document.getElementById('fv-nim-label').textContent = idLabel;
+    document.getElementById('fv-prodi-label').textContent = prodiLabel;
+
+    // Nama kolom asli di sheet: "NIM/NIDN/NUPTK" & "Program Studi/Instansi".
+    // Beberapa nama kolom lama tetap dibaca sebagai cadangan.
+    document.getElementById('fv-nim').textContent =
+      data['NIM/NIDN/NUPTK'] || data['NIM/NIP/NIDN'] || data['NIDN'] || data['NUPTK'] || data['NIM'] || '-';
     document.getElementById('fv-nama').textContent = data['Nama Lengkap'] || '-';
-    document.getElementById('fv-prodi').textContent = data['Program Studi'] || '-';
-    document.getElementById('fv-tendik-nama').textContent = data['Nama Tendik'] || '-';
-    document.getElementById('fv-tendik-nip').textContent = data['NIP-UMM'] || '-';
-    document.getElementById('fv-fasilitator').textContent = data['Fasilitator'] || '-';
+    document.getElementById('fv-prodi').textContent =
+      data['Program Studi/Instansi'] || data['Program Studi'] || data['Instansi'] || '-';
+
+    // "Disahkan oleh" adalah kolom data per-baris berisi jabatan penandatangan
+    // (mis. "Dekan", "Wakil Dekan I", dst), bukan teks tetap.
+    document.getElementById('fv-jabatan').textContent = data['Disahkan oleh'] || '-';
+    document.getElementById('fv-pejabat-nama').textContent = data['Nama Pejabat'] || data['Nama Tendik'] || '-';
+    document.getElementById('fv-pejabat-nip').textContent = data['NIP'] || data['NIP-UMM'] || '-';
+
     document.getElementById('fv-jenis').textContent = data['Jenis Dokumen'] || '-';
     document.getElementById('fv-nomor').textContent = data['Nomor Dokumen'] || '-';
-    document.getElementById('fv-berlaku').textContent = data['Berlaku Hingga'] || '-';
+    // Nama kolom asli: "Tanggal disahkan" (huruf kecil "d").
+    document.getElementById('fv-berlaku').textContent =
+      data['Tanggal disahkan'] || data['Tanggal Disahkan'] || data['Berlaku Hingga'] || '-';
     document.getElementById('fv-keterangan').textContent = data['Keterangan'] || '-';
   }
 

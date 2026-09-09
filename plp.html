@@ -1471,11 +1471,11 @@
 
         // Membuat URL tujuan halaman verifikasi e-Sertifikat (https://fpsh.umm.ac.id/fasilitas/verifikasi/)
         // dengan parameter identitas yang berbeda-beda tergantung jenis penerima:
-        // NIM (Mahasiswa), Nama Lengkap (Guru Pamong), atau NIDN (DPL).
+        // NIM (Mahasiswa), NUPTK (Guru Pamong, fallback ke Nama Lengkap bila NUPTK kosong), atau NIDN (DPL).
         // Dipakai baik sebagai isi data QR-code maupun sebagai teks "Link Verifikasi" yang
         // ditampilkan (dan bisa diklik) langsung pada file Sertifikat .pdf.
         function buildVerifikasiTargetUrl(queryParams) {
-            const baseUrl = 'https://fpsh.umm.ac.id/fasilitas/verifikasi/';
+            const baseUrl = 'https://fpsh-umm.github.io/verifikasi.html';
             const qs = new URLSearchParams(queryParams).toString();
             return qs ? `${baseUrl}?${qs}` : baseUrl;
         }
@@ -3773,10 +3773,10 @@
             doc.setTextColor(84, 12, 15);
             doc.text(String(pamongUser.nama || '-'), cx, 140, { align: 'center' });
 
-            // Baris identitas tepat di bawah nama (nama sekolah) juga memakai font El Messiri Medium.
+            // Baris identitas tepat di bawah nama (NUPTK) juga memakai font El Messiri Medium.
             doc.setFont('ElMessiriMedium', 'normal'); doc.setFontSize(12);
             doc.setTextColor(60, 40, 30);
-            doc.text(namaSekolah, cx, 148, { align: 'center' });
+            doc.text(`NUPTK ${pamongUser.nuptk || '-'}`, cx, 148, { align: 'center' });
 
             doc.setFont('CambriaBold', 'normal'); doc.setFontSize(12);
             const bodyText = `Atas dedikasi dan tanggung jawabnya sebagai Guru Pamong dalam membimbing dan menyelesaikan penilaian terhadap ${jumlahMahasiswa} mahasiswa bimbingan pada kegiatan Pengenalan Lapang Persekolahan II (PLP II) di ${namaSekolah} pada Semester ${semester} Tahun Akademik ${tahunAkademik}.`;
@@ -3790,10 +3790,16 @@
             doc.text(dateStr, cx, 222, { align: 'center' });
             doc.text('D e k a n,', cx, 229, { align: 'center' });
 
-            try {
-                const qr = await imageUrlToDataUri(buildVerifikasiQrUrl({ nama: pamongUser.nama }));
-                if (qr) doc.addImage(qr, 'PNG', cx - 9, 233, 18, 18);
-            } catch (e) { /* offline: sertifikat tetap dicetak tanpa QR */ }
+            // Catatan: verifikasi.html HANYA mengenali parameter 'kode', 'nim', 'nidn', dan 'nuptk'.
+            // Jika NUPTK belum diisi, QR TIDAK dibuat sama sekali (bukan memakai fallback 'nama',
+            // sebab parameter 'nama' tidak dikenali verifikasi.html dan akan selalu berujung ke
+            // halaman form kosong saat di-scan). Isi NUPTK Guru Pamong ini agar QR verifikasi aktif.
+            if (pamongUser.nuptk) {
+                try {
+                    const qr = await imageUrlToDataUri(buildVerifikasiQrUrl({ nuptk: pamongUser.nuptk }));
+                    if (qr) doc.addImage(qr, 'PNG', cx - 9, 233, 18, 18);
+                } catch (e) { /* offline: sertifikat tetap dicetak tanpa QR */ }
+            }
 
             doc.setFont('CambriaBold', 'bold'); doc.setFontSize(12);
             const signName = 'Prof. Dr. Moh. Mahfud Effendi, M.M.';

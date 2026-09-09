@@ -911,6 +911,7 @@
                     <div id="mgt-form-pamong" class="hidden grid grid-cols-1 md:grid-cols-3 gap-2">
                         <input type="text" id="mgt-pamong-nama" placeholder="Nama Lengkap & Gelar" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-umm-red">
                         <input type="text" id="mgt-pamong-pass" placeholder="Password (9 digit)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-umm-red">
+                        <input type="text" id="mgt-pamong-nuptk" placeholder="NUPTK (opsional, isi bila ada)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-umm-red">
                         <input type="text" id="mgt-pamong-sekolah" placeholder="Sekolah Mitra" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-umm-red">
                     </div>
 
@@ -922,6 +923,7 @@
                     </div>
 
                     <input type="hidden" id="mgt-edit-key-value" value="">
+                    <input type="hidden" id="mgt-edit-key-field" value="">
 
                     <div class="flex justify-end gap-2 mt-3">
                         <button onclick="cancelEditUser()" id="mgt-btn-cancel" class="hidden px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition">Batal Edit</button>
@@ -1604,6 +1606,20 @@
             return { letter, predicate, color, bgClass };
         }
 
+        // Normalisasi nama sekolah untuk pencocokan yang lebih toleran terhadap perbedaan
+        // penulisan yang umum terjadi antar-sheet, misalnya:
+        //   "SMPN 4 Malang" vs "SMP Negeri 4 Malang" vs "SMP Negeri 4 Kota Malang"
+        // Langkah: lowercase -> hapus tanda baca -> hapus kata umum (negeri/swasta/kota) ->
+        // seragamkan singkatan jenis sekolah (sd/smp/sma/smk/ma/mts/mi) -> rapikan spasi.
+        function normalizeSchoolName(name) {
+            let s = String(name || '').toLowerCase();
+            s = s.replace(/[.,\-\/]/g, ' ');
+            s = s.replace(/\bnegeri\b/g, '').replace(/\bswasta\b/g, '').replace(/\bkota\b/g, '');
+            s = s.replace(/\bsmpn\b/g, 'smp').replace(/\bsman\b/g, 'sma').replace(/\bsmkn\b/g, 'smk');
+            s = s.replace(/\s+/g, ' ').trim();
+            return s;
+        }
+
         // ================= MENGGUNAKAN STRING() UNTUK SEMUA PENGECEKAN ID/NIM =================
         function checkAllStudentsGraded() {
             if (!currentUserObj) return false;
@@ -1611,43 +1627,74 @@
             // Akses tab Rekap/Akumulasi untuknya sudah dijamin lewat isSuperAdminUser(),
             // jadi status "graded" per-sekolah tidak relevan untuknya.
             if (!currentUserObj.sekolah) return false;
-            const userSchool = String(currentUserObj.sekolah).toLowerCase();
+            const userSchool = normalizeSchoolName(currentUserObj.sekolah);
             const myStudents = mahasiswaData.filter(m => {
-                const mSchool = String(m.sekolah).toLowerCase().replace("kota ", "");
-                const uSchool = userSchool.replace("kota ", "");
-                return mSchool.includes(uSchool) || uSchool.includes(mSchool) || String(m.sekolah) === String(currentUserObj.sekolah);
+                const mSchool = normalizeSchoolName(m.sekolah);
+                return mSchool === userSchool || mSchool.includes(userSchool) || userSchool.includes(mSchool);
             });
-            if (myStudents.length === 0) return false;
+            if (myStudents.length === 0) {
+                console.log('[eSertifikat] Tidak ada mahasiswa yang cocok dengan sekolah akun ini. Detail: ' + JSON.stringify({
+                    sekolahAkun: currentUserObj.sekolah,
+                    idAkun: currentUserId,
+                    sekolahAkunNormalized: userSchool,
+                    daftarSekolahMahasiswa: [...new Set(mahasiswaData.map(m => m.sekolah))]
+                }));
+                return false;
+            }
             const myGradedNims = penilaianList.filter(p => String(p.penilaiId) === String(currentUserId)).map(p => String(p.nim));
-            return myStudents.every(student => myGradedNims.includes(String(student.nim)));
+            const belumDinilai = myStudents.filter(s => !myGradedNims.includes(String(s.nim)));
+            if (belumDinilai.length > 0) {
+                console.log('[eSertifikat] Masih ada mahasiswa yang belum dinilai oleh akun ini. Detail: ' + JSON.stringify({
+                    idAkun: currentUserId,
+                    sekolahAkun: currentUserObj.sekolah,
+                    totalMahasiswaSekolahIni: myStudents.length,
+                    semuaNimSekolahIni: myStudents.map(s => String(s.nim)),
+                    nimYangSudahDinilaiOlehAkunIni: myGradedNims,
+                    belumDinilai: belumDinilai.map(s => `${s.nim} - ${s.nama}`)
+                }));
+            }
+            return belumDinilai.length === 0;
         }
 
-        // Menampilkan/menyembunyikan tombol 'e-Sertifikat' milik DPL sendiri (bukan sertifikat
-        // mahasiswa). Tombol ini khusus untuk role 'dpl' dan hanya muncul setelah DPL yang
-        // bersangkutan dianggap selesai menilai (checkAllStudentsGraded() true untuk sekolah
-        // mitranya). Dipanggil ulang setiap kali status login/penilaian berubah.
+        // Tombol e-Sertifikat DPL: SELALU tampil untuk role 'dpl', berapapun jumlah mahasiswa
+        // yang sudah dinilai (tidak lagi menunggu checkAllStudentsGraded()), konsisten dengan
+        // tombol eSertifikat Guru Pamong. Proses unduh (downloadSertifikatDplPDF) tetap punya
+        // pengaman sendiri berupa pesan informatif bila belum ada data penilaian sama sekali.
         function updateDplSertifikatButton() {
             const btn = document.getElementById('btn-nav-sertifikat-dpl');
             if (!btn) return;
-            if (currentUserRole === 'dpl' && checkAllStudentsGraded()) {
+            if (currentUserRole === 'dpl') {
                 btn.classList.remove('hidden');
             } else {
                 btn.classList.add('hidden');
             }
         }
 
-        // Sama seperti updateDplSertifikatButton(), tapi untuk Guru Pamong: tombol khusus role
-        // 'pamong', muncul setelah Guru Pamong yang bersangkutan selesai menilai seluruh
-        // mahasiswa di sekolah mitranya (checkAllStudentsGraded() sudah generik untuk dpl/pamong
-        // karena berbasis currentUserObj.sekolah + currentUserId).
+        // Tombol e-Sertifikat Guru Pamong: SELALU tampil untuk role 'pamong', berapapun jumlah
+        // mahasiswa yang sudah dinilai (tidak lagi menunggu checkAllStudentsGraded()). Kalau
+        // Guru Pamong belum menilai satu pun mahasiswa, proses unduh (downloadSertifikatPamongPDF)
+        // tetap punya pengaman sendiri berupa pesan informatif, jadi tidak akan menghasilkan
+        // sertifikat kosong/salah.
         function updatePamongSertifikatButton() {
             const btn = document.getElementById('btn-nav-sertifikat-pamong');
             if (!btn) return;
-            if (currentUserRole === 'pamong' && checkAllStudentsGraded()) {
+            if (currentUserRole === 'pamong') {
                 btn.classList.remove('hidden');
             } else {
                 btn.classList.add('hidden');
             }
+        }
+
+        // Normalisasi 'sekolah': beberapa baris lama di sheet user_pamong ternyata hanya
+        // terisi lewat kolom 'instansi' (bukan 'sekolah'), padahal seluruh logika
+        // dashboard/rekap/eSertifikat membaca 'sekolah'. Supaya akun-akun itu tidak
+        // "hilang" datanya, pakai 'instansi' sebagai cadangan bila 'sekolah' kosong.
+        // Diterapkan juga ke DPL untuk konsistensi/jaga-jaga.
+        function applySekolahFallback(arr) {
+            return (arr || []).map(u => {
+                const sekolah = String(u.sekolah || '').trim() || String(u.instansi || '').trim();
+                return Object.assign({}, u, { sekolah });
+            });
         }
 
         function initApp() {
@@ -1658,8 +1705,8 @@
             fetch(GAS_URL)
                 .then(response => response.json())
                 .then(serverData => {
-                    dplData = serverData.dpl || [];
-                    pamongData = serverData.pamong || [];
+                    dplData = applySekolahFallback(serverData.dpl);
+                    pamongData = applySekolahFallback(serverData.pamong);
                     mahasiswaData = serverData.mahasiswa || [];
                     pesertaData = serverData.peserta || [];
                     penilaianList = serverData.penilaian || [];
@@ -2005,11 +2052,17 @@
             if (!homeSection || homeSection.classList.contains('hidden')) return;
 
             // --- Statistik Total ---
-            const totalMahasiswa = mahasiswaData.length;
-            const sekolahSet = new Set(mahasiswaData.map(m => String(m.sekolah || '').trim()).filter(Boolean));
+            // Dihitung dari baris yang punya identitas valid saja (nim/email/nama tidak
+            // kosong), supaya baris kosong/rusak di sheet tidak ikut menggelembungkan angka.
+            const validMahasiswa = mahasiswaData.filter(m => String(m.nim || '').trim() !== '');
+            const validDpl = dplData.filter(d => String(d.email || '').trim() !== '');
+            const validPamong = pamongData.filter(p => String(p.nama || '').trim() !== '');
+
+            const totalMahasiswa = validMahasiswa.length;
+            const sekolahSet = new Set(validMahasiswa.map(m => String(m.sekolah || '').trim()).filter(Boolean));
             const totalSekolah = sekolahSet.size;
-            const totalDpl = dplData.length;
-            const totalPamong = pamongData.length;
+            const totalDpl = validDpl.length;
+            const totalPamong = validPamong.length;
 
             document.getElementById('stat-total-mahasiswa').innerText = totalMahasiswa;
             document.getElementById('stat-total-sekolah').innerText = totalSekolah;
@@ -2018,7 +2071,7 @@
 
             // --- Grafik: Jumlah Mahasiswa per Program Studi ---
             const prodiCounts = {};
-            mahasiswaData.forEach(m => {
+            validMahasiswa.forEach(m => {
                 const key = String(m.prodi || 'Tidak diketahui').trim() || 'Tidak diketahui';
                 prodiCounts[key] = (prodiCounts[key] || 0) + 1;
             });
@@ -2054,7 +2107,7 @@
 
             // --- Grafik: Jumlah Guru Pamong per Sekolah Mitra ---
             const pamongSekolahCounts = {};
-            pamongData.forEach(p => {
+            validPamong.forEach(p => {
                 const key = String(p.sekolah || 'Tidak diketahui').trim() || 'Tidak diketahui';
                 pamongSekolahCounts[key] = (pamongSekolahCounts[key] || 0) + 1;
             });
@@ -2244,16 +2297,15 @@
             if (!listContainer) return;
             listContainer.innerHTML = '';
 
-            const userSchool = String(currentUserObj.sekolah || '').toLowerCase();
+            const userSchool = normalizeSchoolName(currentUserObj.sekolah || '');
             const gradedNims = penilaianList.filter(p => String(p.penilaiId) === String(currentUserId)).map(p => String(p.nim));
             // Super admin (tanpa sekolah mitra spesifik) dapat melihat mahasiswa dari SEMUA sekolah.
             const noSchoolRestriction = isSuperAdminUser() && !currentUserObj.sekolah;
 
             const filtered = mahasiswaData.filter(m => {
-                const mSchool = String(m.sekolah).toLowerCase().replace("kota ", "");
-                const uSchool = userSchool.replace("kota ", "");
-                
-                const isMySchool = noSchoolRestriction || mSchool.includes(uSchool) || uSchool.includes(mSchool) || String(m.sekolah) === String(currentUserObj.sekolah);
+                const mSchool = normalizeSchoolName(m.sekolah);
+
+                const isMySchool = noSchoolRestriction || mSchool === userSchool || mSchool.includes(userSchool) || userSchool.includes(mSchool);
                 const matchesKeyword = String(m.nama).toLowerCase().includes(searchVal) || String(m.nim).includes(searchVal);
                 const isNotGradedYet = !gradedNims.includes(String(m.nim));
                 
@@ -2595,13 +2647,13 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             
-            const userSchool = String(currentUserObj.sekolah || '').toLowerCase().replace("kota ", "");
+            const userSchool = normalizeSchoolName(currentUserObj.sekolah || '');
             // Super admin (tanpa sekolah mitra spesifik) melihat rekap dari SEMUA sekolah.
             const noSchoolRestriction = isSuperAdminUser() && !currentUserObj.sekolah;
             const myStudents = mahasiswaData.filter(m => {
                 if (noSchoolRestriction) return true;
-                const mSchool = String(m.sekolah).toLowerCase().replace("kota ", "");
-                return mSchool.includes(userSchool) || userSchool.includes(mSchool) || String(m.sekolah) === String(currentUserObj.sekolah);
+                const mSchool = normalizeSchoolName(m.sekolah);
+                return mSchool === userSchool || mSchool.includes(userSchool) || userSchool.includes(mSchool);
             });
             document.getElementById('total-rekap-info').innerText = `${myStudents.length} mahasiswa terdaftar`;
 
@@ -2681,7 +2733,7 @@
         let deleteTargetId = null;
         
         function deleteRecord(id) {
-            const record = penilaianList.find(p => p.id === id); 
+            const record = penilaianList.find(p => String(p.id) === String(id)); 
             if (!record) return;
             deleteTargetId = id; 
             document.getElementById('confirm-message').innerText = `Apakah Anda yakin ingin menghapus draf penilaian untuk mahasiswa ${record.nama}?`; 
@@ -2695,7 +2747,7 @@
         
         function executeDelete() {
             if (deleteTargetId) {
-                penilaianList = penilaianList.filter(p => p.id !== deleteTargetId);
+                penilaianList = penilaianList.filter(p => String(p.id) !== String(deleteTargetId));
                 safeStorage.setItem('plp_penilaian_list', JSON.stringify(penilaianList));
                 showAlert("Selesai", "Data evaluasi telah dihapus (Lokal).", "info");
                 const allGraded = checkAllStudentsGraded();
@@ -2784,7 +2836,7 @@
         let activeRecordForPreview = null;
         
         function previewReport(id) {
-            const record = penilaianList.find(p => p.id === id); 
+            const record = penilaianList.find(p => String(p.id) === String(id)); 
             if (!record) return;
             
             activeRecordForPreview = record;
@@ -3807,10 +3859,10 @@
         let sertifikatFilteredDplGroups = [];
 
         // Fuzzy match nama sekolah, konsisten dengan logika checkAllStudentsGraded() di atas
-        // (mis. 'Kota Malang' vs 'Malang' tetap dianggap cocok).
+        // (mis. 'Kota Malang' vs 'Malang', atau 'SMPN' vs 'SMP Negeri', tetap dianggap cocok).
         function isSekolahMatch(sekolahA, sekolahB) {
-            const a = String(sekolahA || '').toLowerCase().replace("kota ", "").trim();
-            const b = String(sekolahB || '').toLowerCase().replace("kota ", "").trim();
+            const a = normalizeSchoolName(sekolahA);
+            const b = normalizeSchoolName(sekolahB);
             if (!a || !b) return false;
             return a === b || a.includes(b) || b.includes(a);
         }
@@ -4070,6 +4122,7 @@
             dpl: {
                 sheet: 'user_dpl',
                 keyField: 'email',
+                resolveKey(row) { return { field: 'email', value: row.email }; },
                 dataArray: () => dplData,
                 columns: [
                     { field: 'nama', label: 'Nama' },
@@ -4082,18 +4135,28 @@
             },
             pamong: {
                 sheet: 'user_pamong',
-                keyField: 'nama',
+                keyField: 'nama', // dipakai sebagai fallback bila resolveKey tidak dipanggil
+                // NUPTK dipakai sebagai kunci utama begitu sudah terisi (unik & permanen).
+                // Selama NUPTK sebuah baris masih kosong (data lama), tetap pakai 'nama'
+                // sebagai kunci sementara (perilaku lama) supaya baris itu tidak "kehilangan"
+                // tombol edit/hapus sebelum NUPTK-nya dilengkapi satu per satu.
+                resolveKey(row) {
+                    const nuptk = String(row.nuptk || '').trim();
+                    return nuptk ? { field: 'nuptk', value: nuptk } : { field: 'nama', value: row.nama };
+                },
                 dataArray: () => pamongData,
                 columns: [
                     { field: 'nama', label: 'Nama' },
+                    { field: 'nuptk', label: 'NUPTK' },
                     { field: 'sekolah', label: 'Sekolah Mitra' }
                 ],
-                formFields: ['nama', 'pass', 'sekolah'],
+                formFields: ['nama', 'pass', 'nuptk', 'sekolah'],
                 formPrefix: 'mgt-pamong-'
             },
             peserta: {
                 sheet: 'user_peserta',
                 keyField: 'nim',
+                resolveKey(row) { return { field: 'nim', value: row.nim }; },
                 dataArray: () => pesertaData,
                 columns: [
                     { field: 'nim', label: 'NIM' },
@@ -4208,26 +4271,26 @@
             }
 
             rows.forEach(row => {
-                const keyValue = row[cfg.keyField];
+                const k = cfg.resolveKey ? cfg.resolveKey(row) : { field: cfg.keyField, value: row[cfg.keyField] };
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/50 transition-colors";
                 const cells = cfg.columns.map(c => `<td class="px-4 py-3 font-medium text-slate-700">${(row[c.field] !== undefined && row[c.field] !== '') ? escapeHtml(row[c.field]) : '-'}</td>`).join('');
-                const actionCell = `<td class="px-4 py-3 text-center"><div class="flex items-center justify-center gap-1.5"><button class="mgt-edit-btn px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded text-[10px] transition" data-key="${escapeHtml(String(keyValue))}"><i class="fa-solid fa-pen"></i> Edit</button><button class="mgt-delete-btn px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded text-[10px] transition" data-key="${escapeHtml(String(keyValue))}" data-label="${escapeHtml(String(row.nama || keyValue))}"><i class="fa-solid fa-trash"></i> Hapus</button></div></td>`;
+                const actionCell = `<td class="px-4 py-3 text-center"><div class="flex items-center justify-center gap-1.5"><button class="mgt-edit-btn px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded text-[10px] transition" data-keyfield="${escapeHtml(k.field)}" data-key="${escapeHtml(String(k.value))}"><i class="fa-solid fa-pen"></i> Edit</button><button class="mgt-delete-btn px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded text-[10px] transition" data-keyfield="${escapeHtml(k.field)}" data-key="${escapeHtml(String(k.value))}" data-label="${escapeHtml(String(row.nama || k.value))}"><i class="fa-solid fa-trash"></i> Hapus</button></div></td>`;
                 tr.innerHTML = cells + actionCell;
                 tbody.appendChild(tr);
             });
 
             tbody.querySelectorAll('.mgt-edit-btn').forEach(btn => {
-                btn.addEventListener('click', () => editUserRow(mgtActiveTab, btn.dataset.key));
+                btn.addEventListener('click', () => editUserRow(mgtActiveTab, btn.dataset.keyfield, btn.dataset.key));
             });
             tbody.querySelectorAll('.mgt-delete-btn').forEach(btn => {
-                btn.addEventListener('click', () => openMgtDeleteConfirm(mgtActiveTab, btn.dataset.key, btn.dataset.label));
+                btn.addEventListener('click', () => openMgtDeleteConfirm(mgtActiveTab, btn.dataset.keyfield, btn.dataset.key, btn.dataset.label));
             });
         }
 
-        function editUserRow(tab, keyValue) {
+        function editUserRow(tab, keyField, keyValue) {
             const cfg = MGT_CONFIG[tab];
-            const row = cfg.dataArray().find(r => String(r[cfg.keyField]) === String(keyValue));
+            const row = cfg.dataArray().find(r => String(r[keyField]) === String(keyValue));
             if (!row) { showAlert("Gagal", "Data tidak ditemukan (mungkin sudah diubah oleh pengguna lain).", "error"); return; }
 
             cfg.formFields.forEach(f => {
@@ -4235,6 +4298,7 @@
                 if (el) el.value = (f === 'pass') ? '' : (row[f] !== undefined ? row[f] : '');
             });
 
+            document.getElementById('mgt-edit-key-field').value = keyField;
             document.getElementById('mgt-edit-key-value').value = String(keyValue);
             document.getElementById('mgt-btn-cancel').classList.remove('hidden');
             document.getElementById('mgt-btn-submit-label').innerText = 'Update Data';
@@ -4253,6 +4317,7 @@
                 const el = document.getElementById(cfg.formPrefix + f);
                 if (el) el.value = '';
             });
+            document.getElementById('mgt-edit-key-field').value = '';
             document.getElementById('mgt-edit-key-value').value = '';
             document.getElementById('mgt-btn-cancel').classList.add('hidden');
             document.getElementById('mgt-btn-submit-label').innerText = 'Tambah Data';
@@ -4261,6 +4326,7 @@
 
         function submitUserForm() {
             const cfg = MGT_CONFIG[mgtActiveTab];
+            const editKeyField = document.getElementById('mgt-edit-key-field').value.trim();
             const editKeyValue = document.getElementById('mgt-edit-key-value').value.trim();
             const isEdit = !!editKeyValue;
 
@@ -4270,7 +4336,7 @@
                 data[f] = el ? el.value.trim() : '';
             });
 
-            const requiredFields = cfg.formFields.filter(f => f !== 'pass');
+            const requiredFields = cfg.formFields.filter(f => f !== 'pass' && f !== 'nuptk');
             for (const f of requiredFields) {
                 if (!data[f]) {
                     showAlert("Peringatan", "Harap lengkapi semua kolom wajib sebelum menyimpan.", "error");
@@ -4280,7 +4346,7 @@
 
             if (cfg.formFields.includes('pass')) {
                 if (isEdit && !data.pass) {
-                    const existing = cfg.dataArray().find(r => String(r[cfg.keyField]) === String(editKeyValue));
+                    const existing = cfg.dataArray().find(r => String(r[editKeyField]) === String(editKeyValue));
                     data.pass = (existing && existing.pass !== undefined) ? existing.pass : '';
                 } else if (!isEdit && !data.pass) {
                     showAlert("Peringatan", "Password wajib diisi untuk data baru.", "error");
@@ -4288,14 +4354,16 @@
                 }
             }
 
-            const newKeyValue = data[cfg.keyField];
+            // Untuk data baru: tentukan field kunci dari data yang baru diisi (mis. Pamong
+            // baru yang langsung diisi NUPTK-nya akan pakai 'nuptk' sebagai kunci sejak awal).
+            const newKey = cfg.resolveKey ? cfg.resolveKey(data) : { field: cfg.keyField, value: data[cfg.keyField] };
 
             const payload = {
                 action: 'manageUser',
                 op: isEdit ? 'edit' : 'tambah',
                 sheet: cfg.sheet,
                 data: data,
-                key: { field: cfg.keyField, value: isEdit ? editKeyValue : newKeyValue }
+                key: isEdit ? { field: editKeyField, value: editKeyValue } : newKey
             };
 
             showAlert("Menyimpan...", "Mengirim data ke server...", "info");
@@ -4321,8 +4389,8 @@
             });
         }
 
-        function openMgtDeleteConfirm(tab, keyValue, label) {
-            mgtDeleteTarget = { tab: tab, keyValue: keyValue };
+        function openMgtDeleteConfirm(tab, keyField, keyValue, label) {
+            mgtDeleteTarget = { tab: tab, keyField: keyField, keyValue: keyValue };
             document.getElementById('confirm-user-message').innerText = `Apakah Anda yakin ingin menghapus data "${label}"? Tindakan ini tidak dapat dibatalkan.`;
             document.getElementById('modal-confirm-user').classList.remove('hidden');
         }
@@ -4339,7 +4407,7 @@
                 action: 'manageUser',
                 op: 'hapus',
                 sheet: cfg.sheet,
-                key: { field: cfg.keyField, value: mgtDeleteTarget.keyValue }
+                key: { field: mgtDeleteTarget.keyField, value: mgtDeleteTarget.keyValue }
             };
 
             showAlert("Menghapus...", "Mengirim permintaan hapus ke server...", "info");
@@ -4369,8 +4437,8 @@
             fetch(GAS_URL)
                 .then(response => response.json())
                 .then(serverData => {
-                    dplData = serverData.dpl || [];
-                    pamongData = serverData.pamong || [];
+                    dplData = applySekolahFallback(serverData.dpl);
+                    pamongData = applySekolahFallback(serverData.pamong);
                     mahasiswaData = serverData.mahasiswa || [];
                     pesertaData = serverData.peserta || [];
                     penilaianList = serverData.penilaian || [];

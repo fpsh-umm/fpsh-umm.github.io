@@ -1176,7 +1176,7 @@
                                 <p class="text-[10px]">Mengetahui,</p>
                                 <p class="font-bold text-[10px]">Kepala Laboratorium Microteaching FPSH</p>
                                 <div class="my-1.5 flex justify-start">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F" alt="QR Verification" class="h-14 w-14 border border-slate-200 p-0.5 bg-white rounded shadow-sm">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffpsh-umm.github.io%2Fverifikasi.html" alt="QR Verification" class="h-14 w-14 border border-slate-200 p-0.5 bg-white rounded shadow-sm">
                                 </div>
                                 <p class="font-bold underline text-[10px]">Dr. Arif Setiawan, M.Pd.</p>
                                 <p class="text-[9px] text-slate-500">NIDN 0702098801</p>
@@ -1185,7 +1185,7 @@
                                 <p id="pdf-current-place-date" class="text-[10px]">Malang, ...</p>
                                 <p id="pdf-ttd-role" class="font-bold text-[10px]">Penilai Lapangan / Pembimbing</p>
                                 <div class="my-1.5 flex justify-end">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F" alt="QR Verification" class="h-14 w-14 border border-slate-200 p-0.5 bg-white rounded shadow-sm">
+                                    <div class="h-14 w-14" aria-hidden="true"></div>
                                 </div>
                                 <p id="pdf-ttd-nama" class="font-bold underline text-[10px]">Nama Penilai</p>
                                 <p id="pdf-ttd-nip" class="text-[9px] text-slate-500 font-medium">NIDN. -</p>
@@ -1310,7 +1310,7 @@
                                 <p id="super-current-date" class="text-[10px]">Malang, ...</p>
                                 <p class="font-bold text-[10px]">Kepala Laboratorium Microteaching FPSH</p>
                                 <div class="my-1.5 flex justify-end">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F" alt="QR Verification" class="h-12 w-12 border border-slate-200 p-0.5 bg-white rounded shadow-sm">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffpsh-umm.github.io%2Fverifikasi.html" alt="QR Verification" class="h-12 w-12 border border-slate-200 p-0.5 bg-white rounded shadow-sm">
                                 </div>
                                 <p class="font-bold underline text-[10px]">Dr. Arif Setiawan, M.Pd.</p>
                                 <p class="text-[9px] text-slate-500 font-medium">NIDN 0702098801</p>
@@ -1408,6 +1408,11 @@
             }).then((JsPDF) => {
                 if (JsPDF.API && JsPDF.API.autoTable) return JsPDF;
                 return loadScriptOnce(PDF_LIB_CFG.AUTOTABLE_URL).then(() => JsPDF);
+            }).then(async (JsPDF) => {
+                // Pastikan versi JPEG kop surat sudah siap sebelum PDF mulai dibuat, termasuk
+                // untuk dipakai dari callback sinkron autoTable (willDrawPage/drawContinuationKop).
+                await ensureKopJpegCache();
+                return JsPDF;
             });
         }
 
@@ -1423,25 +1428,64 @@
             const m = /url\(["']?(data:image\/[^"')]+)["']?\)/.exec(bg || '');
             return m ? m[1] : null;
         }
-        function getKopHeaderUri() {
-            if (!_kopHeaderDataUri) _kopHeaderDataUri = extractKopDataUri('kop-page-header');
-            return _kopHeaderDataUri;
+
+        // Kop surat aslinya PNG (lossless) berukuran satu halaman F4 penuh - kalau disisipkan
+        // apa adanya ke PDF, ukurannya jauh lebih besar daripada perlu (grafis kop hanya ada di
+        // pita atas/bawah, sisanya putih polos, sehingga tidak butuh kualitas lossless). Di sini
+        // gambar digambar ulang lewat canvas lalu diekspor sebagai JPEG terkompresi - hasilnya
+        // dipakai berulang untuk SETIAP halaman PDF (jsPDF otomatis mendedup gambar yang sama),
+        // jadi cukup dikonversi sekali dan file PDF akhir jadi jauh lebih ringkas.
+        function pngDataUriToCompressedJpeg(pngDataUri, quality) {
+            return new Promise((resolve) => {
+                if (!pngDataUri) { resolve(null); return; }
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth || 1;
+                        canvas.height = img.naturalHeight || 1;
+                        const ctx = canvas.getContext('2d');
+                        // JPEG tidak punya alpha channel - isi putih dulu supaya transparansi
+                        // (kalau ada) tidak berubah jadi hitam.
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    } catch (e) { resolve(pngDataUri); }
+                };
+                img.onerror = () => resolve(pngDataUri);
+                img.src = pngDataUri;
+            });
         }
-        function getKopLampiranUri() {
-            if (!_kopLampiranDataUri) _kopLampiranDataUri = extractKopDataUri('kop-page-lampiran');
-            return _kopLampiranDataUri;
+        // Cache-warm: dipanggil sekali (dari ensureJsPDF(), lihat di bawah) SEBELUM proses
+        // pembuatan PDF mana pun dimulai, supaya versi JPEG-nya sudah siap saat drawFirstPageKop/
+        // drawContinuationKop dipanggil - termasuk dari dalam callback sinkron autoTable
+        // (willDrawPage) yang tidak bisa menunggu Promise.
+        let _kopHeaderJpegUri = null;
+        let _kopLampiranJpegUri = null;
+        let _kopJpegCacheReady = null;
+        function ensureKopJpegCache() {
+            if (!_kopJpegCacheReady) {
+                _kopJpegCacheReady = (async () => {
+                    if (!_kopHeaderDataUri) _kopHeaderDataUri = extractKopDataUri('kop-page-header');
+                    if (!_kopLampiranDataUri) _kopLampiranDataUri = extractKopDataUri('kop-page-lampiran');
+                    _kopHeaderJpegUri = await pngDataUriToCompressedJpeg(_kopHeaderDataUri, 0.82);
+                    _kopLampiranJpegUri = await pngDataUriToCompressedJpeg(_kopLampiranDataUri, 0.82);
+                })();
+            }
+            return _kopJpegCacheReady;
         }
 
         // Gambar background kop F4 penuh (grafis kop hanya ada di pita atas/bawah, sisanya
         // putih polos) - aman digambar sebelum ATAU sesudah konten karena tidak akan pernah
         // menimpa apa pun yang berada di dalam area margin (lihat PDF_TOP_*/PDF_BOTTOM_SAFE).
         function drawFirstPageKop(doc, pw, ph) {
-            const uri = getKopHeaderUri();
-            if (uri) doc.addImage(uri, 'PNG', 0, 0, pw, ph);
+            const uri = _kopHeaderJpegUri || _kopHeaderDataUri;
+            if (uri) doc.addImage(uri, _kopHeaderJpegUri ? 'JPEG' : 'PNG', 0, 0, pw, ph, undefined, 'FAST');
         }
         function drawContinuationKop(doc, pw, ph) {
-            const uri = getKopLampiranUri();
-            if (uri) doc.addImage(uri, 'PNG', 0, 0, pw, ph);
+            const uri = _kopLampiranJpegUri || _kopLampiranDataUri;
+            if (uri) doc.addImage(uri, _kopLampiranJpegUri ? 'JPEG' : 'PNG', 0, 0, pw, ph, undefined, 'FAST');
         }
 
         // Konversi URL gambar (mis. QR code dari api.qrserver.com) menjadi data URI PNG
@@ -1466,8 +1510,11 @@
                 img.src = url;
             });
         }
-        const QR_VERIFY_URL_DEFAULT = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F";
-        const QR_VERIFY_URL_AKUMULASI = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffkip.umm.ac.id%2Ffasilitas%2Flmt%2Fhasil-penilaian-plp-ii%2F";
+        // Link QR untuk Dr. Arif Setiawan, M.Pd. sekarang DISAMAKAN dengan link QR
+        // Prof. Dr. Moh. Mahfud Effendi, M.M. (lihat buildVerifikasiTargetUrl()) - sama-sama
+        // mengarah ke halaman verifikasi https://fpsh-umm.github.io/verifikasi.html.
+        const QR_VERIFY_URL_DEFAULT = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffpsh-umm.github.io%2Fverifikasi.html";
+        const QR_VERIFY_URL_AKUMULASI = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffpsh-umm.github.io%2Fverifikasi.html";
 
         // Membuat URL tujuan halaman verifikasi e-Sertifikat (https://fpsh.umm.ac.id/fasilitas/verifikasi/)
         // dengan parameter identitas yang berbeda-beda tergantung jenis penerima:
@@ -1524,10 +1571,15 @@
                     doc.text(ln.text, x, cy, { align });
                 }
                 cy += (ln.gapAfter != null ? ln.gapAfter : 4.6);
-                if (ln.qrHere && qrDataUri) {
+                if ((ln.qrHere || ln.qrSpace) && (qrDataUri || ln.qrSpace)) {
                     const qrSize = 16;
-                    const qx = align === 'right' ? x - qrSize : x;
-                    doc.addImage(qrDataUri, 'PNG', qx, cy - 2, qrSize, qrSize);
+                    if (ln.qrHere && qrDataUri) {
+                        const qx = align === 'right' ? x - qrSize : x;
+                        doc.addImage(qrDataUri, 'PNG', qx, cy - 2, qrSize, qrSize);
+                    }
+                    // ln.qrSpace (tanpa qrHere): QR sengaja tidak dicetak di sini, tapi ruang
+                    // kosongnya tetap disisakan supaya tinggi blok tanda tangan kiri/kanan tetap
+                    // sejajar dengan kolom lain yang masih menampilkan QR.
                     cy += qrSize + 2;
                 }
             }
@@ -2061,7 +2113,11 @@
             const totalMahasiswa = validMahasiswa.length;
             const sekolahSet = new Set(validMahasiswa.map(m => String(m.sekolah || '').trim()).filter(Boolean));
             const totalSekolah = sekolahSet.size;
-            const totalDpl = validDpl.length;
+            // DPL bisa punya lebih dari satu baris di sheet (mis. membimbing di beberapa sekolah
+            // mitra sekaligus). Supaya tidak terhitung dobel, dihitung berdasarkan NAMA unik
+            // (case-insensitive), bukan jumlah baris.
+            const dplNamaUniqueSet = new Set(validDpl.map(d => String(d.nama || '').trim().toLowerCase()).filter(Boolean));
+            const totalDpl = dplNamaUniqueSet.size;
             const totalPamong = validPamong.length;
 
             document.getElementById('stat-total-mahasiswa').innerText = totalMahasiswa;
@@ -2844,11 +2900,24 @@
             document.getElementById('pdf-mhs-nim').innerText = record.nim; 
             document.getElementById('pdf-mhs-prodi').innerText = record.prodi; 
             document.getElementById('pdf-mhs-sekolah').innerText = record.sekolah;
-            document.getElementById('pdf-penilai-nama').innerText = record.penilaiNama; 
-            document.getElementById('pdf-penilai-status').innerText = String(record.penilaiRole).toLowerCase() === 'dpl' ? "Dosen Pendamping Lapangan" : "Guru Pamong";
+
+            // Cari data penilai TERKINI di dplData/pamongData berdasarkan penilaiId (kunci stabil
+            // yang disimpan saat penilaian dibuat: email untuk DPL, nama untuk Guru Pamong) -
+            // BUKAN mencocokkan lewat record.penilaiNama, yang hanya "foto" nama pada saat
+            // penilaian itu dibuat. Kalau nama DPL/Pamong itu diedit belakangan di Manajemen User,
+            // mencocokkan lewat nama lama akan gagal dan salah label (nama tampil beda dari sheet,
+            // dan baris identitas bisa salah antara NIDN/NUPTK). Dengan mencocokkan lewat penilaiId,
+            // nama & identitas yang ditampilkan selalu mengikuti data TERBARU di sheet.
+            const isDplRecord = String(record.penilaiRole).toLowerCase() === 'dpl';
+            const findDplObj = isDplRecord ? dplData.find(d => String(d.email).toLowerCase() === String(record.penilaiId).toLowerCase()) : null;
+            const findPamongObj = !isDplRecord ? pamongData.find(p => String(p.nama).toLowerCase() === String(record.penilaiId).toLowerCase()) : null;
+            const penilaiNamaTerkini = (findDplObj && findDplObj.nama) || (findPamongObj && findPamongObj.nama) || record.penilaiNama;
+
+            document.getElementById('pdf-penilai-nama').innerText = penilaiNamaTerkini; 
+            document.getElementById('pdf-penilai-status').innerText = isDplRecord ? "Dosen Pendamping Lapangan" : "Guru Pamong";
             
             const ttdRoleEl = document.getElementById('pdf-ttd-role'); 
-            if (ttdRoleEl) ttdRoleEl.innerText = String(record.penilaiRole).toLowerCase() === 'dpl' ? "Dosen Pembimbing Lapangan" : "Guru Pamong";
+            if (ttdRoleEl) ttdRoleEl.innerText = isDplRecord ? "Dosen Pembimbing Lapangan" : "Guru Pamong";
             
             const dateObj = new Date(record.monitoringDate); 
             document.getElementById('pdf-mon-time').innerText = isNaN(dateObj) ? record.monitoringDate : dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -2888,10 +2957,11 @@
             
             const placesDate = new Date(); 
             document.getElementById('pdf-current-place-date').innerText = "Malang, " + placesDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('pdf-ttd-nama').innerText = record.penilaiNama;
-            
-            const findDplObj = dplData.find(d => String(d.nama) === String(record.penilaiNama)); 
-            document.getElementById('pdf-ttd-nip').innerText = findDplObj ? `NIDN. ${findDplObj.nidn}` : "NIP/NIDN. -";
+            document.getElementById('pdf-ttd-nama').innerText = penilaiNamaTerkini;
+
+            document.getElementById('pdf-ttd-nip').innerText = isDplRecord
+                ? `NIDN. ${findDplObj ? findDplObj.nidn : '-'}`
+                : `NUPTK ${findPamongObj && findPamongObj.nuptk ? findPamongObj.nuptk : '-'}`;
 
             const listA = document.getElementById('pdf-detail-list-a'); 
             listA.innerHTML = ''; 
@@ -2943,7 +3013,7 @@
 
         // ---------- 1) Laporan Individual (per mahasiswa, per penilai) ----------
         async function buildLaporanIndividualPdf(JsPDF, record) {
-            const doc = new JsPDF({ unit: 'mm', format: F4_FORMAT });
+            const doc = new JsPDF({ unit: 'mm', format: F4_FORMAT, compress: true });
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
             drawFirstPageKop(doc, pw, ph);
@@ -2954,6 +3024,16 @@
                 imageUrlToDataUri(QR_VERIFY_URL_DEFAULT),
                 imageUrlToDataUri(QR_VERIFY_URL_DEFAULT)
             ]);
+
+            // Cari data penilai TERKINI di dplData/pamongData lewat penilaiId (kunci stabil:
+            // email untuk DPL, nama untuk Guru Pamong) - bukan lewat record.penilaiNama, yang
+            // cuma "foto" nama saat penilaian itu dibuat dan bisa berbeda dari sheet kalau nama
+            // penilai diedit belakangan di Manajemen User. Dipakai untuk nama & baris NIDN/NUPTK
+            // di identitas maupun blok tanda tangan supaya selalu sinkron dengan sheet terbaru.
+            const isDplRecord = String(record.penilaiRole).toLowerCase() === 'dpl';
+            const findDplObj = isDplRecord ? dplData.find(d => String(d.email).toLowerCase() === String(record.penilaiId).toLowerCase()) : null;
+            const findPamongObj = !isDplRecord ? pamongData.find(p => String(p.nama).toLowerCase() === String(record.penilaiId).toLowerCase()) : null;
+            const penilaiNamaTerkini = (findDplObj && findDplObj.nama) || (findPamongObj && findPamongObj.nama) || record.penilaiNama;
 
             // --- Judul ---
             doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
@@ -2967,39 +3047,79 @@
             // --- Identitas (2 kolom) ---
             const half = contentW / 2;
             doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-            doc.setTextColor(100); doc.text('IDENTITAS MAHASISWA', PDF_MARGIN_X, cur.y);
+            doc.setTextColor(100);
+            doc.text('IDENTITAS MAHASISWA', PDF_MARGIN_X, cur.y);
             doc.text('INFORMASI PENILAIAN', PDF_MARGIN_X + half + 4, cur.y);
+            doc.setDrawColor(210);
+            doc.line(PDF_MARGIN_X, cur.y + 1.4, PDF_MARGIN_X + half - 4, cur.y + 1.4);
+            doc.line(PDF_MARGIN_X + half + 4, cur.y + 1.4, pw - PDF_MARGIN_X, cur.y + 1.4);
             doc.setTextColor(0);
-            let ly = cur.y + 4.5, ry = cur.y + 4.5;
+            let ly = cur.y + 6, ry = cur.y + 6;
             doc.setFontSize(9); doc.setFont('helvetica', 'normal');
             const leftRows = [['Nama', record.nama], ['NIM', record.nim], ['Program Studi', record.prodi], ['Sekolah Mitra', record.sekolah]];
             const monDate = new Date(record.monitoringDate);
             const monStr = isNaN(monDate) ? record.monitoringDate : monDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             const statusPenilai = String(record.penilaiRole).toLowerCase() === 'dpl' ? 'Dosen Pendamping Lapangan' : 'Guru Pamong';
-            const rightRows = [['Penilai', record.penilaiNama], ['Status', statusPenilai], ['Waktu Monitoring', monStr]];
+            const rightRows = [['Penilai', penilaiNamaTerkini], ['Status', statusPenilai], ['Waktu Monitoring', monStr]];
+            // Lebar kolom label disamakan lewat label terpanjang di masing-masing kolom, supaya
+            // titik dua semua baris rata satu garis vertikal (tidak lagi memakai angka tetap
+            // 26/30 yang bisa membuat label panjang terpotong atau nilai jadi tidak sejajar).
+            const leftLabelW = Math.max(...leftRows.map(([label]) => doc.getTextWidth(label + ':'))) + 3;
+            const rightLabelW = Math.max(...rightRows.map(([label]) => doc.getTextWidth(label + ':'))) + 3;
             leftRows.forEach(([label, val]) => {
                 doc.setFont('helvetica', 'bold'); doc.text(label + ':', PDF_MARGIN_X, ly);
                 doc.setFont('helvetica', 'normal');
-                const lines = doc.splitTextToSize(String(val || '-'), half - 26);
-                doc.text(lines, PDF_MARGIN_X + 26, ly);
-                ly += 4.6 * lines.length;
+                const lines = doc.splitTextToSize(String(val || '-'), half - leftLabelW - 2);
+                doc.text(lines, PDF_MARGIN_X + leftLabelW, ly);
+                ly += 4.8 * lines.length;
             });
             rightRows.forEach(([label, val]) => {
                 doc.setFont('helvetica', 'bold'); doc.text(label + ':', PDF_MARGIN_X + half + 4, ry);
                 doc.setFont('helvetica', 'normal');
-                const lines = doc.splitTextToSize(String(val || '-'), half - 30);
-                doc.text(lines, PDF_MARGIN_X + half + 30, ry);
-                ry += 4.6 * lines.length;
+                const lines = doc.splitTextToSize(String(val || '-'), half - rightLabelW - 6);
+                doc.text(lines, PDF_MARGIN_X + half + 4 + rightLabelW, ry);
+                ry += 4.8 * lines.length;
             });
             cur.y = Math.max(ly, ry) + 3;
 
             // --- Aktivitas monitoring ---
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
-            doc.text('AKTIVITAS KEGIATAN MONITORING:', PDF_MARGIN_X, cur.y); cur.y += 4;
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-            const actsText = (record.monitoringActs && record.monitoringActs.length) ? record.monitoringActs.map(a => '\u2611 ' + a).join('    ') : 'Tidak ada aktivitas ter-checklist.';
-            const actLines = doc.splitTextToSize(actsText, contentW);
-            doc.text(actLines, PDF_MARGIN_X, cur.y); cur.y += 4.2 * actLines.length + 2;
+            // Sebelumnya semua item digabung jadi satu paragraf panjang lalu dipotong otomatis
+            // oleh splitTextToSize berdasarkan lebar halaman - kalau kebetulan patah di tengah,
+            // hasilnya terlihat seperti satu kalimat acak-acakan tanpa jelas batas antar item.
+            // Sekarang setiap aktivitas SELALU dicetak pada barisnya sendiri, jadi rapi dan mudah
+            // dibaca berapa pun panjang teksnya.
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+            doc.setTextColor(100); doc.text('AKTIVITAS KEGIATAN MONITORING', PDF_MARGIN_X, cur.y);
+            doc.setDrawColor(210); doc.line(PDF_MARGIN_X, cur.y + 1.4, pw - PDF_MARGIN_X, cur.y + 1.4);
+            doc.setTextColor(0); cur.y += 5.5;
+            doc.setFontSize(8.5);
+            if (record.monitoringActs && record.monitoringActs.length) {
+                doc.setFont('helvetica', 'normal');
+                // Kotak checklist digambar manual (vector rect + centang), BUKAN karakter
+                // unicode ('\u2611') - font standar jsPDF (helvetica) tidak mendukung karakter
+                // itu, sehingga sebelumnya diganti jadi '&' dan ikut mengacaukan perhitungan
+                // lebar/spasi kata di sekitarnya (kata jadi terpotong-potong, mis. "Monitoring"
+                // -> "Moni tor ing"). Dengan digambar manual, hasilnya konsisten di semua PDF
+                // viewer tanpa bergantung dukungan font untuk simbol tersebut.
+                const boxSize = 2.6, textIndent = boxSize + 2.2;
+                record.monitoringActs.forEach(act => {
+                    const lines = doc.splitTextToSize(String(act), contentW - textIndent);
+                    const boxY = cur.y - boxSize + 0.9;
+                    doc.setDrawColor(60); doc.setLineWidth(0.25);
+                    doc.rect(PDF_MARGIN_X, boxY, boxSize, boxSize, 'S');
+                    doc.setLineWidth(0.35);
+                    doc.line(PDF_MARGIN_X + 0.5, boxY + boxSize * 0.55, PDF_MARGIN_X + boxSize * 0.42, boxY + boxSize - 0.4);
+                    doc.line(PDF_MARGIN_X + boxSize * 0.42, boxY + boxSize - 0.4, PDF_MARGIN_X + boxSize - 0.3, boxY + 0.3);
+                    doc.setLineWidth(0.2);
+                    doc.text(lines, PDF_MARGIN_X + textIndent, cur.y);
+                    cur.y += 4.4 * lines.length;
+                });
+            } else {
+                doc.setFont('helvetica', 'italic');
+                doc.text('Tidak ada aktivitas ter-checklist.', PDF_MARGIN_X, cur.y);
+                cur.y += 4.4;
+            }
+            cur.y += 2.5;
 
             // --- Tabel skor A/B/C/Total ---
             const ptsA = Object.values(record.scoreState.tabA).reduce((a, b) => a + b, 0);
@@ -3066,7 +3186,7 @@
             if (isSuperAdmin) {
                 await drawSignatureColumn(doc, PDF_MARGIN_X, cur.y, 'left', [
                     { text: 'Mengetahui,', size: 9 },
-                    { text: 'Dekan FPSH UMM', bold: true, size: 9, qrHere: true },
+                    { text: 'Dekan FPSH UMM', bold: true, size: 9, qrSpace: true },
                     { text: 'Dr. Sugiarti, M.Si.', bold: true, underline: true, size: 9 },
                     { text: 'NIP. 196512181991032001', size: 8 }
                 ], qrKalab);
@@ -3083,13 +3203,14 @@
                     { text: 'Dr. Arif Setiawan, M.Pd.', bold: true, underline: true, size: 9 },
                     { text: 'NIDN 0702098801', size: 8 }
                 ], qrKalab);
-                const roleLabel = String(record.penilaiRole).toLowerCase() === 'dpl' ? 'Dosen Pendamping Lapangan' : 'Guru Pamong Mitra';
-                const findDplObj = dplData.find(d => String(d.nama) === String(record.penilaiNama));
-                const nipLine = String(record.penilaiRole).toLowerCase() === 'dpl' ? ('NIDN. ' + (findDplObj ? findDplObj.nidn : '-')) : 'Guru Pamong Terverifikasi';
+                const roleLabel = isDplRecord ? 'Dosen Pendamping Lapangan' : 'Guru Pamong Mitra';
+                const nipLine = isDplRecord
+                    ? ('NIDN. ' + (findDplObj ? findDplObj.nidn : '-'))
+                    : ('NUPTK ' + (findPamongObj && findPamongObj.nuptk ? findPamongObj.nuptk : '-'));
                 await drawSignatureColumn(doc, pw - PDF_MARGIN_X, cur.y, 'right', [
                     { text: dateStr, size: 9 },
-                    { text: roleLabel, bold: true, size: 9, qrHere: true },
-                    { text: record.penilaiNama, bold: true, underline: true, size: 9 },
+                    { text: roleLabel, bold: true, size: 9, qrSpace: true },
+                    { text: penilaiNamaTerkini, bold: true, underline: true, size: 9 },
                     { text: nipLine, size: 8 }
                 ], qrPenilai);
             }
@@ -3227,7 +3348,7 @@
         }
                 // ---------- 2) Laporan Akumulasi (rekap gabungan DPL + semua Pamong, per mahasiswa) ----------
         async function buildAkumulasiPdf(JsPDF, student, dplRecord, pamongRecords) {
-            const doc = new JsPDF({ unit: 'mm', format: F4_FORMAT });
+            const doc = new JsPDF({ unit: 'mm', format: F4_FORMAT, compress: true });
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
             drawFirstPageKop(doc, pw, ph);
@@ -3350,7 +3471,7 @@
         }
 
         async function buildRekapTablePdf(JsPDF, { title, subtitle, tableSelector, isAkumulasi }) {
-            const doc = new JsPDF({ unit: 'mm', format: F4_FORMAT });
+            const doc = new JsPDF({ unit: 'mm', format: F4_FORMAT, compress: true });
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
             drawFirstPageKop(doc, pw, ph);
@@ -3414,7 +3535,7 @@
                 if (isSuperAdmin) {
                     await drawSignatureColumn(doc, PDF_MARGIN_X, sigY, 'left', [
                         { text: 'Mengetahui,', size: 9 },
-                        { text: 'Dekan FPSH UMM', bold: true, size: 9, qrHere: true },
+                        { text: 'Dekan FPSH UMM', bold: true, size: 9, qrSpace: true },
                         { text: 'Dr. Sugiarti, M.Si.', bold: true, underline: true, size: 9 },
                         { text: 'NIP. 196512181991032001', size: 8 }
                     ], qr);
@@ -3433,9 +3554,9 @@
                     ], qr);
                     await drawSignatureColumn(doc, pw - PDF_MARGIN_X, sigY, 'right', [
                         { text: dateStr, size: 9 },
-                        { text: String(currentUserRole).toLowerCase() === 'dpl' ? 'Dosen Pendamping Lapangan' : 'Guru Pamong Mitra', bold: true, size: 9, qrHere: true },
+                        { text: String(currentUserRole).toLowerCase() === 'dpl' ? 'Dosen Pendamping Lapangan' : 'Guru Pamong Mitra', bold: true, size: 9, qrSpace: true },
                         { text: currentUserObj ? currentUserObj.nama : '-', bold: true, underline: true, size: 9 },
-                        { text: String(currentUserRole).toLowerCase() === 'dpl' ? `NIDN. ${currentUserObj ? currentUserObj.nidn : '-'}` : 'Guru Pamong Terverifikasi', size: 8 }
+                        { text: String(currentUserRole).toLowerCase() === 'dpl' ? `NIDN. ${currentUserObj ? currentUserObj.nidn : '-'}` : `NUPTK ${currentUserObj && currentUserObj.nuptk ? currentUserObj.nuptk : '-'}`, size: 8 }
                     ], qr);
                 }
             }
@@ -3541,7 +3662,7 @@
 
         async function buildSertifikatPdf(JsPDF, ctx) {
             const { student, dplRecord, pamongRecords, accumulatedScore, finalGradeInfo } = ctx;
-            const doc = new JsPDF({ unit: 'mm', format: 'a4' });
+            const doc = new JsPDF({ unit: 'mm', format: 'a4', compress: true });
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
             const cx = pw / 2;
@@ -3651,7 +3772,7 @@
         // dengan e-Sertifikat mahasiswa, namun teks isi & data diarahkan untuk DPL.
         async function buildSertifikatDplPdf(JsPDF, ctx) {
             const { dplUser, dplRecords, tahunAkademik, semester } = ctx;
-            const doc = new JsPDF({ unit: 'mm', format: 'a4' });
+            const doc = new JsPDF({ unit: 'mm', format: 'a4', compress: true });
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
             const cx = pw / 2;
@@ -3745,7 +3866,7 @@
         // identitas & nomor sertifikat memakai nama sekolah mitra sebagai gantinya.
         async function buildSertifikatPamongPdf(JsPDF, ctx) {
             const { pamongUser, pamongRecords, tahunAkademik, semester } = ctx;
-            const doc = new JsPDF({ unit: 'mm', format: 'a4' });
+            const doc = new JsPDF({ unit: 'mm', format: 'a4', compress: true });
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
             const cx = pw / 2;

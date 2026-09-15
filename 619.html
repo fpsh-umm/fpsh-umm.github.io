@@ -86,72 +86,12 @@
     margin: 0;
 }
 
-/* GALLERY - swipeable, edge to edge */
-.rk619-gallery-wrap {
-    margin-top: 18px;
-    padding: 0 20px;
-}
-.rk619-gallery {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding: 14px 20px;
-    margin: 0 -20px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-}
-.rk619-gallery::-webkit-scrollbar { display: none; }
-.rk619-photo {
-    flex: 0 0 auto;
-    width: 152px;
-    height: 152px;
-    scroll-snap-align: start;
-    border-radius: 14px;
-    overflow: hidden;
-    position: relative;
-    background: #f1ede5;
-}
-.rk619-photo img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-}
-.rk619-photo.placeholder {
-    border: 1.5px dashed #d7cfc0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    color: #a89f8f;
-}
-.rk619-photo.placeholder span.ico { font-size: 20px; }
-.rk619-photo.placeholder span.txt { font-size: 11.5px; font-weight: 500; }
-.rk619-dots {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-    margin-top: 4px;
-}
-.rk619-dots i {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: #d7cfc0;
-    display: inline-block;
-    transition: background .2s, transform .2s;
-}
-.rk619-dots i.active {
-    background: var(--maroon);
-    transform: scale(1.3);
-}
-
 /* INFO STRIP */
 .rk619-info {
     display: flex;
     gap: 10px;
     padding: 0 20px;
-    margin-top: 18px;
+    margin-top: 22px;
     flex-wrap: wrap;
 }
 .rk619-chip {
@@ -244,29 +184,15 @@
     <p class="rk619-sub">Cek ketersediaan ruang secara langsung lewat kalender di bawah ini.</p>
   </div>
 
-  <div class="rk619-gallery-wrap">
-    <div class="rk619-gallery" id="rk619Gallery">
-      <div class="rk619-photo">
-        <img src="https://fpsh.umm.ac.id/wp-content/uploads/2026/09/WhatsApp-Image-2026-09-15-at-14.39.07.jpeg" alt="Foto Laboratorium Microteaching 6.19">
-      </div>
-      <div class="rk619-photo placeholder"><span class="ico">📷</span><span class="txt">Foto 2</span></div>
-      <div class="rk619-photo placeholder"><span class="ico">📷</span><span class="txt">Foto 3</span></div>
-      <div class="rk619-photo placeholder"><span class="ico">📷</span><span class="txt">Foto 4</span></div>
-    </div>
-    <div class="rk619-dots" id="rk619Dots">
-      <i class="active"></i><i></i><i></i><i></i>
-    </div>
-  </div>
-
   <div class="rk619-info">
-    <span class="rk619-chip">🏫 FPSH</span>
-    <span class="rk619-chip">🎥 Ruang Microteaching</span>
-    <span class="rk619-chip">🗓️ Jadwal real-time</span>
+    <span class="rk619-chip">👥 Kapasitas max. 20</span>
+    <span class="rk619-chip">🖥️ Smart Board Interactive Whiteboard Touch Screen</span>
+    <span class="rk619-chip">🎙️ Perangkat Perekam Video, dan Audio</span>
   </div>
 
   <div class="rk619-cal">
     <div class="rk619-cal-head">
-      <h3>Jadwal Ketersediaan Ruang</h3>
+      <h3>Jadwal Penggunaan Ruang</h3>
       <a href="https://calendar.google.com/calendar/embed?height=600&wkst=2&bgcolor=%23ffffff&ctz=Asia%2FJakarta&showTitle=0&showPrint=0&showCalendars=0&showTz=0&src=bG10QHVtbS5hYy5pZA&color=%238a151b" target="_blank" rel="noopener">Buka penuh ↗</a>
     </div>
     <div class="rk619-cal-frame-wrap">
@@ -281,17 +207,3 @@
 
 </div>
 
-<script>
-(function(){
-  var gallery = document.getElementById('rk619Gallery');
-  var dots = document.getElementById('rk619Dots') ? document.getElementById('rk619Dots').children : [];
-  if (!gallery || !dots.length) return;
-  gallery.addEventListener('scroll', function(){
-    var photoWidth = gallery.firstElementChild.offsetWidth + 10;
-    var index = Math.round(gallery.scrollLeft / photoWidth);
-    for (var i = 0; i < dots.length; i++) {
-      dots[i].className = (i === index) ? 'active' : '';
-    }
-  }, { passive: true });
-})();
-</script>

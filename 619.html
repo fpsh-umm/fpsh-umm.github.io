@@ -1,0 +1,297 @@
+<style>
+/* Menyembunyikan judul halaman secara paksa di semua halaman statis */
+.page .entry-title,
+.page .page-title,
+.page .post-title,
+.page h1.entry-title,
+.page .title-content h1 {
+    display: none !important;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.rk619 {
+    --maroon: #8a151b;
+    --maroon-deep: #5f0d11;
+    --gold: #b9862c;
+    --ink: #23201d;
+    --stone: #6b645d;
+    --paper: #faf7f2;
+    --card: #ffffff;
+    --line: #e8e1d6;
+
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 0 28px 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+}
+.rk619 *, .rk619 *::before, .rk619 *::after { box-sizing: border-box; }
+.rk619 a { color: inherit; }
+
+/* HERO */
+.rk619-hero {
+    background: linear-gradient(155deg, var(--maroon) 0%, var(--maroon-deep) 100%);
+    color: #fff;
+    padding: 28px 20px 26px 20px;
+    border-radius: 0 0 22px 22px;
+    position: relative;
+    overflow: hidden;
+    animation: rk619-rise .5s ease-out;
+}
+@keyframes rk619-rise {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.rk619-hero::after {
+    content: "";
+    position: absolute;
+    right: -40px; top: -60px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+}
+.rk619-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.82);
+    margin-bottom: 14px;
+}
+.rk619-code {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 54px;
+    line-height: 1;
+    letter-spacing: -1px;
+    display: block;
+}
+.rk619-title {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 1.3;
+    margin: 8px 0 6px 0;
+    max-width: 30ch;
+    position: relative;
+}
+.rk619-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    margin: 0;
+}
+
+/* GALLERY - swipeable, edge to edge */
+.rk619-gallery-wrap {
+    margin-top: 18px;
+    padding: 0 20px;
+}
+.rk619-gallery {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 14px 20px;
+    margin: 0 -20px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.rk619-gallery::-webkit-scrollbar { display: none; }
+.rk619-photo {
+    flex: 0 0 auto;
+    width: 152px;
+    height: 152px;
+    scroll-snap-align: start;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    background: #f1ede5;
+}
+.rk619-photo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.rk619-photo.placeholder {
+    border: 1.5px dashed #d7cfc0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #a89f8f;
+}
+.rk619-photo.placeholder span.ico { font-size: 20px; }
+.rk619-photo.placeholder span.txt { font-size: 11.5px; font-weight: 500; }
+.rk619-dots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 4px;
+}
+.rk619-dots i {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #d7cfc0;
+    display: inline-block;
+    transition: background .2s, transform .2s;
+}
+.rk619-dots i.active {
+    background: var(--maroon);
+    transform: scale(1.3);
+}
+
+/* INFO STRIP */
+.rk619-info {
+    display: flex;
+    gap: 10px;
+    padding: 0 20px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+.rk619-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--maroon-deep);
+    background: #f4e9ea;
+    border-radius: 20px;
+    padding: 7px 12px;
+}
+
+/* CALENDAR CARD */
+.rk619-cal {
+    margin: 22px 20px 0 20px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--maroon);
+    border-radius: 14px;
+    overflow: hidden;
+}
+.rk619-cal-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 18px 12px 18px;
+}
+.rk619-cal-head h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 15.5px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--ink);
+}
+.rk619-cal-head a {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--maroon);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.rk619-cal-head a:hover { text-decoration: underline; }
+.rk619-cal-frame-wrap {
+    position: relative;
+    background: #f8fafc;
+}
+.rk619-cal-frame-wrap iframe {
+    border: 0;
+    width: 100%;
+    height: 560px;
+    display: block;
+}
+.rk619-cal-tip {
+    font-size: 11.5px;
+    color: var(--stone);
+    padding: 10px 18px 16px 18px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* NOTE / CTA */
+.rk619-note {
+    margin: 18px 20px 0 20px;
+    background: #fbf6ea;
+    border: 1px solid #eee0bf;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #6b5420;
+}
+.rk619-note strong { color: #4d3c14; }
+
+@media (max-width: 400px) {
+    .rk619-code { font-size: 46px; }
+    .rk619-title { font-size: 18px; }
+    .rk619-cal-frame-wrap iframe { height: 480px; }
+}
+</style>
+
+<div class="rk619">
+
+  <div class="rk619-hero">
+    <span class="rk619-eyebrow">📍 Fakultas Pendidikan, Sains, dan Humaniora (FPSH) · UMM</span>
+    <span class="rk619-code">6.19</span>
+    <p class="rk619-title">Laboratorium Microteaching</p>
+    <p class="rk619-sub">Cek ketersediaan ruang secara langsung lewat kalender di bawah ini.</p>
+  </div>
+
+  <div class="rk619-gallery-wrap">
+    <div class="rk619-gallery" id="rk619Gallery">
+      <div class="rk619-photo">
+        <img src="https://fpsh.umm.ac.id/wp-content/uploads/2026/09/WhatsApp-Image-2026-09-15-at-14.39.07.jpeg" alt="Foto Laboratorium Microteaching 6.19">
+      </div>
+      <div class="rk619-photo placeholder"><span class="ico">📷</span><span class="txt">Foto 2</span></div>
+      <div class="rk619-photo placeholder"><span class="ico">📷</span><span class="txt">Foto 3</span></div>
+      <div class="rk619-photo placeholder"><span class="ico">📷</span><span class="txt">Foto 4</span></div>
+    </div>
+    <div class="rk619-dots" id="rk619Dots">
+      <i class="active"></i><i></i><i></i><i></i>
+    </div>
+  </div>
+
+  <div class="rk619-info">
+    <span class="rk619-chip">🏫 FPSH</span>
+    <span class="rk619-chip">🎥 Ruang Microteaching</span>
+    <span class="rk619-chip">🗓️ Jadwal real-time</span>
+  </div>
+
+  <div class="rk619-cal">
+    <div class="rk619-cal-head">
+      <h3>Jadwal Ketersediaan Ruang</h3>
+      <a href="https://calendar.google.com/calendar/embed?height=600&wkst=2&bgcolor=%23ffffff&ctz=Asia%2FJakarta&showTitle=0&showPrint=0&showCalendars=0&showTz=0&src=bG10QHVtbS5hYy5pZA&color=%238a151b" target="_blank" rel="noopener">Buka penuh ↗</a>
+    </div>
+    <div class="rk619-cal-frame-wrap">
+      <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=2&bgcolor=%23ffffff&ctz=Asia%2FJakarta&showTitle=0&showPrint=0&showCalendars=0&showTz=0&src=bG10QHVtbS5hYy5pZA&color=%238a151b" scrolling="no"></iframe>
+    </div>
+    <p class="rk619-cal-tip">Gunakan menu di sudut kanan atas kalender untuk mengganti tampilan Bulan / Minggu / Agenda — di layar kecil, tampilan Agenda biasanya paling mudah dibaca.</p>
+  </div>
+
+  <div class="rk619-note">
+    <strong>Ingin reservasi ruang ini?</strong> Pastikan jadwal masih kosong pada kalender di atas, lalu hubungi pengelola sarana FPSH untuk konfirmasi peminjaman.
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var gallery = document.getElementById('rk619Gallery');
+  var dots = document.getElementById('rk619Dots') ? document.getElementById('rk619Dots').children : [];
+  if (!gallery || !dots.length) return;
+  gallery.addEventListener('scroll', function(){
+    var photoWidth = gallery.firstElementChild.offsetWidth + 10;
+    var index = Math.round(gallery.scrollLeft / photoWidth);
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].className = (i === index) ? 'active' : '';
+    }
+  }, { passive: true });
+})();
+</script>

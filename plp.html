@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penilaian PLP II - Lab Microteaching FKIP UMM</title>
+    <title>Penilaian PLP II - Lab Microteaching FPSH UMM</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Inter -->
@@ -426,16 +426,32 @@
                 </div>
             </div>
 
-            <!-- Progres Penilaian pada TA & Semester terpilih -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                <h3 class="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-umm-red"></i> Progres Penilaian <span id="dash-progress-period" class="text-umm-red">-</span>
-                </h3>
-                <p class="text-xs text-slate-500 mb-3">Jumlah mahasiswa yang telah dinilai (oleh DPL dan/atau Guru Pamong) pada periode yang dipilih di atas.</p>
-                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                    <div id="dash-progress-bar" class="bg-umm-red h-3 rounded-full transition-all duration-500" style="width:0%"></div>
+            <!-- Progres Penilaian (kiri) & Hasil Rekap Angket Monev (kanan) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Progres Penilaian pada TA & Semester terpilih -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-umm-red"></i> Progres Penilaian <span id="dash-progress-period" class="text-umm-red">-</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-3">Tren kumulatif jumlah mahasiswa yang telah dinilai (oleh DPL dan/atau Guru Pamong) dari waktu ke waktu, pada periode yang dipilih di atas.</p>
+                    <div class="relative h-64">
+                        <canvas id="chart-progress-penilaian"></canvas>
+                    </div>
+                    <p id="chart-progress-penilaian-empty" class="hidden text-center text-xs text-slate-400 italic py-6">Belum ada data penilaian untuk periode ini.</p>
+                    <div class="text-xs text-slate-600 font-semibold mt-2" id="dash-progress-label">0 dari 0 mahasiswa telah dinilai</div>
                 </div>
-                <div class="text-xs text-slate-600 font-semibold mt-2" id="dash-progress-label">0 dari 0 mahasiswa telah dinilai</div>
+
+                <!-- Grafik Donat: Hasil Rekap Angket Monev PLP II -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                    <h3 class="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-umm-red"></i> Hasil Angket Monev PLP II (Rekap Angket) <span id="dash-angket-period" class="text-umm-red">-</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-3">Distribusi jawaban Guru Pamong &amp; DPL terhadap layanan Laboratorium Microteaching FPSH UMM pada periode yang dipilih di atas.</p>
+                    <div class="relative h-64 max-w-xs mx-auto">
+                        <canvas id="chart-rekap-angket"></canvas>
+                    </div>
+                    <p id="chart-rekap-angket-empty" class="hidden text-center text-xs text-slate-400 italic py-6">Belum ada data Angket Monev untuk periode ini.</p>
+                </div>
             </div>
 
             <p class="text-center text-xs text-slate-400 pt-2">Silakan klik tombol <strong>LOGIN</strong> untuk masuk sebagai Dosen Pendamping Lapangan (DPL) atau Guru Pamong dan mulai melakukan penilaian.</p>
@@ -797,40 +813,54 @@
             <!-- TAB TAMPILAN ANGKET MONEV PLP II (GURU PAMONG & DPL) -->
             <div id="view-angket" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                <!-- Left Sidebar: Pilih Mahasiswa untuk Angket -->
+                <!-- Left Sidebar: Info Periode & Status Kelayakan Angket -->
                 <div class="lg:col-span-4 space-y-6">
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
                         <h3 class="text-sm font-bold text-slate-800 border-b pb-2 uppercase tracking-wide flex items-center gap-2">
                             <i class="fa-solid fa-clipboard-list text-umm-red"></i> Angket Monev PLP II
                         </h3>
-                        <p class="text-xs text-slate-500">Isian ini terpisah dari Form Penilaian dan dapat diisi kapan saja, baik sebelum maupun sesudah mahasiswa dinilai.</p>
+                        <p class="text-xs text-slate-500">Angket ini adalah evaluasi Anda terhadap layanan <strong>Laboratorium Microteaching FPSH UMM</strong> selama pelaksanaan PLP II pada periode Tahun Akademik &amp; Semester yang dipilih di bawah ini — <strong>bukan</strong> penilaian terhadap mahasiswa tertentu, dan cukup diisi <strong>satu kali per periode</strong>.</p>
 
-                        <div class="relative">
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Cari Nama / NIM Mahasiswa</label>
-                            <input type="text" id="angket-student-search-input" onfocus="showAngketStudentDropdown()" oninput="filterAngketStudents()" class="w-full px-3 py-2 pl-9 text-sm rounded-lg border border-slate-200 bg-white text-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-umm-red" placeholder="Ketik nama atau NIM...">
-                            <span class="absolute left-3 top-[34px] text-slate-400">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                            </span>
-                            <div id="angket-student-dropdown-list" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-56 overflow-y-auto z-20 divide-y divide-slate-100"></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Tahun Akademik <span class="text-red-500">*</span></label>
+                                <select id="angket-academic-year" onchange="onAngketAcademicChange()" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-umm-red font-semibold">
+                                    <option value="">-- Pilih Tahun --</option>
+                                    <option value="2025/2026">2025/2026</option>
+                                    <option value="2026/2027">2026/2027</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Semester <span class="text-red-500">*</span></label>
+                                <select id="angket-academic-semester" onchange="onAngketAcademicChange()" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-umm-red font-semibold">
+                                    <option value="">-- Pilih Semester --</option>
+                                    <option value="Ganjil">Ganjil</option>
+                                    <option value="Genap">Genap</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div id="angket-selected-student-detail" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2 animate-fadeIn">
-                            <div class="text-xs font-bold text-umm-red uppercase">Informasi Mahasiswa</div>
+                        <div id="angket-locked-notice" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold p-3 rounded-xl">
+                            <i class="fa-solid fa-lock mr-1"></i> <span id="angket-locked-notice-text">Angket belum bisa diisi.</span>
+                        </div>
+
+                        <div id="angket-period-detail" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2 animate-fadeIn">
+                            <div class="text-xs font-bold text-umm-red uppercase">Info Pengisi</div>
                             <div>
-                                <span class="text-[10px] text-slate-400 block">Nama Lengkap</span>
-                                <span id="angket-lbl-mhs-nama" class="text-sm font-bold text-slate-800">-</span>
+                                <span class="text-[10px] text-slate-400 block">Nama</span>
+                                <span id="angket-lbl-penilai-nama" class="text-sm font-bold text-slate-800">-</span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-slate-400 block">NIM</span>
-                                <span id="angket-lbl-mhs-nim" class="text-xs font-mono font-bold text-slate-600">-</span>
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-slate-400 block">Program Studi</span>
-                                <span id="angket-lbl-mhs-prodi" class="text-xs text-slate-700">-</span>
+                                <span class="text-[10px] text-slate-400 block">Peran</span>
+                                <span id="angket-lbl-penilai-role" class="text-xs font-mono font-bold text-slate-600">-</span>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-400 block">Sekolah Mitra</span>
-                                <span id="angket-lbl-mhs-sekolah" class="text-xs text-slate-700 font-semibold">-</span>
+                                <span id="angket-lbl-penilai-sekolah" class="text-xs text-slate-700 font-semibold">-</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Periode</span>
+                                <span id="angket-lbl-periode" class="text-xs text-slate-700 font-semibold">-</span>
                             </div>
                         </div>
 
@@ -854,7 +884,7 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 animate-fadeIn">
                         <div class="border-b pb-4 mb-6">
                             <h3 class="text-base font-bold text-slate-800">Angket Monitoring dan Evaluasi PLP II (Asistensi Mengajar)</h3>
-                            <p class="text-xs text-slate-500">Silakan pilih mahasiswa di sebelah kiri, lalu isi keempat instrumen angket berikut sesuai kondisi sebenarnya.</p>
+                            <p class="text-xs text-slate-500">Isi keempat instrumen berikut sesuai pengalaman Anda mendampingi PLP II pada periode ini, sebagai evaluasi terhadap layanan Laboratorium Microteaching FPSH UMM.</p>
                         </div>
 
                         <!-- Legenda Skala Angket -->
@@ -894,7 +924,7 @@
 
                         <!-- Submit Button -->
                         <div class="pt-4 border-t mt-6 flex justify-end">
-                            <button onclick="submitAngket()" class="w-full sm:w-auto px-6 py-3 bg-umm-red hover:bg-umm-redlight text-white font-bold rounded-xl text-sm transition-all shadow flex items-center justify-center gap-2">
+                            <button onclick="submitAngket()" id="btn-submit-angket" class="w-full sm:w-auto px-6 py-3 bg-umm-red hover:bg-umm-redlight text-white font-bold rounded-xl text-sm transition-all shadow flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-cloud-arrow-up"></i> KIRIM / SIMPAN ANGKET
                             </button>
                         </div>
@@ -1752,7 +1782,6 @@
         // ================= ANGKET MONEV PLP II (GURU PAMONG & DPL) =================
         // Berdasarkan dokumen "ANGKET MONEV PLP 2" - 4 instrumen skala 1-4.
         let angketList = [];
-        let selectedAngketStudent = null;
 
         const angketInstruments = [
             {
@@ -2291,6 +2320,8 @@
         // ================= DASHBOARD PUBLIK (sebelum login) ================= //
         let chartMahasiswaProdi = null;
         let chartPamongSekolah = null;
+        let chartRekapAngket = null;
+        let chartProgressPenilaian = null;
 
         function renderPublicDashboard() {
             // Hanya perlu render kalau data master sudah dimuat dari server
@@ -2400,31 +2431,170 @@
             const progressPeriodEl = document.getElementById('dash-progress-period');
             if (progressPeriodEl) progressPeriodEl.innerText = periodLabel;
 
+            // --- Grafik Donat: Hasil Rekap Angket Monev (sheet 'rekap_angket') ---
+            // Menampilkan distribusi jawaban (skala 1-4) dari seluruh Angket Monev yang
+            // sudah diisi Guru Pamong/DPL pada TA & Semester yang dipilih di atas.
+            const angketPeriodEl = document.getElementById('dash-angket-period');
+            if (angketPeriodEl) angketPeriodEl.innerText = periodLabel;
+
+            const angketPeriodRecords = angketList.filter(a => String(a.tahunAkademik) === String(dashYear) && String(a.semester) === String(dashSem));
+            const angketScaleCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+            angketPeriodRecords.forEach(a => {
+                const ss = a.scoreState || {};
+                ['ang1', 'ang2', 'ang3', 'ang4'].forEach(instKey => {
+                    const answers = ss[instKey] || {};
+                    Object.values(answers).forEach(v => {
+                        const n = Number(v);
+                        if (n >= 1 && n <= 4) angketScaleCounts[n] += 1;
+                    });
+                });
+            });
+
+            const angketScaleLabels = ['Sangat Tidak Setuju (1)', 'Tidak Setuju (2)', 'Setuju (3)', 'Sangat Setuju (4)'];
+            const angketScaleValues = [angketScaleCounts[1], angketScaleCounts[2], angketScaleCounts[3], angketScaleCounts[4]];
+            const angketScaleColors = ['#DC2626', '#F59E0B', '#3B82F6', '#10B981'];
+            const totalJawabanAngket = angketScaleValues.reduce((a, b) => a + b, 0);
+
+            const ctxAngket = document.getElementById('chart-rekap-angket');
+            const emptyNoteAngket = document.getElementById('chart-rekap-angket-empty');
+            if (chartRekapAngket) { chartRekapAngket.destroy(); chartRekapAngket = null; }
+            if (ctxAngket) {
+                if (totalJawabanAngket === 0) {
+                    ctxAngket.classList.add('hidden');
+                    if (emptyNoteAngket) emptyNoteAngket.classList.remove('hidden');
+                } else {
+                    ctxAngket.classList.remove('hidden');
+                    if (emptyNoteAngket) emptyNoteAngket.classList.add('hidden');
+                    chartRekapAngket = new Chart(ctxAngket, {
+                        type: 'doughnut',
+                        data: {
+                            labels: angketScaleLabels,
+                            datasets: [{
+                                data: angketScaleValues,
+                                backgroundColor: angketScaleColors,
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '62%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (ctx) {
+                                            const val = ctx.parsed;
+                                            const pct = totalJawabanAngket > 0 ? ((val / totalJawabanAngket) * 100).toFixed(1) : 0;
+                                            return `${ctx.label}: ${val} jawaban (${pct}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
             const periodRecords = penilaianList.filter(p => String(p.tahunAkademik) === String(dashYear) && String(p.semester) === String(dashSem));
             const gradedNims = new Set(periodRecords.map(p => String(p.nim)));
             const gradedCount = gradedNims.size;
             const percent = totalMahasiswa > 0 ? Math.round((gradedCount / totalMahasiswa) * 100) : 0;
 
-            const progressBar = document.getElementById('dash-progress-bar');
-            if (progressBar) progressBar.style.width = percent + '%';
             const progressLabel = document.getElementById('dash-progress-label');
             if (progressLabel) progressLabel.innerText = `${gradedCount} dari ${totalMahasiswa} mahasiswa telah dinilai (${percent}%)`;
+
+            // --- Grafik Garis: tren kumulatif mahasiswa yang telah dinilai dari waktu ke waktu ---
+            // Diurutkan berdasarkan tanggal monitoring; setiap NIM baru yang muncul pertama
+            // kali (dari DPL maupun Guru Pamong) menambah hitungan kumulatif pada tanggal itu.
+            const sortedPeriodRecords = periodRecords.slice().sort((a, b) => new Date(a.monitoringDate) - new Date(b.monitoringDate));
+            const seenNimProgress = new Set();
+            const progressByDate = new Map(); // dateKey -> kumulatif setelah tanggal itu
+            let runningCount = 0;
+            sortedPeriodRecords.forEach(r => {
+                const dObj = new Date(r.monitoringDate);
+                const dateKey = isNaN(dObj) ? String(r.monitoringDate || '').slice(0, 10) : dObj.toISOString().slice(0, 10);
+                if (!dateKey) return;
+                if (!seenNimProgress.has(String(r.nim))) {
+                    seenNimProgress.add(String(r.nim));
+                    runningCount++;
+                }
+                progressByDate.set(dateKey, runningCount);
+            });
+
+            const progressDateKeys = Array.from(progressByDate.keys());
+            const progressLabels = progressDateKeys.map(k => {
+                const d = new Date(k);
+                return isNaN(d) ? k : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            });
+            const progressValues = Array.from(progressByDate.values());
+
+            const ctxProgress = document.getElementById('chart-progress-penilaian');
+            const emptyNoteProgress = document.getElementById('chart-progress-penilaian-empty');
+            if (chartProgressPenilaian) { chartProgressPenilaian.destroy(); chartProgressPenilaian = null; }
+            if (ctxProgress) {
+                if (progressValues.length === 0) {
+                    ctxProgress.classList.add('hidden');
+                    if (emptyNoteProgress) emptyNoteProgress.classList.remove('hidden');
+                } else {
+                    ctxProgress.classList.remove('hidden');
+                    if (emptyNoteProgress) emptyNoteProgress.classList.add('hidden');
+                    chartProgressPenilaian = new Chart(ctxProgress, {
+                        type: 'line',
+                        data: {
+                            labels: progressLabels,
+                            datasets: [
+                                {
+                                    label: 'Kumulatif Mahasiswa Dinilai',
+                                    data: progressValues,
+                                    borderColor: '#9B1C1C',
+                                    backgroundColor: 'rgba(155, 28, 28, 0.12)',
+                                    fill: true,
+                                    tension: 0.3,
+                                    pointRadius: 3,
+                                    pointBackgroundColor: '#9B1C1C'
+                                },
+                                {
+                                    label: 'Total Mahasiswa',
+                                    data: progressLabels.map(() => totalMahasiswa),
+                                    borderColor: '#94A3B8',
+                                    borderDash: [5, 5],
+                                    pointRadius: 0,
+                                    fill: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { precision: 0 } },
+                                x: { ticks: { autoSkip: true, maxRotation: 0, font: { size: 10 } } }
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         function logout() {
             safeStorage.removeItem('plp_active_userid');
             safeStorage.removeItem('plp_active_userrole');
             currentUserId = null; currentUserRole = null; currentUserObj = null; selectedStudent = null;
-            selectedAngketStudent = null; angketList = [];
+            angketList = [];
             
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
             document.getElementById('selected-student-detail').classList.add('hidden');
             document.getElementById('student-search-input').value = '';
-            const angketDetail = document.getElementById('angket-selected-student-detail');
-            if (angketDetail) angketDetail.classList.add('hidden');
-            const angketSearchInput = document.getElementById('angket-student-search-input');
-            if (angketSearchInput) angketSearchInput.value = '';
+            const angketPeriodDetail = document.getElementById('angket-period-detail');
+            if (angketPeriodDetail) angketPeriodDetail.classList.add('hidden');
+            const angketLockedNotice = document.getElementById('angket-locked-notice');
+            if (angketLockedNotice) angketLockedNotice.classList.add('hidden');
 
             checkSessionState();
         }
@@ -2499,6 +2669,7 @@
                 btnAngket.className = "flex-1 md:flex-none px-4 py-2 bg-umm-red hover:bg-umm-redlight text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-1 font-bold";
                 viewAngket.classList.remove('hidden');
                 renderAngketRekapMini();
+                refreshAngketState();
             } else if (view === 'rekap' && (isSuperAdmin || allGraded)) {
                 btnRekap.className = "flex-1 md:flex-none px-4 py-2 bg-umm-red hover:bg-umm-redlight text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-1 font-bold";
                 viewRekap.classList.remove('hidden');
@@ -2537,7 +2708,7 @@
                 searchInput.className = "w-full px-3 py-2 pl-9 text-sm rounded-lg border border-slate-200 transition-all focus:outline-none focus:ring-2 focus:ring-umm-red animate-pulse bg-slate-200 cursor-not-allowed text-slate-400";
             }
             clearSelectedStudent();
-            clearSelectedAngketStudent();
+            refreshAngketState();
         }
 
         function clearSelectedStudent() {
@@ -2601,12 +2772,6 @@
             const input = document.getElementById('student-search-input');
             if (container && input && e.target !== input && !container.contains(e.target)) {
                 container.classList.add('hidden');
-            }
-
-            const angketContainer = document.getElementById('angket-student-dropdown-list');
-            const angketInput = document.getElementById('angket-student-search-input');
-            if (angketContainer && angketInput && e.target !== angketInput && !angketContainer.contains(e.target)) {
-                angketContainer.classList.add('hidden');
             }
         });
 
@@ -2917,76 +3082,112 @@
             calculateLiveScore();
         }
 
-        // ================= ANGKET MONEV PLP II: PEMILIHAN MAHASISWA ================= //
-        // Selector mahasiswa khusus Angket - sengaja TIDAK menyembunyikan mahasiswa yang
-        // sudah dinilai (berbeda dari selector Form Penilaian), karena Angket adalah
-        // instrumen terpisah yang boleh diisi kapan saja & untuk mahasiswa manapun di
-        // sekolah mitra penilai, termasuk yang sudah/belum dinilai lewat Form Penilaian.
-        function showAngketStudentDropdown() {
-            filterAngketStudents();
+        // ================= ANGKET MONEV PLP II: KELAYAKAN & STATUS PERIODE ================= //
+        // Angket Monev BUKAN penilaian per-mahasiswa - ini adalah evaluasi Guru Pamong/DPL
+        // terhadap layanan Laboratorium Microteaching FPSH UMM, diisi SATU KALI per Tahun
+        // Akademik + Semester. Syarat: penilai sudah menilai minimal 1 mahasiswa (mana pun,
+        // tidak harus semua) pada periode TA+Semester yang sama lewat Form Penilaian.
+        function getAngketId(yr, sem) {
+            return `${currentUserId}_${String(yr).replace(/\//g, '-')}_${sem}_angket`;
         }
 
-        function filterAngketStudents() {
-            const searchInput = document.getElementById('angket-student-search-input');
-            const listContainer = document.getElementById('angket-student-dropdown-list');
-            if (!listContainer || !searchInput) return;
-            const searchVal = searchInput.value.toLowerCase();
-            listContainer.innerHTML = '';
+        function syncAngketAcademicSelectors() {
+            const yrSel = document.getElementById('angket-academic-year');
+            const semSel = document.getElementById('angket-academic-semester');
+            const masterYr = document.getElementById('academic-year');
+            const masterSem = document.getElementById('academic-semester');
+            if (yrSel && masterYr) yrSel.value = masterYr.value;
+            if (semSel && masterSem) semSel.value = masterSem.value;
+        }
 
-            const userSchool = normalizeSchoolName(currentUserObj.sekolah || '');
-            const noSchoolRestriction = isSuperAdminUser() && !currentUserObj.sekolah;
+        function onAngketAcademicChange() {
+            const yrSel = document.getElementById('angket-academic-year');
+            const semSel = document.getElementById('angket-academic-semester');
+            const masterYr = document.getElementById('academic-year');
+            const masterSem = document.getElementById('academic-semester');
+            if (masterYr && yrSel) masterYr.value = yrSel.value;
+            if (masterSem && semSel) masterSem.value = semSel.value;
+            validateAcademicSelections();
+        }
 
-            const filtered = mahasiswaData.filter(m => {
-                const mSchool = normalizeSchoolName(m.sekolah);
-                const isMySchool = noSchoolRestriction || mSchool === userSchool || mSchool.includes(userSchool) || userSchool.includes(mSchool);
-                const matchesKeyword = String(m.nama).toLowerCase().includes(searchVal) || String(m.nim).includes(searchVal);
-                return isMySchool && matchesKeyword;
-            });
-
-            if (filtered.length === 0) {
-                const noStudentMsg = noSchoolRestriction ? 'Mahasiswa tidak ditemukan.' : `Mahasiswa tidak ditemukan di sekolah mitra Anda (${currentUserObj.sekolah}).`;
-                listContainer.innerHTML = `<div class="p-3 text-xs text-slate-500 italic">${noStudentMsg}</div>`;
-            } else {
-                filtered.forEach(m => {
-                    const sudahIsi = angketList.some(a => String(a.nim) === String(m.nim) && String(a.penilaiId) === String(currentUserId));
-                    const row = document.createElement('div');
-                    row.className = "p-3 text-xs text-slate-700 hover:bg-red-50 hover:text-umm-red cursor-pointer transition-colors";
-                    row.innerHTML = `<p class="font-bold">${m.nama} ${sudahIsi ? '<span class="ml-1 text-[9px] font-bold text-emerald-600">(Sudah Diisi)</span>' : ''}</p><p class="text-[10px] text-slate-500">NIM. ${m.nim} &bull; ${m.prodi}</p>`;
-                    row.onclick = () => selectAngketStudent(m);
-                    listContainer.appendChild(row);
-                });
+        function checkAngketEligibility() {
+            const yr = document.getElementById('academic-year') ? document.getElementById('academic-year').value : '';
+            const sem = document.getElementById('academic-semester') ? document.getElementById('academic-semester').value : '';
+            if (!yr || !sem) {
+                return { ok: false, yr, sem, reason: '' };
             }
-            listContainer.classList.remove('hidden');
+            const sudahMenilai = penilaianList.some(p => String(p.penilaiId) === String(currentUserId) && String(p.tahunAkademik) === String(yr) && String(p.semester) === String(sem));
+            if (!sudahMenilai) {
+                return { ok: false, yr, sem, reason: 'Anda belum menilai mahasiswa manapun pada periode ini. Selesaikan minimal 1 penilaian lewat Form Penilaian terlebih dahulu.' };
+            }
+            return { ok: true, yr, sem };
         }
 
-        function selectAngketStudent(student) {
-            selectedAngketStudent = student;
-            document.getElementById('angket-student-search-input').value = student.nama;
-            document.getElementById('angket-student-dropdown-list').classList.add('hidden');
+        function refreshAngketState() {
+            if (currentUserRole !== 'dpl' && currentUserRole !== 'pamong') return;
+            syncAngketAcademicSelectors();
 
-            document.getElementById('angket-lbl-mhs-nama').innerText = student.nama;
-            document.getElementById('angket-lbl-mhs-nim').innerText = student.nim;
-            document.getElementById('angket-lbl-mhs-prodi').innerText = student.prodi;
-            document.getElementById('angket-lbl-mhs-sekolah').innerText = student.sekolah;
-            document.getElementById('angket-selected-student-detail').classList.remove('hidden');
+            const lockedNotice = document.getElementById('angket-locked-notice');
+            const lockedText = document.getElementById('angket-locked-notice-text');
+            const periodDetail = document.getElementById('angket-period-detail');
+            const submitBtn = document.getElementById('btn-submit-angket');
+            const navBtn = document.getElementById('btn-nav-angket');
 
-            const existing = angketList.find(a => String(a.nim) === String(student.nim) && String(a.penilaiId) === String(currentUserId));
+            const status = checkAngketEligibility();
+
+            if (!status.ok) {
+                if (status.reason) {
+                    if (lockedText) lockedText.innerText = status.reason;
+                    if (lockedNotice) lockedNotice.classList.remove('hidden');
+                } else {
+                    // Belum ada Tahun Akademik/Semester yang dipilih: cukup biarkan
+                    // dropdown periode kosong tanpa menampilkan pesan peringatan apa pun.
+                    if (lockedNotice) lockedNotice.classList.add('hidden');
+                }
+                if (periodDetail) periodDetail.classList.add('hidden');
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); }
+                // Belum ada periode (TA+Semester) yang valid untuk dicek, jadi tombol nav
+                // "Angket Monev" tetap aktif seperti biasa (bukan status "sudah mengisi").
+                if (navBtn) { navBtn.disabled = false; navBtn.classList.remove('opacity-50', 'cursor-not-allowed'); navBtn.removeAttribute('title'); }
+                resetAngketForm();
+                return;
+            }
+
+            const existing = angketList.find(a => String(a.penilaiId) === String(currentUserId) && String(a.tahunAkademik) === String(status.yr) && String(a.semester) === String(status.sem));
+
+            // Non-aktifkan tombol nav "Angket Monev" jika akun ini SUDAH pernah mengisi
+            // Angket untuk Tahun Akademik & Semester yang sedang dipilih (cukup satu kali
+            // per periode). Jika belum, tombol tetap aktif seperti biasa.
+            if (navBtn) {
+                if (existing) {
+                    navBtn.disabled = true;
+                    navBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    navBtn.title = `Anda sudah mengisi Angket Monev untuk periode TA ${status.yr} - Semester ${status.sem}.`;
+                } else {
+                    navBtn.disabled = false;
+                    navBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    navBtn.removeAttribute('title');
+                }
+            }
+
+            if (lockedNotice) lockedNotice.classList.add('hidden');
+            if (periodDetail) periodDetail.classList.remove('hidden');
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+
+            const nama = document.getElementById('angket-lbl-penilai-nama');
+            const role = document.getElementById('angket-lbl-penilai-role');
+            const sekolah = document.getElementById('angket-lbl-penilai-sekolah');
+            const periode = document.getElementById('angket-lbl-periode');
+            if (nama) nama.innerText = currentUserObj.nama || '-';
+            if (role) role.innerText = currentUserRole === 'dpl' ? 'Dosen Pembimbing Lapangan' : 'Guru Pamong';
+            if (sekolah) sekolah.innerText = currentUserObj.sekolah || '-';
+            if (periode) periode.innerText = `TA ${status.yr} - Semester ${status.sem}`;
+
             if (existing) {
                 loadExistingAngket(existing);
-                showAlert("Draf Ditemukan", `Memuat Angket tersimpan sebelumnya untuk ${student.nama}`, "info");
             } else {
                 resetAngketForm();
-                showAlert("Mahasiswa Terpilih", `Siap mengisi Angket untuk ${student.nama}`, "success");
             }
-        }
-
-        function clearSelectedAngketStudent() {
-            selectedAngketStudent = null;
-            const searchInput = document.getElementById('angket-student-search-input');
-            if (searchInput) searchInput.value = '';
-            const detailCard = document.getElementById('angket-selected-student-detail');
-            if (detailCard) detailCard.classList.add('hidden');
-            resetAngketForm();
         }
 
         // ================= ANGKET MONEV PLP II: RENDER & SKOR ================= //
@@ -3109,9 +3310,9 @@
         }
 
         function submitAngket() {
-            const yr = document.getElementById('academic-year').value, sem = document.getElementById('academic-semester').value;
-            if (!yr || !sem) { showAlert("Peringatan", "Harap pilih Tahun Akademik dan Semester (di tab Form Penilaian) terlebih dahulu!", "error"); return; }
-            if (!selectedAngketStudent) { showAlert("Peringatan", "Silakan cari dan pilih mahasiswa yang akan diisikan Angket!", "error"); return; }
+            const status = checkAngketEligibility();
+            if (!status.ok) { showAlert("Belum Bisa Disimpan", status.reason, "error"); return; }
+            const yr = status.yr, sem = status.sem;
 
             let missingAnswers = [];
             angketInstruments.forEach(inst => {
@@ -3132,11 +3333,8 @@
 
             const record = {
                 action: 'simpanAngket',
-                id: `${selectedAngketStudent.nim}_${currentUserId}_angket`,
-                nim: String(selectedAngketStudent.nim),
-                nama: selectedAngketStudent.nama,
-                prodi: selectedAngketStudent.prodi,
-                sekolah: selectedAngketStudent.sekolah,
+                id: getAngketId(yr, sem),
+                sekolah: currentUserObj.sekolah || '',
                 tahunAkademik: yr,
                 semester: sem,
                 angketDate: angketDate,
@@ -3162,9 +3360,10 @@
                     angketList = angketList.filter(a => a.id !== record.id);
                     angketList.push(record);
 
-                    showAlert("Berhasil", `Angket untuk ${selectedAngketStudent.nama} berhasil disimpan ke Server!`, "success");
-                    clearSelectedAngketStudent();
+                    showAlert("Berhasil", `Angket untuk periode TA ${yr} - Semester ${sem} berhasil disimpan ke Server!`, "success");
                     renderAngketRekapMini();
+                    refreshAngketState();
+                    highlightSertifikatAfterAngket();
                 } else {
                     showAlert("Gagal", "Sistem merespon dengan error: " + responseData.message, "error");
                 }
@@ -3175,8 +3374,24 @@
             });
         }
 
+        // Setelah Angket berhasil disimpan, tab "Angket Monev" otomatis tidak lagi aktif
+        // (kembali ke tampilan Form Penilaian) dan perhatian dialihkan ke tombol
+        // eSertifikat milik role terkait (DPL/Guru Pamong) dengan highlight sesaat.
+        function highlightSertifikatAfterAngket() {
+            switchView('form');
+            const targetBtnId = currentUserRole === 'dpl' ? 'btn-nav-sertifikat-dpl'
+                : (currentUserRole === 'pamong' ? 'btn-nav-sertifikat-pamong' : null);
+            if (!targetBtnId) return;
+            const btn = document.getElementById(targetBtnId);
+            if (!btn) return;
+            btn.classList.add('ring-4', 'ring-amber-400', 'animate-pulse');
+            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            setTimeout(() => btn.classList.remove('ring-4', 'ring-amber-400', 'animate-pulse'), 4000);
+        }
+
         // Ringkasan kecil daftar Angket yang sudah diisi oleh akun yang sedang login,
-        // ditampilkan di sidebar kiri tab Angket Monev.
+        // satu baris per periode (Tahun Akademik + Semester), ditampilkan di sidebar
+        // kiri tab Angket Monev.
         function renderAngketRekapMini() {
             const wrap = document.getElementById('angket-rekap-mini');
             if (!wrap) return;
@@ -3190,8 +3405,8 @@
             wrap.innerHTML = mine.map(a => `
                 <div class="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
                     <div>
-                        <p class="text-xs font-bold text-slate-700">${a.nama}</p>
-                        <p class="text-[10px] text-slate-400 font-mono">NIM. ${a.nim}</p>
+                        <p class="text-xs font-bold text-slate-700">TA ${a.tahunAkademik}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">Semester ${a.semester}</p>
                     </div>
                     <span class="text-xs font-bold text-umm-red font-mono">${Number(a.avgScore || 0).toFixed(2)}</span>
                 </div>
@@ -4035,9 +4250,9 @@
                 if (isSuperAdmin) {
                     await drawSignatureColumn(doc, PDF_MARGIN_X, sigY, 'left', [
                         { text: 'Mengetahui,', size: 9 },
-                        { text: 'Dekan FPSH UMM', bold: true, size: 9, qrSpace: true },
-                        { text: 'Dr. Sugiarti, M.Si.', bold: true, underline: true, size: 9 },
-                        { text: 'NIP. 196512181991032001', size: 8 }
+                        { text: 'Wakil Dekan I,', bold: true, size: 9, qrSpace: true },
+                        { text: 'Dr. Husamah, M.Pd.', bold: true, underline: true, size: 9 },
+                        { text: 'NIDN. 0718108501', size: 8 }
                     ], qr);
                     await drawSignatureColumn(doc, pw - PDF_MARGIN_X, sigY, 'right', [
                         { text: dateStr, size: 9 },
@@ -4339,10 +4554,6 @@
                 showAlert("Tidak Diizinkan", "e-Sertifikat ini hanya tersedia untuk akun Dosen Pendamping Lapangan (DPL).", "error");
                 return;
             }
-            if (!checkAllStudentsGraded()) {
-                showAlert("Belum Bisa Dicetak", "e-Sertifikat baru tersedia setelah Anda menyelesaikan penilaian seluruh mahasiswa di sekolah mitra Anda.", "error");
-                return;
-            }
 
             const dplRecords = penilaianList.filter(p => String(p.penilaiId) === String(currentUserId) && String(p.penilaiRole).toLowerCase() === 'dpl');
             if (dplRecords.length === 0) {
@@ -4354,6 +4565,15 @@
             const sumberRecord = dplRecords[dplRecords.length - 1];
             const tahunAkademik = sumberRecord.tahunAkademik || '-';
             const semester = sumberRecord.semester || '-';
+
+            // Syarat eSertifikat: sudah menilai minimal 1 mahasiswa (dicek di atas) DAN
+            // sudah mengisi Angket Monev untuk periode (TA+Semester) yang sama - BUKAN
+            // lagi syarat semua mahasiswa di sekolah mitra harus dinilai.
+            const sudahIsiAngket = angketList.some(a => String(a.penilaiId) === String(currentUserId) && String(a.tahunAkademik) === String(tahunAkademik) && String(a.semester) === String(semester));
+            if (!sudahIsiAngket) {
+                showAlert("Belum Bisa Dicetak", `Silakan isi Angket Monev untuk periode TA ${tahunAkademik} - Semester ${semester} terlebih dahulu sebelum mengunduh eSertifikat.`, "error");
+                return;
+            }
 
             const fname = `eSertifikat_DPL_PLP2_${slugifyFilename(currentUserObj.nama)}`;
             generateAndOpenPdf((JsPDF) => buildSertifikatDplPdf(JsPDF, { dplUser: currentUserObj, dplRecords, tahunAkademik, semester }), evt && evt.currentTarget, fname);
@@ -4439,10 +4659,6 @@
                 showAlert("Tidak Diizinkan", "e-Sertifikat ini hanya tersedia untuk akun Guru Pamong.", "error");
                 return;
             }
-            if (!checkAllStudentsGraded()) {
-                showAlert("Belum Bisa Dicetak", "e-Sertifikat baru tersedia setelah Anda menyelesaikan penilaian seluruh mahasiswa di sekolah mitra Anda.", "error");
-                return;
-            }
 
             const pamongRecords = penilaianList.filter(p => String(p.penilaiId) === String(currentUserId) && String(p.penilaiRole).toLowerCase() === 'pamong');
             if (pamongRecords.length === 0) {
@@ -4454,6 +4670,15 @@
             const sumberRecord = pamongRecords[pamongRecords.length - 1];
             const tahunAkademik = sumberRecord.tahunAkademik || '-';
             const semester = sumberRecord.semester || '-';
+
+            // Syarat eSertifikat: sudah menilai minimal 1 mahasiswa (dicek di atas) DAN
+            // sudah mengisi Angket Monev untuk periode (TA+Semester) yang sama - BUKAN
+            // lagi syarat semua mahasiswa di sekolah mitra harus dinilai.
+            const sudahIsiAngket = angketList.some(a => String(a.penilaiId) === String(currentUserId) && String(a.tahunAkademik) === String(tahunAkademik) && String(a.semester) === String(semester));
+            if (!sudahIsiAngket) {
+                showAlert("Belum Bisa Dicetak", `Silakan isi Angket Monev untuk periode TA ${tahunAkademik} - Semester ${semester} terlebih dahulu sebelum mengunduh eSertifikat.`, "error");
+                return;
+            }
 
             const fname = `eSertifikat_Pamong_PLP2_${slugifyFilename(currentUserObj.nama)}`;
             generateAndOpenPdf((JsPDF) => buildSertifikatPamongPdf(JsPDF, { pamongUser: currentUserObj, pamongRecords, tahunAkademik, semester }), evt && evt.currentTarget, fname);

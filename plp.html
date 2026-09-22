@@ -476,6 +476,10 @@
                     <button onclick="switchView('form')" id="btn-nav-form" class="flex-1 md:flex-none px-4 py-2 bg-umm-red hover:bg-umm-redlight text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-1 font-bold">
                         <i class="fa-solid fa-pen-to-square"></i> Form Penilaian
                     </button>
+                    <!-- Tombol Angket Monev, khusus tampil untuk Guru Pamong & DPL -->
+                    <button onclick="switchView('angket')" id="btn-nav-angket" class="hidden flex-1 md:flex-none px-4 py-2 text-slate-700 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-1 font-bold">
+                        <i class="fa-solid fa-clipboard-list"></i> Angket Monev
+                    </button>
                     <!-- Tombol e-Sertifikat khusus Guru Pamong, tampil setelah Guru Pamong selesai menilai semua mahasiswa di sekolah mitranya -->
                     <button onclick="downloadSertifikatPamongPDF(event)" id="btn-nav-sertifikat-pamong" class="hidden flex-1 md:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-1 font-bold">
                         <i class="fa-solid fa-certificate"></i> e-Sertifikat
@@ -788,6 +792,114 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- TAB TAMPILAN ANGKET MONEV PLP II (GURU PAMONG & DPL) -->
+            <div id="view-angket" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left Sidebar: Pilih Mahasiswa untuk Angket -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
+                        <h3 class="text-sm font-bold text-slate-800 border-b pb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-list text-umm-red"></i> Angket Monev PLP II
+                        </h3>
+                        <p class="text-xs text-slate-500">Isian ini terpisah dari Form Penilaian dan dapat diisi kapan saja, baik sebelum maupun sesudah mahasiswa dinilai.</p>
+
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Cari Nama / NIM Mahasiswa</label>
+                            <input type="text" id="angket-student-search-input" onfocus="showAngketStudentDropdown()" oninput="filterAngketStudents()" class="w-full px-3 py-2 pl-9 text-sm rounded-lg border border-slate-200 bg-white text-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-umm-red" placeholder="Ketik nama atau NIM...">
+                            <span class="absolute left-3 top-[34px] text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <div id="angket-student-dropdown-list" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-56 overflow-y-auto z-20 divide-y divide-slate-100"></div>
+                        </div>
+
+                        <div id="angket-selected-student-detail" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2 animate-fadeIn">
+                            <div class="text-xs font-bold text-umm-red uppercase">Informasi Mahasiswa</div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Nama Lengkap</span>
+                                <span id="angket-lbl-mhs-nama" class="text-sm font-bold text-slate-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">NIM</span>
+                                <span id="angket-lbl-mhs-nim" class="text-xs font-mono font-bold text-slate-600">-</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Program Studi</span>
+                                <span id="angket-lbl-mhs-prodi" class="text-xs text-slate-700">-</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Sekolah Mitra</span>
+                                <span id="angket-lbl-mhs-sekolah" class="text-xs text-slate-700 font-semibold">-</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Tanggal Pengisian Angket</label>
+                            <input type="datetime-local" id="angket-date" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-umm-red font-semibold text-slate-700 font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Mini rekap pengisian Angket oleh akun ini -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
+                        <h3 class="text-sm font-bold text-slate-800 border-b pb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-umm-red"></i> Angket Tersimpan (Akun Ini)
+                        </h3>
+                        <div id="angket-rekap-mini" class="space-y-2 text-xs text-slate-500 italic">Belum ada Angket yang diisi.</div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Form Isian Angket -->
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 animate-fadeIn">
+                        <div class="border-b pb-4 mb-6">
+                            <h3 class="text-base font-bold text-slate-800">Angket Monitoring dan Evaluasi PLP II (Asistensi Mengajar)</h3>
+                            <p class="text-xs text-slate-500">Silakan pilih mahasiswa di sebelah kiri, lalu isi keempat instrumen angket berikut sesuai kondisi sebenarnya.</p>
+                        </div>
+
+                        <!-- Legenda Skala Angket -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-rose-100 text-center">
+                                <span class="block text-xs font-bold text-rose-600">1</span>
+                                <span class="text-[10px] text-slate-500">Sangat Tidak Setuju</span>
+                            </div>
+                            <div class="bg-white px-3 py-2 rounded-lg border border-amber-100 text-center">
+                                <span class="block text-xs font-bold text-amber-600">2</span>
+                                <span class="text-[10px] text-slate-500">Tidak Setuju</span>
+                            </div>
+                            <div class="bg-white px-3 py-2 rounded-lg border border-blue-100 text-center">
+                                <span class="block text-xs font-bold text-blue-600">3</span>
+                                <span class="text-[10px] text-slate-500">Setuju</span>
+                            </div>
+                            <div class="bg-white px-3 py-2 rounded-lg border border-emerald-100 text-center">
+                                <span class="block text-xs font-bold text-emerald-600">4</span>
+                                <span class="text-[10px] text-slate-500">Sangat Setuju</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress isian -->
+                        <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 rounded-2xl shadow-lg mb-6 border border-slate-700 flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Progres Pengisian</p>
+                                <span id="angket-progress-text" class="text-xl font-bold font-mono text-amber-400">0 / 30 butir</span>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest text-right">Rerata Skor</p>
+                                <span id="angket-progress-avg" class="text-xl font-bold font-mono text-emerald-400">0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Container instrumen (dirender via JS: renderAngketForm) -->
+                        <div id="angket-instrumen-container" class="space-y-8"></div>
+
+                        <!-- Submit Button -->
+                        <div class="pt-4 border-t mt-6 flex justify-end">
+                            <button onclick="submitAngket()" class="w-full sm:w-auto px-6 py-3 bg-umm-red hover:bg-umm-redlight text-white font-bold rounded-xl text-sm transition-all shadow flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> KIRIM / SIMPAN ANGKET
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- TAB TAMPILAN REKAP PENILAIAN (TERINTEGRASI GURU PAMONG & DPL) -->
@@ -1637,6 +1749,79 @@
             tabC: {}
         };
 
+        // ================= ANGKET MONEV PLP II (GURU PAMONG & DPL) =================
+        // Berdasarkan dokumen "ANGKET MONEV PLP 2" - 4 instrumen skala 1-4.
+        let angketList = [];
+        let selectedAngketStudent = null;
+
+        const angketInstruments = [
+            {
+                key: 'ang1',
+                nomor: '1',
+                title: 'Instrumen Monitoring 1: Penyusunan Perangkat Pembelajaran',
+                desc: 'Kesiapan mahasiswa dalam menyusun perangkat pembelajaran sebelum praktik mengajar.',
+                items: [
+                    'Mahasiswa melakukan observasi pembelajaran yang dilakukan oleh guru sesuai dengan kelas yang akan dijadikan sebagai kelas praktik',
+                    'Mahasiswa melakukan analisis kebutuhan (Need Analysis)',
+                    'Mahasiswa menentukan Rencana Tindak Lanjut dari hasil analisis kebutuhan',
+                    'Mahasiswa menemukan karakteristik peserta didik',
+                    'Mahasiswa menemukan fokus permasalahan terkait pembelajaran di kelas',
+                    'Mahasiswa mengembangkan perangkat pembelajaran sesuai dengan kelas yang akan diajar',
+                    'Mahasiswa melakukan koordinasi dan bimbingan kepada GPL dan DPL',
+                    'Mahasiswa merancang pembelajaran, dipresentasikan dan mendapat masukan Tim Lesson Study (plan)'
+                ]
+            },
+            {
+                key: 'ang2',
+                nomor: '2',
+                title: 'Instrumen Monitoring 2: Pelaksanaan Praktik Mengajar',
+                desc: 'Pelaksanaan praktik mengajar mahasiswa di kelas, termasuk pemanfaatan teknologi dan dokumentasi video.',
+                items: [
+                    'Mahasiswa melaksanakan 2 (dua) kali praktik mengajar sesuai dengan perangkat pembelajaran yang telah disusun',
+                    'Mahasiswa melaksanakan praktik mengajar sesuai dengan perangkat pembelajaran yang telah disusun, diobservasi oleh observer sejawat guru (Do)',
+                    'Observer mencermati kegiatan pembelajaran dan respon siswa',
+                    'Mahasiswa memanfaatkan (inovasi) teknologi dalam pembelajaran',
+                    'Mahasiswa melakukan perekaman dan editing video sesuai dengan ketentuan',
+                    'Mahasiswa mengunggah 1 (satu) video pembelajaran'
+                ]
+            },
+            {
+                key: 'ang3',
+                nomor: '3',
+                title: 'Instrumen Monitoring 3: Refleksi Pembelajaran dan Tindak Lanjut',
+                desc: 'Kemampuan mahasiswa merefleksikan praktik pembelajaran dan menyusun rencana tindak lanjut.',
+                items: [
+                    'Mahasiswa melaksanakan refleksi praktik pembelajaran yang telah dilakukan',
+                    'Mahasiswa menganalisis hasil refleksi praktik pembelajaran yang telah dilakukan',
+                    'Mahasiswa dapat menemukan praktik baik pembelajaran yang telah dilakukan',
+                    'Mahasiswa membuat Rencana Tindak Lanjut praktik pembelajaran yang telah dilakukan'
+                ]
+            },
+            {
+                key: 'ang4',
+                nomor: '4',
+                title: 'Instrumen Monitoring 4: Evaluasi Pelaksanaan PLP II',
+                desc: 'Evaluasi umum pelaksanaan program PLP II (Asistensi Mengajar), buku pedoman, dan kualitas karya mahasiswa.',
+                items: [
+                    'Bagaimana menurut Anda buku pedoman PLP II (Asistensi Mengajar) dari aspek keterbacaan?',
+                    'Bagaimana menurut Anda buku pedoman PLP II (Asistensi Mengajar) terkait aspek kelengkapan unsur-unsur?',
+                    'Apakah tujuan PLP II (Asistensi Mengajar) telah memenuhi kebutuhan mahasiswa dari aspek keterampilan mengajar?',
+                    'Apakah capaian (luaran) PLP II (Asistensi Mengajar) telah sesuai dengan tujuan PLP II?',
+                    'Menurut Anda, bagaimana sosialisasi dan pembekalan PLP II (Asistensi Mengajar)?',
+                    'Menurut Anda, bagaimana kualitas kerja sama mitra PLP II (Asistensi Mengajar)?',
+                    'Menurut Anda, bagaimana kualitas Modul Ajar/RPP mahasiswa PLP II (Asistensi Mengajar)?',
+                    'Menurut Anda, bagaimana kualitas media pembelajaran mahasiswa PLP II (Asistensi Mengajar)?',
+                    'Menurut Anda, bagaimana kualitas bahan ajar mahasiswa PLP II (Asistensi Mengajar)?',
+                    'Menurut Anda, bagaimana kualitas model/metode pembelajaran yang diterapkan oleh mahasiswa PLP II (Asistensi Mengajar)?',
+                    'Menurut Anda, bagaimana kualitas LKPD karya mahasiswa PLP II (Asistensi Mengajar)?',
+                    'Menurut Anda, bagaimana kualitas alat evaluasi karya mahasiswa PLP II (Asistensi Mengajar)?'
+                ]
+            }
+        ];
+
+        let angketScoreState = { ang1: {}, ang2: {}, ang3: {}, ang4: {} };
+        let angketCatatan = { ang1: '', ang2: '', ang3: '', ang4: '' };
+
         function getGradeDetails(score) {
             score = parseFloat(score);
             if (isNaN(score)) {
@@ -1762,6 +1947,7 @@
                     mahasiswaData = serverData.mahasiswa || [];
                     pesertaData = serverData.peserta || [];
                     penilaianList = serverData.penilaian || [];
+                    angketList = serverData.angket || [];
 
                     // Diagnostik ringan di console — bantu cek cepat jika sheet 'mahasiswa'
                     // di spreadsheet ternyata kosong/tidak termuat.
@@ -1785,6 +1971,8 @@
                     renderQuestions('questions-tabA', tabAQuestions, 'tabA');
                     renderQuestions('questions-tabB', tabBQuestions, 'tabB');
                     renderQuestions('questions-tabC', tabCQuestions, 'tabC');
+                    renderAngketForm();
+                    resetAngketForm();
 
                     checkSessionState();
                     showAlert("Berhasil", "Sistem siap. Master data berhasil dimuat!", "success");
@@ -1984,6 +2172,13 @@
                     document.getElementById('btn-nav-manajemen').classList.remove('hidden');
                 } else {
                     document.getElementById('btn-nav-manajemen').classList.add('hidden');
+                }
+
+                // Angket Monev PLP II: khusus untuk Guru Pamong & DPL (bukan Admin)
+                if (currentUserRole === 'dpl' || currentUserRole === 'pamong') {
+                    document.getElementById('btn-nav-angket').classList.remove('hidden');
+                } else {
+                    document.getElementById('btn-nav-angket').classList.add('hidden');
                 }
 
                 document.getElementById('academic-year').value = "";
@@ -2220,11 +2415,16 @@
             safeStorage.removeItem('plp_active_userid');
             safeStorage.removeItem('plp_active_userrole');
             currentUserId = null; currentUserRole = null; currentUserObj = null; selectedStudent = null;
+            selectedAngketStudent = null; angketList = [];
             
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
             document.getElementById('selected-student-detail').classList.add('hidden');
             document.getElementById('student-search-input').value = '';
+            const angketDetail = document.getElementById('angket-selected-student-detail');
+            if (angketDetail) angketDetail.classList.add('hidden');
+            const angketSearchInput = document.getElementById('angket-student-search-input');
+            if (angketSearchInput) angketSearchInput.value = '';
 
             checkSessionState();
         }
@@ -2235,20 +2435,28 @@
             const btnAkumulasi = document.getElementById('btn-nav-akumulasi');
             const btnManajemen = document.getElementById('btn-nav-manajemen');
             const btnSertifikatAdmin = document.getElementById('btn-nav-sertifikat-admin');
+            const btnAngket = document.getElementById('btn-nav-angket');
 
             const viewForm = document.getElementById('view-form');
             const viewRekap = document.getElementById('view-rekap');
             const viewAkumulasi = document.getElementById('view-akumulasi');
             const viewManajemen = document.getElementById('view-manajemen');
             const viewSertifikatAdmin = document.getElementById('view-sertifikat');
+            const viewAngket = document.getElementById('view-angket');
 
             viewForm.classList.add('hidden');
             viewRekap.classList.add('hidden');
             viewAkumulasi.classList.add('hidden');
             viewManajemen.classList.add('hidden');
             viewSertifikatAdmin.classList.add('hidden');
+            if (viewAngket) viewAngket.classList.add('hidden');
 
             btnForm.className = "flex-1 md:flex-none px-4 py-2 text-slate-700 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-1 font-bold";
+            if (btnAngket) {
+                btnAngket.className = (currentUserRole === 'dpl' || currentUserRole === 'pamong')
+                    ? "flex-1 md:flex-none px-4 py-2 text-slate-700 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-1 font-bold"
+                    : "hidden flex-1 md:flex-none px-4 py-2 text-slate-700 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-1 font-bold";
+            }
             btnRekap.className = "hidden flex-1 md:flex-none px-4 py-2 text-slate-700 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-1 font-bold";
             btnAkumulasi.className = "hidden flex-1 md:flex-none px-4 py-2 text-slate-700 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-1 font-bold";
             btnManajemen.className = currentUserRole === 'admin'
@@ -2287,6 +2495,10 @@
             } else if (view === 'form') {
                 btnForm.className = "flex-1 md:flex-none px-4 py-2 bg-umm-red hover:bg-umm-redlight text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-1 font-bold";
                 viewForm.classList.remove('hidden');
+            } else if (view === 'angket' && (currentUserRole === 'dpl' || currentUserRole === 'pamong')) {
+                btnAngket.className = "flex-1 md:flex-none px-4 py-2 bg-umm-red hover:bg-umm-redlight text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-1 font-bold";
+                viewAngket.classList.remove('hidden');
+                renderAngketRekapMini();
             } else if (view === 'rekap' && (isSuperAdmin || allGraded)) {
                 btnRekap.className = "flex-1 md:flex-none px-4 py-2 bg-umm-red hover:bg-umm-redlight text-white rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-1 font-bold";
                 viewRekap.classList.remove('hidden');
@@ -2325,6 +2537,7 @@
                 searchInput.className = "w-full px-3 py-2 pl-9 text-sm rounded-lg border border-slate-200 transition-all focus:outline-none focus:ring-2 focus:ring-umm-red animate-pulse bg-slate-200 cursor-not-allowed text-slate-400";
             }
             clearSelectedStudent();
+            clearSelectedAngketStudent();
         }
 
         function clearSelectedStudent() {
@@ -2388,6 +2601,12 @@
             const input = document.getElementById('student-search-input');
             if (container && input && e.target !== input && !container.contains(e.target)) {
                 container.classList.add('hidden');
+            }
+
+            const angketContainer = document.getElementById('angket-student-dropdown-list');
+            const angketInput = document.getElementById('angket-student-search-input');
+            if (angketContainer && angketInput && e.target !== angketInput && !angketContainer.contains(e.target)) {
+                angketContainer.classList.add('hidden');
             }
         });
 
@@ -2696,6 +2915,287 @@
             validateCharacterLimit('note-peningkatan', 'limit-peningkatan', 100);
             switchTab('tabA'); 
             calculateLiveScore();
+        }
+
+        // ================= ANGKET MONEV PLP II: PEMILIHAN MAHASISWA ================= //
+        // Selector mahasiswa khusus Angket - sengaja TIDAK menyembunyikan mahasiswa yang
+        // sudah dinilai (berbeda dari selector Form Penilaian), karena Angket adalah
+        // instrumen terpisah yang boleh diisi kapan saja & untuk mahasiswa manapun di
+        // sekolah mitra penilai, termasuk yang sudah/belum dinilai lewat Form Penilaian.
+        function showAngketStudentDropdown() {
+            filterAngketStudents();
+        }
+
+        function filterAngketStudents() {
+            const searchInput = document.getElementById('angket-student-search-input');
+            const listContainer = document.getElementById('angket-student-dropdown-list');
+            if (!listContainer || !searchInput) return;
+            const searchVal = searchInput.value.toLowerCase();
+            listContainer.innerHTML = '';
+
+            const userSchool = normalizeSchoolName(currentUserObj.sekolah || '');
+            const noSchoolRestriction = isSuperAdminUser() && !currentUserObj.sekolah;
+
+            const filtered = mahasiswaData.filter(m => {
+                const mSchool = normalizeSchoolName(m.sekolah);
+                const isMySchool = noSchoolRestriction || mSchool === userSchool || mSchool.includes(userSchool) || userSchool.includes(mSchool);
+                const matchesKeyword = String(m.nama).toLowerCase().includes(searchVal) || String(m.nim).includes(searchVal);
+                return isMySchool && matchesKeyword;
+            });
+
+            if (filtered.length === 0) {
+                const noStudentMsg = noSchoolRestriction ? 'Mahasiswa tidak ditemukan.' : `Mahasiswa tidak ditemukan di sekolah mitra Anda (${currentUserObj.sekolah}).`;
+                listContainer.innerHTML = `<div class="p-3 text-xs text-slate-500 italic">${noStudentMsg}</div>`;
+            } else {
+                filtered.forEach(m => {
+                    const sudahIsi = angketList.some(a => String(a.nim) === String(m.nim) && String(a.penilaiId) === String(currentUserId));
+                    const row = document.createElement('div');
+                    row.className = "p-3 text-xs text-slate-700 hover:bg-red-50 hover:text-umm-red cursor-pointer transition-colors";
+                    row.innerHTML = `<p class="font-bold">${m.nama} ${sudahIsi ? '<span class="ml-1 text-[9px] font-bold text-emerald-600">(Sudah Diisi)</span>' : ''}</p><p class="text-[10px] text-slate-500">NIM. ${m.nim} &bull; ${m.prodi}</p>`;
+                    row.onclick = () => selectAngketStudent(m);
+                    listContainer.appendChild(row);
+                });
+            }
+            listContainer.classList.remove('hidden');
+        }
+
+        function selectAngketStudent(student) {
+            selectedAngketStudent = student;
+            document.getElementById('angket-student-search-input').value = student.nama;
+            document.getElementById('angket-student-dropdown-list').classList.add('hidden');
+
+            document.getElementById('angket-lbl-mhs-nama').innerText = student.nama;
+            document.getElementById('angket-lbl-mhs-nim').innerText = student.nim;
+            document.getElementById('angket-lbl-mhs-prodi').innerText = student.prodi;
+            document.getElementById('angket-lbl-mhs-sekolah').innerText = student.sekolah;
+            document.getElementById('angket-selected-student-detail').classList.remove('hidden');
+
+            const existing = angketList.find(a => String(a.nim) === String(student.nim) && String(a.penilaiId) === String(currentUserId));
+            if (existing) {
+                loadExistingAngket(existing);
+                showAlert("Draf Ditemukan", `Memuat Angket tersimpan sebelumnya untuk ${student.nama}`, "info");
+            } else {
+                resetAngketForm();
+                showAlert("Mahasiswa Terpilih", `Siap mengisi Angket untuk ${student.nama}`, "success");
+            }
+        }
+
+        function clearSelectedAngketStudent() {
+            selectedAngketStudent = null;
+            const searchInput = document.getElementById('angket-student-search-input');
+            if (searchInput) searchInput.value = '';
+            const detailCard = document.getElementById('angket-selected-student-detail');
+            if (detailCard) detailCard.classList.add('hidden');
+            resetAngketForm();
+        }
+
+        // ================= ANGKET MONEV PLP II: RENDER & SKOR ================= //
+        function renderAngketForm() {
+            const container = document.getElementById('angket-instrumen-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            angketInstruments.forEach(inst => {
+                const section = document.createElement('div');
+                section.className = "space-y-3 border-b border-slate-100 pb-6 last:border-b-0";
+
+                let itemsHtml = '';
+                inst.items.forEach((q, idx) => {
+                    const qNum = idx + 1;
+                    let radioOptionsHtml = '';
+                    for (let score = 1; score <= 4; score++) {
+                        radioOptionsHtml += `
+                            <label class="flex items-center space-x-1.5 cursor-pointer">
+                                <input type="radio" name="radio-angket-${inst.key}-${qNum}" id="radio-angket-${inst.key}-${qNum}-${score}" onclick="setAngketScore('${inst.key}', ${qNum}, ${score})" class="w-4 h-4 text-umm-red focus:ring-umm-red border-slate-300 accent-umm-red cursor-pointer">
+                                <span class="text-xs text-slate-600 font-semibold">${score}</span>
+                            </label>
+                        `;
+                    }
+                    itemsHtml += `
+                        <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 last:border-b-0">
+                            <div class="flex-1"><span class="text-xs font-semibold text-slate-800">${qNum}. ${q}</span></div>
+                            <div class="flex items-center space-x-4 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/50 self-start sm:self-center">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 mr-2">Nilai:</span>
+                                <div class="flex items-center space-x-3 font-bold">${radioOptionsHtml}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                section.innerHTML = `
+                    <h4 class="text-xs font-bold text-umm-red uppercase tracking-wider flex items-center gap-1">
+                        <span class="bg-red-100 text-umm-red px-1.5 py-0.5 rounded text-[10px]">Instrumen ${inst.nomor}</span>
+                        ${inst.title}
+                    </h4>
+                    <p class="text-xs text-slate-500 italic">${inst.desc}</p>
+                    <div class="divide-y divide-slate-100">${itemsHtml}</div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Catatan / Saran (Instrumen ${inst.nomor})</label>
+                        <textarea id="angket-catatan-${inst.key}" oninput="angketCatatan['${inst.key}'] = this.value" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-umm-red h-16 resize-none" placeholder="Catatan opsional terkait instrumen ini..."></textarea>
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function setAngketScore(instKey, questionNum, score) {
+            angketScoreState[instKey][questionNum] = score;
+            const rInp = document.getElementById(`radio-angket-${instKey}-${questionNum}-${score}`);
+            if (rInp) rInp.checked = true;
+            calculateAngketProgress();
+        }
+
+        function calculateAngketProgress() {
+            let totalItems = 0, totalFilled = 0, totalPoints = 0;
+            angketInstruments.forEach(inst => {
+                totalItems += inst.items.length;
+                inst.items.forEach((q, idx) => {
+                    const val = angketScoreState[inst.key][idx + 1];
+                    if (val) { totalFilled++; totalPoints += val; }
+                });
+            });
+            const progressText = document.getElementById('angket-progress-text');
+            const progressAvg = document.getElementById('angket-progress-avg');
+            if (progressText) progressText.innerText = `${totalFilled} / ${totalItems} butir`;
+            if (progressAvg) progressAvg.innerText = totalFilled > 0 ? (totalPoints / totalFilled).toFixed(2) : '0.00';
+            return { totalItems, totalFilled, totalPoints };
+        }
+
+        function loadExistingAngket(record) {
+            angketScoreState = JSON.parse(JSON.stringify(record.scoreState || { ang1: {}, ang2: {}, ang3: {}, ang4: {} }));
+            angketCatatan = JSON.parse(JSON.stringify(record.catatan || { ang1: '', ang2: '', ang3: '', ang4: '' }));
+
+            angketInstruments.forEach(inst => {
+                inst.items.forEach((q, idx) => {
+                    const qNum = idx + 1;
+                    const sVal = angketScoreState[inst.key] ? angketScoreState[inst.key][qNum] : null;
+                    if (sVal) {
+                        const radioInp = document.getElementById(`radio-angket-${inst.key}-${qNum}-${sVal}`);
+                        if (radioInp) radioInp.checked = true;
+                    }
+                });
+                const ta = document.getElementById(`angket-catatan-${inst.key}`);
+                if (ta) ta.value = angketCatatan[inst.key] || '';
+            });
+
+            const dateInput = document.getElementById('angket-date');
+            if (dateInput && record.angketDate) dateInput.value = record.angketDate;
+
+            calculateAngketProgress();
+        }
+
+        function resetAngketForm() {
+            angketScoreState = { ang1: {}, ang2: {}, ang3: {}, ang4: {} };
+            angketCatatan = { ang1: '', ang2: '', ang3: '', ang4: '' };
+
+            angketInstruments.forEach(inst => {
+                inst.items.forEach((q, idx) => {
+                    const qNum = idx + 1;
+                    for (let s = 1; s <= 4; s++) {
+                        const rInp = document.getElementById(`radio-angket-${inst.key}-${qNum}-${s}`);
+                        if (rInp) rInp.checked = false;
+                    }
+                });
+                const ta = document.getElementById(`angket-catatan-${inst.key}`);
+                if (ta) ta.value = '';
+            });
+
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const dateInput = document.getElementById('angket-date');
+            if (dateInput) dateInput.value = now.toISOString().slice(0, 16);
+
+            calculateAngketProgress();
+        }
+
+        function submitAngket() {
+            const yr = document.getElementById('academic-year').value, sem = document.getElementById('academic-semester').value;
+            if (!yr || !sem) { showAlert("Peringatan", "Harap pilih Tahun Akademik dan Semester (di tab Form Penilaian) terlebih dahulu!", "error"); return; }
+            if (!selectedAngketStudent) { showAlert("Peringatan", "Silakan cari dan pilih mahasiswa yang akan diisikan Angket!", "error"); return; }
+
+            let missingAnswers = [];
+            angketInstruments.forEach(inst => {
+                inst.items.forEach((q, idx) => {
+                    const qNum = idx + 1;
+                    if (!angketScoreState[inst.key][qNum]) missingAnswers.push(`Instrumen ${inst.nomor} No. ${qNum}`);
+                });
+            });
+
+            if (missingAnswers.length > 0) {
+                showAlert("Belum Lengkap", `Silakan selesaikan butir berikut: ${missingAnswers.slice(0, 3).join(', ')}${missingAnswers.length > 3 ? '...' : ''}`, "error");
+                return;
+            }
+
+            const angketDate = document.getElementById('angket-date').value;
+            const { totalFilled, totalPoints } = calculateAngketProgress();
+            const avgScore = totalFilled > 0 ? parseFloat((totalPoints / totalFilled).toFixed(2)) : 0;
+
+            const record = {
+                action: 'simpanAngket',
+                id: `${selectedAngketStudent.nim}_${currentUserId}_angket`,
+                nim: String(selectedAngketStudent.nim),
+                nama: selectedAngketStudent.nama,
+                prodi: selectedAngketStudent.prodi,
+                sekolah: selectedAngketStudent.sekolah,
+                tahunAkademik: yr,
+                semester: sem,
+                angketDate: angketDate,
+                scoreState: angketScoreState,
+                catatan: angketCatatan,
+                totalPoints: totalPoints,
+                avgScore: avgScore,
+                penilaiId: currentUserId,
+                penilaiNama: currentUserObj.nama,
+                penilaiRole: currentUserRole
+            };
+
+            showAlert("Menyimpan...", "Mengirim data Angket ke server API Database...", "info");
+
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(record)
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.status === 'sukses') {
+                    angketList = angketList.filter(a => a.id !== record.id);
+                    angketList.push(record);
+
+                    showAlert("Berhasil", `Angket untuk ${selectedAngketStudent.nama} berhasil disimpan ke Server!`, "success");
+                    clearSelectedAngketStudent();
+                    renderAngketRekapMini();
+                } else {
+                    showAlert("Gagal", "Sistem merespon dengan error: " + responseData.message, "error");
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showAlert("Gagal", "Koneksi ke database terputus. Data Angket gagal disimpan.", "error");
+            });
+        }
+
+        // Ringkasan kecil daftar Angket yang sudah diisi oleh akun yang sedang login,
+        // ditampilkan di sidebar kiri tab Angket Monev.
+        function renderAngketRekapMini() {
+            const wrap = document.getElementById('angket-rekap-mini');
+            if (!wrap) return;
+
+            const mine = angketList.filter(a => String(a.penilaiId) === String(currentUserId));
+            if (mine.length === 0) {
+                wrap.innerHTML = '<div class="text-xs text-slate-500 italic">Belum ada Angket yang diisi.</div>';
+                return;
+            }
+
+            wrap.innerHTML = mine.map(a => `
+                <div class="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
+                    <div>
+                        <p class="text-xs font-bold text-slate-700">${a.nama}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">NIM. ${a.nim}</p>
+                    </div>
+                    <span class="text-xs font-bold text-umm-red font-mono">${Number(a.avgScore || 0).toFixed(2)}</span>
+                </div>
+            `).join('');
         }
 
         function renderRekapTable() {
@@ -4569,6 +5069,7 @@
                     mahasiswaData = serverData.mahasiswa || [];
                     pesertaData = serverData.peserta || [];
                     penilaianList = serverData.penilaian || [];
+                    angketList = serverData.angket || [];
                     if (typeof callback === 'function') callback();
                 })
                 .catch(error => {

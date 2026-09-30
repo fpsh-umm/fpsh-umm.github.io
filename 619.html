@@ -141,6 +141,18 @@
         .session-row:hover {
             background-color: #f8fafc;
         }
+        /* Indikator "Berlangsung" (sesuai hari & jam, dalam rentang tanggal praktikum) */
+        .live-badge {
+            display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;
+            background: #dcfce7; color: #166534; border: 1px solid #86efac;
+            font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+            padding: 2px 8px; border-radius: 9999px;
+        }
+        .live-badge[hidden] { display: none; }
+        .live-dot { width: 8px; height: 8px; border-radius: 9999px; background: #16a34a; animation: livePulse 1.4s ease-out infinite; }
+        @keyframes livePulse { 0% { box-shadow: 0 0 0 0 rgba(22,163,74,.55); } 70% { box-shadow: 0 0 0 7px rgba(22,163,74,0); } 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); } }
+        .session-row.is-live, .session-row.is-live:hover { background-color: #f0fdf4; box-shadow: inset 4px 0 0 #16a34a; }
+        @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
         .prodi-badge {
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
@@ -394,7 +406,18 @@
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Tahun Akademik (contoh: 2026/2027)</label>
                 <input id="akTA" class="w-full mb-3 px-3 py-2 border border-slate-300 rounded-lg text-base" placeholder="2026/2027">
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Semester</label>
-                <select id="akSem" class="w-full mb-4 px-3 py-2 border border-slate-300 rounded-lg text-base"><option>Ganjil</option><option>Genap</option></select>
+                <select id="akSem" class="w-full mb-3 px-3 py-2 border border-slate-300 rounded-lg text-base"><option>Ganjil</option><option>Genap</option></select>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1" for="akMulai">Praktikum Mulai</label>
+                        <input id="akMulai" type="date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-base">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1" for="akSelesai">Praktikum Selesai</label>
+                        <input id="akSelesai" type="date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-base">
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-500 mb-4">Periode yang disimpan berstatus <b>Aktif</b> di sheet Pengaturan; periode sebelumnya otomatis <b>Non Aktif</b>. Jadwal dan data mahasiswa yang tampil hanya milik periode aktif. Tanggal tersimpan dengan format tanggal-bulan-tahun (dd-mm-yyyy); kosongkan kedua tanggal bila belum ditetapkan.</p>
                 <button onclick="saveAkademik()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold">Simpan &amp; terapkan</button>
             </div>
         </div>
@@ -693,7 +716,9 @@
             bebanpraktikum: "1 SKS / 2 JS",
             keteranganpraktikum: "Praktikum Semester V (Ganjil)",
             tahunakademik: "2026/2027",
-            semester: "Ganjil"
+            semester: "Ganjil",
+            praktikummulai: "",
+            praktikumselesai: ""
         };
 
         var HARI_URUT = ["SENIN", "SELASA", "RABU", "KAMIS", "JUM'AT", "SABTU", "MINGGU"];
@@ -826,9 +851,10 @@
             var prodiCell = r.prodi
                 ? '<span class="prodi-badge inline-block ' + prodiClass(r.prodi) + ' border font-bold px-2 py-0.5 rounded text-[10px]">' + esc(r.prodi) + "</span>"
                 : "";
-            return '<tr class="session-row' + zebra + ' transition" data-prodi="' + esc(r.prodi) + '" data-dosen="' + esc(r.dosen) + '">' +
+            return '<tr class="session-row' + zebra + ' transition" data-prodi="' + esc(r.prodi) + '" data-dosen="' + esc(r.dosen) + '" data-hari="' + esc(r.hari) + '" data-mulai="' + esc(r.mulai) + '" data-selesai="' + esc(r.selesai) + '">' +
                 '<td class="py-2.5 px-3"><div class="font-bold text-slate-900">' + esc(r.mulai) + " - " + esc(r.selesai) + "</div>" +
-                    '<div class="text-[10px] text-slate-400">' + sub.join(" • ") + "</div></td>" +
+                    '<div class="text-[10px] text-slate-400">' + sub.join(" • ") + "</div>" +
+                    '<span class="live-badge" hidden title="Sesi ini sedang berlangsung"><span class="live-dot"></span>Berlangsung</span></td>' +
                 '<td class="py-2.5 px-3"><div class="font-semibold text-slate-800">' + kelasTxt + "</div>" + pes + "</td>" +
                 '<td class="py-2.5 px-3 font-semibold text-slate-800">' + esc(r.dosen) + "</td>" +
                 '<td class="py-2.5 px-3 text-center">' + prodiCell + "</td></tr>";
@@ -891,7 +917,46 @@
             el("mBebanSub").textContent = settings.keteranganpraktikum;
 
             filterSchedule();
+            updateLive();
         }
+
+        /* ---------- Indikator "Berlangsung" ---------- */
+        // Waktu sekarang menurut WIB (Asia/Jakarta), tidak tergantung zona waktu perangkat.
+        function nowJakarta() {
+            var d = new Date();
+            try {
+                var p = {};
+                new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jakarta", hourCycle: "h23", weekday: "long", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+                    .formatToParts(d).forEach(function (x) { p[x.type] = x.value; });
+                return { hari: HARI_ID[p.weekday.toUpperCase()] || "", ymd: +(p.year + p.month + p.day), hm: p.hour + ":" + p.minute };
+            } catch (e) {
+                var pad = function (n) { return ("0" + n).slice(-2); };
+                return { hari: HARI_JS[d.getDay()], ymd: +(d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate())), hm: pad(d.getHours()) + ":" + pad(d.getMinutes()) };
+            }
+        }
+        var HARI_ID = { MONDAY: "SENIN", TUESDAY: "SELASA", WEDNESDAY: "RABU", THURSDAY: "KAMIS", FRIDAY: "JUM'AT", SATURDAY: "SABTU", SUNDAY: "MINGGU" };
+        var HARI_JS = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUM'AT", "SABTU"];
+        function tglYmd(s) { // "dd-mm-yyyy" -> yyyymmdd (angka), 0 bila tidak valid
+            var m = String(s || "").trim().match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+            return m ? +(m[3] + ("0" + m[2]).slice(-2) + ("0" + m[1]).slice(-2)) : 0;
+        }
+        // Berlangsung = hari ini berada dalam rentang tanggal praktikum (mulai s.d. selesai, inklusif)
+        // DAN hari sama dengan hari sesi DAN jam sekarang di antara jam mulai (inklusif) dan jam selesai (eksklusif).
+        function updateLive() {
+            var s = CUR_SETTINGS || {}, a = tglYmd(s.praktikummulai), b = tglYmd(s.praktikumselesai);
+            var now = nowJakarta();
+            var aktifRentang = !!(a && b && now.ymd >= a && now.ymd <= b);
+            document.querySelectorAll(".session-row").forEach(function (row) {
+                var live = aktifRentang &&
+                    row.getAttribute("data-hari") === now.hari &&
+                    row.getAttribute("data-mulai") <= now.hm && now.hm < row.getAttribute("data-selesai");
+                row.classList.toggle("is-live", live);
+                var badge = row.querySelector(".live-badge");
+                if (badge) badge.hidden = !live;
+            });
+        }
+        setInterval(updateLive, 30000);
+        document.addEventListener("visibilitychange", function () { if (!document.hidden) updateLive(); });
 
         /* ---------- Filter & pencarian ---------- */
         function filterSchedule() {
@@ -1070,7 +1135,10 @@
                 el(x[0]).className = "px-3 py-1.5 rounded-lg text-sm font-semibold " + (t === x[1] ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-600");
                 if (x[1] !== "kelas" && x[1] !== "cetak") el(x[0]).style.display = adm ? "" : "none";
             });
-            if (t === "akad") { el("akTA").value = CUR_SETTINGS.tahunakademik || ""; el("akSem").value = CUR_SETTINGS.semester || "Ganjil"; }
+            if (t === "akad") {
+                el("akTA").value = CUR_SETTINGS.tahunakademik || ""; el("akSem").value = CUR_SETTINGS.semester || "Ganjil";
+                el("akMulai").value = tglKeInput(CUR_SETTINGS.praktikummulai); el("akSelesai").value = tglKeInput(CUR_SETTINGS.praktikumselesai);
+            }
             if (t === "cetak") renderCetak();
             if (t === "user") loadUsers();
             panelMsg("");
@@ -1131,15 +1199,17 @@
             openModal("panelModal"); showTab("kelas");
             el("kSave").style.display = canEdit() ? "" : "none";
             panelMsg("Memuat data mahasiswa\u2026");
-            try {
-                var d = await api({ action: "kelas", token: API.token });
-                KELAS.rows = d.mahasiswa || []; KELAS.dosen = d.dosen || []; KELAS.dirty = {};
-                var pr = [], kl = [];
-                KELAS.rows.forEach(function (r) { if (r.prodi && pr.indexOf(r.prodi) < 0) pr.push(r.prodi); if (r.kelas && kl.indexOf(r.kelas) < 0) kl.push(r.kelas); });
-                el("kProdi").innerHTML = '<option value="">Semua Prodi</option>' + pr.map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("");
-                el("kKelas").innerHTML = '<option value="">Semua Kelas</option>' + kl.sort().map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("");
-                panelMsg(""); renderKelas(); renderCetak();
-            } catch (e) { panelMsg(e.message, true); }
+            try { await muatKelas(); panelMsg(""); }
+            catch (e) { panelMsg(e.message, true); }
+        }
+        async function muatKelas() {
+            var d = await api({ action: "kelas", token: API.token });
+            KELAS.rows = d.mahasiswa || []; KELAS.dosen = d.dosen || []; KELAS.dirty = {};
+            var pr = [], kl = [];
+            KELAS.rows.forEach(function (r) { if (r.prodi && pr.indexOf(r.prodi) < 0) pr.push(r.prodi); if (r.kelas && kl.indexOf(r.kelas) < 0) kl.push(r.kelas); });
+            el("kProdi").innerHTML = '<option value="">Semua Prodi</option>' + pr.map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("");
+            el("kKelas").innerHTML = '<option value="">Semua Kelas</option>' + kl.sort().map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("");
+            renderKelas(); renderCetak();
         }
         function renderKelas() {
             var q = el("kSearch").value.toLowerCase().trim(), pr = el("kProdi").value, kl = el("kKelas").value, ed = canEdit(), out = [], n = 0;
@@ -1165,12 +1235,27 @@
             try { var d = await api({ action: "simpanKelas", token: API.token, rows: rows }); KELAS.dirty = {}; renderKelas(); panelMsg(d.pesan || "Tersimpan."); }
             catch (e) { panelMsg(e.message, true); }
         }
+        // dd-mm-yyyy (sheet) <-> yyyy-mm-dd (input type=date)
+        function tglKeInput(s) {
+            var m = String(s || "").trim().match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+            return m ? m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2) : "";
+        }
+        function inputKeTgl(s) {
+            var m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return m ? m[3] + "-" + m[2] + "-" + m[1] : "";
+        }
         async function saveAkademik() {
             var ta = el("akTA").value.trim(), sem = el("akSem").value, m = ta.match(/^(\d{4})\/(\d{4})$/);
+            var mulai = el("akMulai").value, selesai = el("akSelesai").value;
             if (!m || +m[2] !== +m[1] + 1) { panelMsg("Format tahun akademik harus seperti 2026/2027.", true); return; }
+            if (!!mulai !== !!selesai) { panelMsg("Isi tanggal Praktikum Mulai DAN Praktikum Selesai, atau kosongkan keduanya.", true); return; }
+            if (mulai && mulai > selesai) { panelMsg("Praktikum Selesai tidak boleh sebelum Praktikum Mulai.", true); return; }
             panelMsg("Menyimpan\u2026");
-            try { await api({ action: "simpanAkademik", token: API.token, tahun: ta, semester: sem }); panelMsg("Tersimpan. Judul jadwal diperbarui."); loadData(true); }
-            catch (e) { panelMsg(e.message, true); }
+            try {
+                await api({ action: "simpanAkademik", token: API.token, tahun: ta, semester: sem, mulai: inputKeTgl(mulai), selesai: inputKeTgl(selesai) });
+                panelMsg("Tersimpan. Periode ini kini berstatus Aktif; jadwal dan data mahasiswa diperbarui.");
+                loadData(true); muatKelas();
+            } catch (e) { panelMsg(e.message, true); }
         }
         /* ---------- Cetak Presensi (kertas F4 + kop LMT) ---------- */
         var JADWAL_ROWS = [];   // diisi oleh render() dari jadwal publik

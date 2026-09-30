@@ -1307,7 +1307,7 @@
                 for (var c = 0; c < kol; c++) cells += "<td></td>";
                 body += "<tr><td class='c'>" + (mulaiNo + i) + "</td><td class='c nim'>" + esc(r.nim) + "</td><td class='nm'>" + esc(String(r.nama || "").toUpperCase()) + "</td>" + cells + "</tr>";
             });
-            var lebarTgl = (68 / kol).toFixed(2);
+            var lebarTgl = (84 / kol).toFixed(2);
             var cg = "<colgroup><col style='width:10mm'><col style='width:31mm'><col>" + new Array(kol + 1).join("<col style='width:" + lebarTgl + "mm'>") + "</colgroup>";
             return "<div class='page'><img class='kh' src='" + KOP_HEADER + "' alt=''><img class='kf' src='" + KOP_FOOTER + "' alt=''><div class='isi'>" +
                 "<h1>DAFTAR HADIR MAHASISWA</h1>" +

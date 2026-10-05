@@ -576,6 +576,7 @@ tbody tr:hover{background:#fffbd9;}
         <div class="tn-dropdown">
           <button class="sb-link" data-page="admin-requests"><span class="sb-icon">&#128203;</span> Semua Pengajuan</button>
           <button class="sb-link manager-only hidden" data-page="admin-master"><span class="sb-icon">&#128230;</span> Data Ruang & Barang/Inv.</button>
+          <button class="sb-link tendikfak-only hidden" data-page="admin-agenda"><span class="sb-icon">&#9993;</span> Agenda Surat</button>
           <button class="sb-link superadmin-only hidden" data-page="admin-users"><span class="sb-icon">&#128101;</span> Manajemen Pengguna</button>
         </div>
       </div>
@@ -678,6 +679,7 @@ const DemoBackend = (function(){
         {ID:'r-2', NamaRuang:'Aula Fakultas', Lokasi:'Gedung A Lt.1', Kapasitas:150, Keterangan:'', Status:'Aktif'},
         {ID:'r-3', NamaRuang:'Laboratorium Komputer 1', Lokasi:'Gedung B Lt.3', Kapasitas:40, Keterangan:'', Status:'Aktif'}
       ],
+      AGENDA_SURAT: [],
       MASTER_BARANG: [
         {ID:'b-1', NamaBarang:'LCD Proyektor', Kategori:'Elektronik', JumlahTersedia:5, Keterangan:'', Status:'Aktif'},
         {ID:'b-2', NamaBarang:'Kamera DSLR', Kategori:'Elektronik', JumlahTersedia:2, Keterangan:'', Status:'Aktif'},
@@ -973,6 +975,43 @@ const DemoBackend = (function(){
       row.TanggalUpdate = new Date().toISOString();
       save(db);
       return {success:true, message:'Kunci berhasil diambil. Ruang kini berstatus Digunakan.'};
+    },
+    // ---- Agenda Surat (setara getAgendaSurat/add/update/deleteAgendaSurat di Kode.gs) ----
+    _agendaGuard(email){
+      const u = load().users.find(x=>x.Email===email);
+      if(!u || u.Role!=='Tendik Fak.') throw new Error('Akses ditolak: Agenda Surat khusus untuk Tendik Fak.');
+    },
+    getAgendaSurat(actorEmail){
+      this._agendaGuard(actorEmail);
+      return (load().AGENDA_SURAT||[]).slice().sort((a,b)=> new Date(b.TanggalDicatat)-new Date(a.TanggalDicatat));
+    },
+    addAgendaSurat(payload, actorEmail){
+      this._agendaGuard(actorEmail);
+      const f = ['KodeIndeks','Nomor','Tujuan','Perihal'];
+      if(f.some(k=>!String((payload||{})[k]||'').trim())) return {success:false, message:'Kode/Indeks, Nomor, Tujuan, dan Perihal wajib diisi.'};
+      const db = load(); if(!db.AGENDA_SURAT) db.AGENDA_SURAT = [];
+      const row = {ID:'ag-'+Date.now()+Math.random().toString(36).slice(2,5), DicatatOleh:actorEmail, TanggalDicatat:new Date().toISOString()};
+      f.forEach(k=> row[k] = String(payload[k]).trim());
+      db.AGENDA_SURAT.push(row); save(db);
+      return {success:true, message:'Agenda surat berhasil ditambahkan.'};
+    },
+    updateAgendaSurat(id, updates, actorEmail){
+      this._agendaGuard(actorEmail);
+      const db = load(); const row = (db.AGENDA_SURAT||[]).find(r=>r.ID===id);
+      if(!row) return {success:false, message:'Data tidak ditemukan.'};
+      const f = ['KodeIndeks','Nomor','Tujuan','Perihal'];
+      if(f.some(k=> updates && updates[k]!==undefined && !String(updates[k]).trim())) return {success:false, message:'Kode/Indeks, Nomor, Tujuan, dan Perihal wajib diisi.'};
+      f.forEach(k=>{ if(updates && updates[k]!==undefined) row[k] = String(updates[k]).trim(); });
+      save(db);
+      return {success:true, message:'Agenda surat berhasil diperbarui.'};
+    },
+    deleteAgendaSurat(id, actorEmail){
+      this._agendaGuard(actorEmail);
+      const db = load(); const n = (db.AGENDA_SURAT||[]).length;
+      db.AGENDA_SURAT = (db.AGENDA_SURAT||[]).filter(r=>r.ID!==id);
+      if(db.AGENDA_SURAT.length===n) return {success:false, message:'Data tidak ditemukan.'};
+      save(db);
+      return {success:true, message:'Agenda surat berhasil dihapus.'};
     },
     getAllMasterItems(masterKey){
       const db = load();
@@ -1291,6 +1330,9 @@ function isProdiScopedRole(){ return CURRENT_USER && PRODI_SCOPED_ROLES.includes
 // & Barang/Inv." saja (di luar "Manajemen Pengguna" yang khusus Super Admin).
 const MANAGER_ROLES = ['Tendik Fak.', 'Tendik Prodi', 'Admin'];
 function isManager(){ return CURRENT_USER && MANAGER_ROLES.includes(CURRENT_USER.Role); }
+// Agenda Surat: KHUSUS role 'Tendik Fak.' (tidak untuk Tendik Prodi/Admin/Pimpinan).
+// Pembatasan yang sama juga ditegakkan di server (assertAgendaSuratRole_ di Kode.gs).
+function isTendikFak(){ return !!CURRENT_USER && CURRENT_USER.Role === 'Tendik Fak.'; }
 
 function showPanel(name){
   document.getElementById('loginPanel').classList.toggle('hidden', name!=='login');
@@ -1439,6 +1481,7 @@ async function bootApp(){
   document.querySelectorAll('.admin-only').forEach(el=> el.classList.toggle('hidden', !isStaff()));
   document.querySelectorAll('.superadmin-only').forEach(el=> el.classList.toggle('hidden', !isSuperAdmin()));
   document.querySelectorAll('.manager-only').forEach(el=> el.classList.toggle('hidden', !isManager()));
+  document.querySelectorAll('.tendikfak-only').forEach(el=> el.classList.toggle('hidden', !isTendikFak()));
 
   if(!SERVICE_META) SERVICE_META = await callServer('getServiceMeta');
   navigate('dashboard');
@@ -1486,7 +1529,8 @@ const PAGE_TITLES = {
   akun:['Ubah Kata Sandi','Perbarui kredensial akun Anda'],
   'admin-requests':['Semua Pengajuan','Kelola seluruh pengajuan layanan fakultas'],
   'admin-master':['Data Ruang & Barang/Inv.','Kelola data induk ruang dan barang/inventaris fakultas'],
-  'admin-users':['Manajemen Pengguna','Kelola akun Tendik, Dosen, dan Mahasiswa']
+  'admin-users':['Manajemen Pengguna','Kelola akun Tendik, Dosen, dan Mahasiswa'],
+  'admin-agenda':['Agenda Surat','Catat dan kelola agenda surat fakultas']
 };
 
 async function navigate(page){
@@ -1500,6 +1544,10 @@ async function navigate(page){
   }
   if(page==='admin-master' && !isManager()){
     toast('Halaman Data Ruang & Barang/Inv. khusus untuk Tendik Fak./Tendik Prodi/Admin.', 'error');
+    page = 'dashboard';
+  }
+  if(page==='admin-agenda' && !isTendikFak()){
+    toast('Halaman Agenda Surat khusus untuk Tendik Fak.', 'error');
     page = 'dashboard';
   }
   if(page==='admin-users' && !isSuperAdmin()){
@@ -1537,6 +1585,7 @@ async function navigate(page){
     else if (page === 'admin-requests') await renderAdminRequests();
     else if (page === 'admin-master') await renderAdminMaster();
     else if (page === 'admin-users') await renderAdminUsers();
+    else if (page === 'admin-agenda') await renderAdminAgenda();
     else if (page.startsWith('svc-')) await renderServiceForm(page.replace('svc-',''));
   } catch(err){
     content.innerHTML = '<div class="msg error">Terjadi kesalahan: '+esc(err)+'</div>';
@@ -3109,6 +3158,130 @@ async function removeMasterItem(id, nama){
   const res = await callServer('deleteMasterItem', adminMasterTab, id, CURRENT_USER.Email);
   toast(res.message, res.success?'success':'error');
   loadMasterTable();
+}
+
+/* ============================================================
+   9c. TENDIK FAK. — AGENDA SURAT
+   Kolom: Kode/Indeks, Nomor, Tujuan, Perihal (+ tanggal dicatat otomatis).
+   ============================================================ */
+const AGENDA_FIELDS = [
+  {key:'KodeIndeks', label:'Kode/Indeks', type:'text', ph:'cth. 421.2'},
+  {key:'Nomor',      label:'Nomor',       type:'text', ph:'cth. 012/II.3.AU/F/FPSH/2026'},
+  {key:'Tujuan',     label:'Tujuan',      type:'text', ph:'cth. Kepala Biro Akademik'},
+  {key:'Perihal',    label:'Perihal',     type:'textarea', ph:'cth. Permohonan data mahasiswa aktif'}
+];
+let AGENDA_ROWS = [];
+
+async function renderAdminAgenda(){
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="filter-bar">
+      <input type="text" id="agendaSearch" placeholder="Cari kode / nomor / tujuan / perihal..." style="flex:1; min-width:220px; max-width:400px;">
+      <span style="margin-left:auto;"></span>
+      <button class="btn btn-gold btn-sm" id="addAgendaBtn">+ Tambah Agenda Surat</button>
+    </div>
+    <div id="agendaTable"></div>
+  `;
+  document.getElementById('agendaSearch').addEventListener('input', drawAgendaTable);
+  document.getElementById('addAgendaBtn').addEventListener('click', ()=> openAgendaModal(null));
+  await loadAgendaTable();
+}
+
+async function loadAgendaTable(){
+  const box = document.getElementById('agendaTable');
+  if(!box) return;
+  box.innerHTML = '<div class="center-load"><span class="loader"></span></div>';
+  try{
+    AGENDA_ROWS = await callServer('getAgendaSurat', CURRENT_USER.Email) || [];
+  }catch(err){
+    box.innerHTML = '<div class="msg error">Gagal memuat Agenda Surat: '+esc(err && err.message ? err.message : err)+'</div>';
+    return;
+  }
+  drawAgendaTable();
+}
+
+function drawAgendaTable(){
+  const box = document.getElementById('agendaTable');
+  if(!box) return;
+  const q = (document.getElementById('agendaSearch')||{value:''}).value.toLowerCase().trim();
+  const rows = q ? AGENDA_ROWS.filter(r => AGENDA_FIELDS.some(f => String(r[f.key]||'').toLowerCase().includes(q))) : AGENDA_ROWS;
+
+  if(!rows.length){
+    box.innerHTML = `<div class="card"><div class="empty"><div class="em-icon">&#9993;</div><h3>${AGENDA_ROWS.length ? 'Tidak ada hasil' : 'Belum ada agenda surat'}</h3><p>${AGENDA_ROWS.length ? 'Coba kata kunci lain.' : 'Tambahkan agenda surat pertama lewat tombol di atas.'}</p></div></div>`;
+    return;
+  }
+  box.innerHTML = `<div class="card tbl-wrap"><table>
+    <thead><tr><th>No</th>${AGENDA_FIELDS.map(f=>`<th>${esc(f.label)}</th>`).join('')}<th>Dicatat</th><th></th></tr></thead>
+    <tbody>${rows.map((r,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        ${AGENDA_FIELDS.map(f=>`<td>${r[f.key]!==undefined && r[f.key]!=='' ? esc(r[f.key]) : '-'}</td>`).join('')}
+        <td style="white-space:nowrap;">${r.TanggalDicatat ? esc(fmtDate(r.TanggalDicatat)) : '-'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost btn-sm" onclick="openAgendaModal('${esc(r.ID)}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="removeAgenda('${esc(r.ID)}')">Hapus</button>
+        </td>
+      </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openAgendaModal(id){
+  const row = id ? AGENDA_ROWS.find(r => r.ID === id) : null;
+  const isEdit = !!row;
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-head"><h3>${isEdit?'Edit':'Tambah'} Agenda Surat</h3><button class="modal-close">&times;</button></div>
+      <div class="modal-body">
+        ${AGENDA_FIELDS.map(f=>{
+          const val = isEdit ? esc(row[f.key]||'') : '';
+          return `<div class="field"><label for="ag_${f.key}">${esc(f.label)}</label>` +
+            (f.type==='textarea'
+              ? `<textarea id="ag_${f.key}" rows="3" placeholder="${esc(f.ph)}">${val}</textarea>`
+              : `<input type="text" id="ag_${f.key}" value="${val}" placeholder="${esc(f.ph)}">`) +
+            `</div>`;
+        }).join('')}
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost modal-close-btn">Batal</button>
+        <button class="btn btn-primary" id="agendaSaveBtn">Simpan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = ()=> overlay.remove();
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.querySelector('.modal-close-btn').addEventListener('click', close);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+  overlay.querySelector('#ag_KodeIndeks').focus();
+
+  overlay.querySelector('#agendaSaveBtn').addEventListener('click', async ()=>{
+    const btn = overlay.querySelector('#agendaSaveBtn');
+    const payload = {};
+    AGENDA_FIELDS.forEach(f=> payload[f.key] = overlay.querySelector('#ag_'+f.key).value.trim());
+    const kosong = AGENDA_FIELDS.find(f => !payload[f.key]);
+    if(kosong){ toast(kosong.label+' wajib diisi.', 'error'); overlay.querySelector('#ag_'+kosong.key).focus(); return; }
+    btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+    try{
+      const res = isEdit
+        ? await callServer('updateAgendaSurat', row.ID, payload, CURRENT_USER.Email)
+        : await callServer('addAgendaSurat', payload, CURRENT_USER.Email);
+      toast(res.message, res.success?'success':'error');
+      if(res.success){ close(); loadAgendaTable(); }
+      else { btn.disabled=false; btn.textContent='Simpan'; }
+    }catch(err){ toast('Gagal menyimpan: '+(err && err.message ? err.message : err), 'error'); btn.disabled=false; btn.textContent='Simpan'; }
+  });
+}
+
+async function removeAgenda(id){
+  const row = AGENDA_ROWS.find(r => r.ID === id);
+  const label = row ? (row.Nomor + ' — ' + row.Perihal) : id;
+  if(!confirm('Hapus agenda surat "'+label+'"? Tindakan ini tidak dapat dibatalkan.')) return;
+  try{
+    const res = await callServer('deleteAgendaSurat', id, CURRENT_USER.Email);
+    toast(res.message, res.success?'success':'error');
+  }catch(err){ toast('Gagal menghapus: '+(err && err.message ? err.message : err), 'error'); }
+  loadAgendaTable();
 }
 
 /* ============================================================

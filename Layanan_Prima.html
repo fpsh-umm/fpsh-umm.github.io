@@ -112,6 +112,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   font-weight:700; font-size:17px; line-height:1.4; color:var(--lp-maroon);
   text-align:center; margin:0 0 26px;
 }
+.ag-tabs{display:inline-flex; gap:4px; background:#f3efd2; padding:5px; border-radius:12px; margin-bottom:16px;}
+.ag-tab{border:none; background:transparent; color:var(--ink-soft,#5b5f6e); font-weight:700; font-size:13.5px; padding:9px 18px; border-radius:9px; cursor:pointer;}
+.ag-tab.active{background:#fff; color:var(--navy-800); box-shadow:0 1px 4px rgba(60,10,12,.15);}
 .lp-tabs{display:flex; gap:4px; background:var(--lp-soft); padding:6px; border-radius:16px; margin-bottom:26px;}
 .lp-tab{
   flex:1; border:none; background:transparent; color:var(--lp-sub);
@@ -299,12 +302,58 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .hamburger svg{width:24px; height:24px;}
 .hamburger:active, .topnav.mobile-open .hamburger{background:rgba(255,255,255,.14);}
 
+
+/* ---- Diagram Dashboard ---- */
+.chart-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:14px;}
+.chart-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 16px 12px; display:flex; flex-direction:column; gap:8px; min-width:0;}
+.chart-card.wide{grid-column:1/-1;}
+.chart-card .ch-head{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.chart-card h3{font-size:14px; margin:0; line-height:1.35;}
+.chart-card .ch-type{font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--navy-700); background:var(--gold-100); border-radius:99px; padding:2px 8px; white-space:nowrap;}
+.chart-card .ch-sub{font-size:11.5px; color:var(--muted); margin:0; line-height:1.45;}
+.chart-card .ch-foot{display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; font-size:11px; color:var(--muted);}
+.chart-card .ch-link{background:none; border:none; color:var(--navy-700); font-weight:700; font-size:12px; cursor:pointer; padding:0;}
+.chart-card .ch-link:hover{text-decoration:underline;}
+.ch-empty{padding:34px 8px; text-align:center; color:var(--muted); font-size:12.5px; background:var(--paper); border-radius:8px;}
+.ch-svg{width:100%; height:auto; display:block; overflow:visible;}
+.ch-svg text{font-family:var(--sans); font-size:10.5px; fill:var(--ink);}
+.ch-svg .ax{stroke:var(--line); stroke-width:1;}
+.ch-svg .mut{fill:var(--muted);}
+.ch-legend{display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11px; color:var(--muted);}
+.ch-legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:baseline;}
+.ch-pie{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.ch-pie svg{width:140px; flex:none;}
+.ch-pie ul{list-style:none; margin:0; padding:0; font-size:11.5px; flex:1; min-width:120px;}
+.ch-pie li{display:flex; gap:6px; align-items:center; padding:2px 0;}
+.ch-pie li i{width:9px; height:9px; border-radius:2px; flex:none;}
+.ch-pie li b{margin-left:auto; padding-left:8px;}
+.ch-picto{display:flex; flex-direction:column; gap:6px;}
+.ch-picto .row{display:grid; grid-template-columns:110px 1fr auto; gap:8px; align-items:center; font-size:11.5px;}
+.ch-picto .ic{font-size:15px; line-height:1.2; letter-spacing:1px; word-break:break-all;}
+.ch-picto .lb{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ch-resp{display:flex; flex-direction:column; gap:8px;}
+.ch-resp .row{display:grid; grid-template-columns:28px minmax(120px,210px) 1fr 120px; gap:10px; align-items:center; font-size:12.5px;}
+.ch-resp .rk{width:24px; height:24px; border-radius:50%; background:var(--gold-100); color:var(--navy-700); font-weight:700; display:flex; align-items:center; justify-content:center; font-size:12px;}
+.ch-resp .row:first-child .rk{background:var(--navy-700); color:#fff;}
+.ch-resp .nm{min-width:0;}
+.ch-resp .nm b{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ch-resp .nm span{font-size:11px; color:var(--muted);}
+.ch-resp .track{background:var(--paper); border-radius:99px; height:12px; overflow:hidden;}
+.ch-resp .fill{height:100%; border-radius:99px; background:linear-gradient(90deg,var(--navy-700),var(--navy-800));}
+.ch-resp .val{text-align:right; font-weight:600;}
+.ch-resp .val small{display:block; font-weight:400; color:var(--muted); font-size:11px;}
+@media (max-width:700px){
+  .chart-grid{grid-template-columns:1fr;}
+  .ch-resp .row{grid-template-columns:24px 1fr 90px;}
+  .ch-resp .track{display:none;}
+}
+
 /* ============================================================
    CARDS / GRID / STATS
    ============================================================ */
 .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);}
 .card-pad{padding:22px;}
-.stat-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:26px;}
+.stat-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-bottom:26px;}
 .stat-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
 .stat-card .n{font-family:var(--serif); font-size:26px; font-weight:600; color:var(--navy-800);}
 .stat-card .l{font-size:11.5px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:.06em;}
@@ -344,6 +393,7 @@ tbody tr:hover{background:#fffbd9;}
   border-radius:99px; white-space:nowrap; letter-spacing:.01em;
 }
 .pill::before{content:''; width:6px;height:6px;border-radius:50%; background:currentColor;}
+.pill.Dimohonkan{background:var(--indigo-bg); color:var(--indigo);}
 .pill.Diajukan{background:var(--slate-bg); color:var(--slate);}
 .pill.Diproses{background:var(--amber-bg); color:var(--amber);}
 .pill.Disetujui{background:var(--green-bg); color:var(--green);}
@@ -565,9 +615,9 @@ tbody tr:hover{background:#fffbd9;}
           <button class="sb-link" data-page="svc-SURAT_KET_IJIN"><span class="sb-num">03</span> Surat Keterangan/Izin</button>
           <button class="sb-link" data-page="svc-SURAT_TUGAS"><span class="sb-num">04</span> Surat Tugas/Rekomendasi</button>
           <button class="sb-link" data-page="svc-TUGAS_AKHIR"><span class="sb-num">05</span> Judul &amp; Pembimbing TA</button>
-          <button class="sb-link" data-page="svc-YUDISIUM"><span class="sb-num">06</span> Pendaftaran Yudisium</button>
+          <button class="sb-link" data-page="svc-YUDISIUM"><span class="sb-num">06</span> Pendaftaran Sidang TA</button>
           <button class="sb-link" data-page="svc-LEGALISASI"><span class="sb-num">07</span> Legalisasi Dokumen</button>
-          <button class="sb-link" data-page="svc-LAINNYA"><span class="sb-num">08</span> Permohonan Lainnya</button>
+          <button class="sb-link" data-page="svc-LAINNYA"><span class="sb-num">08</span> Kehilangan Dokumen</button>
         </div>
       </div>
 
@@ -680,6 +730,7 @@ const DemoBackend = (function(){
         {ID:'r-3', NamaRuang:'Laboratorium Komputer 1', Lokasi:'Gedung B Lt.3', Kapasitas:40, Keterangan:'', Status:'Aktif'}
       ],
       AGENDA_SURAT: [],
+      AGENDA_MASUK: [],
       MASTER_BARANG: [
         {ID:'b-1', NamaBarang:'LCD Proyektor', Kategori:'Elektronik', JumlahTersedia:5, Keterangan:'', Status:'Aktif'},
         {ID:'b-2', NamaBarang:'Kamera DSLR', Kategori:'Elektronik', JumlahTersedia:2, Keterangan:'', Status:'Aktif'},
@@ -701,7 +752,7 @@ const DemoBackend = (function(){
     }catch(e){ return defaults; }
   }
   function save(db){ try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){ /* penyimpanan tidak tersedia (mis. dibuka lewat file://) — lanjut tanpa persist */ } }
-  const LABELS = {PEMINJAMAN:'Peminjaman/Penggunaan Barang & Inventaris',PEMINJAMAN_RUANG:'Peminjaman/Penggunaan Ruang',SURAT_KET_IJIN:'Surat Keterangan / Izin',SURAT_TUGAS:'Surat Tugas / Rekomendasi',TUGAS_AKHIR:'Judul & Pembimbing Tugas Akhir',YUDISIUM:'Yudisium',LEGALISASI:'Legalisasi Dokumen (Ijazah, Transkrip, Sertifikat)',SKL:'Surat Keterangan Lulus',LAINNYA:'Permohonan Lainnya'};
+  const LABELS = {PEMINJAMAN:'Peminjaman/Penggunaan Barang & Inventaris',PEMINJAMAN_RUANG:'Peminjaman/Penggunaan Ruang',SURAT_KET_IJIN:'Surat Keterangan / Izin',SURAT_TUGAS:'Surat Tugas / Rekomendasi',TUGAS_AKHIR:'Judul & Pembimbing Tugas Akhir',YUDISIUM:'Pendaftaran Sidang TA',LEGALISASI:'Legalisasi Dokumen (Ijazah, Transkrip, Sertifikat)',SKL:'Surat Keterangan Lulus',LAINNYA:'Kehilangan Dokumen'};
   const genId = () => 'REQ-DEMO-' + Math.random().toString(36).slice(2,7).toUpperCase();
   const SELF_REGISTER_ROLES = ['Mahasiswa','Dosen','Tendik'];
   const isProcessingRole = role => ['Tendik Fak.','Tendik Prodi','Admin','Dekan','Wakil Dekan I','Wakil Dekan II','Ketua Prodi','Sekretaris Prodi','Kepala Laboratorium'].indexOf(role) > -1;
@@ -714,6 +765,26 @@ const DemoBackend = (function(){
   const FULL_STATUS_LIST = ['Diajukan','Diproses','Disetujui','Ditolak','Selesai'];
   const SIMPLE_FLOW_SERVICES = ['PEMINJAMAN','PEMINJAMAN_RUANG'];
   const SIMPLE_STATUS_LIST = ['Diajukan','Selesai'];
+  // Setara SURAT_FLOW_SERVICES/SURAT_TRANSITIONS di Code.gs (mode pratinjau
+  // lokal) — alur Permohonan Surat: Dimohonkan -> Diajukan -> Diproses ->
+  // Disetujui/Ditolak -> Selesai.
+  const SURAT_FLOW_SERVICES = ['SURAT_KET_IJIN','SURAT_TUGAS','TUGAS_AKHIR','YUDISIUM'];
+  const SURAT_STATUS_LIST = ['Dimohonkan','Diajukan','Diproses','Disetujui','Ditolak','Selesai'];
+  const SURAT_TENDIK = ['Tendik Fak.','Tendik Prodi'];
+  const SURAT_TRANSITIONS = {
+    'Dimohonkan': {to:['Diajukan'], roles:SURAT_TENDIK},
+    'Diajukan':   {to:['Diproses'], roles:['Ketua Prodi']},
+    'Diproses':   {to:['Disetujui','Ditolak'], roles:['Wakil Dekan I','Wakil Dekan II','Dekan']},
+    'Disetujui':  {to:['Selesai'], roles:SURAT_TENDIK},
+    'Ditolak':    {to:['Selesai'], roles:SURAT_TENDIK}
+  };
+  // Status yang boleh dipilih 'role' untuk status saat ini (termasuk status itu sendiri).
+  function suratAllowedStatuses(role, cur){
+    if(role==='Admin') return SURAT_STATUS_LIST.slice();
+    const t = SURAT_TRANSITIONS[cur]; const out=[cur];
+    if(t && t.roles.indexOf(role)>-1) t.to.forEach(x=>out.push(x));
+    return out;
+  }
   // Setara ROOM_STATUS_LIST/simpleFlowStatusListFor_() di Code.gs (mode
   // pratinjau lokal): Peminjaman Ruang punya status tambahan 'Diagendakan'
   // (jadwal masa depan, kuncinya belum diambil) yang tidak berlaku untuk
@@ -748,8 +819,8 @@ const DemoBackend = (function(){
   return {
     getServiceMeta(){
       const statusListByService = {};
-      Object.keys(LABELS).forEach(k=>{ statusListByService[k] = SIMPLE_FLOW_SERVICES.indexOf(k)>-1 ? simpleFlowStatusListFor(k) : FULL_STATUS_LIST; });
-      return {labels:LABELS, statusList:FULL_STATUS_LIST, statusListByService:statusListByService, roleList:['Tendik Fak.','Tendik Prodi','Dekan','Wakil Dekan I','Wakil Dekan II','Ketua Prodi','Sekretaris Prodi','Kepala Laboratorium','Admin'], webAppUrl:''};
+      Object.keys(LABELS).forEach(k=>{ statusListByService[k] = SIMPLE_FLOW_SERVICES.indexOf(k)>-1 ? simpleFlowStatusListFor(k) : (SURAT_FLOW_SERVICES.indexOf(k)>-1 ? SURAT_STATUS_LIST : FULL_STATUS_LIST); });
+      return {labels:LABELS, statusList:FULL_STATUS_LIST, statusListByService:statusListByService, roleList:['Tendik Fak.','Tendik Prodi','Dekan','Wakil Dekan I','Wakil Dekan II','Ketua Prodi','Sekretaris Prodi','Kepala Laboratorium','Admin'], webAppUrl:'', suratFlow:{services:SURAT_FLOW_SERVICES, transitions:SURAT_TRANSITIONS}};
     },
     login(id, pw){
       const db = load();
@@ -787,6 +858,7 @@ const DemoBackend = (function(){
         const targetDate = String((key==='PEMINJAMAN_RUANG'?formData.TanggalPenggunaan:formData.TanggalPinjam)||'').slice(0,10);
         if(targetDate && targetDate > todayDateStr()) row.Status = 'Diagendakan';
       }
+      if(SURAT_FLOW_SERVICES.indexOf(key)>-1) row.Status = 'Dimohonkan';
       db[key].push(row); save(db);
       return {success:true, message:'Pengajuan berhasil dikirim.', id:row.ID};
     },
@@ -816,6 +888,12 @@ const DemoBackend = (function(){
       if(SIMPLE_FLOW_SERVICES.indexOf(key)>-1 && updates.Status && simpleFlowStatusListFor(key).indexOf(updates.Status)===-1){
         return {success:false, message:'Layanan ini memakai alur sederhana — status yang dipilih tidak valid untuk layanan ini.'};
       }
+      if(SURAT_FLOW_SERVICES.indexOf(key)>-1 && updates.Status){
+        const cur = row.Status || 'Dimohonkan';
+        if(updates.Status!==cur && suratAllowedStatuses(actorRole, cur).indexOf(updates.Status)===-1){
+          return {success:false, message:'Perpindahan status "'+cur+'" → "'+updates.Status+'" tidak diizinkan untuk peran Anda.'};
+        }
+      }
       if(isProdiScopedRole(actorRole) && actorProdi && reqProdi(row)!==actorProdi){
         return {success:false, message:'Anda hanya dapat memproses pengajuan dari Program Studi Anda sendiri.'};
       }
@@ -835,9 +913,18 @@ const DemoBackend = (function(){
       save(db);
       return {success:true, message:'Status diperbarui.'};
     },
+    getDashboardChartData(email, role, prodiUnit){
+      const db = load();
+      const all = isProcessingRole(role) ? this.getAllRequestsAllServices(role, prodiUnit) : this.getMyRequests(email);
+      const petugas = {};
+      db.users.forEach(u=>{ if(u.Role==='Tendik Fak.' || u.Role==='Tendik Prodi') petugas[String(u.Email).toLowerCase()] = {nama:u.Nama, role:u.Role}; });
+      const rows = all.map(r=>({j:r._jenis, s:r.Status||'', t:String(r.TanggalPengajuan||''), u:String(r.TanggalUpdate||''), p:String(r.Petugas||'').toLowerCase(),
+        ru:r.NamaRuang||'', br:r.NamaBarang||'', js:r.JenisSurat||r.Jenis||'', ipk:r.IPK||'', lb:r.JumlahLembar||'', jd:r.JenisDokumen||''}));
+      return {rows, petugas};
+    },
     getDashboardStats(email, role, prodiUnit){
       const all = isProcessingRole(role) ? this.getAllRequestsAllServices(role, prodiUnit) : this.getMyRequests(email);
-      const stats = {total:all.length,Diajukan:0,Diproses:0,Disetujui:0,Ditolak:0,Selesai:0};
+      const stats = {total:all.length,Dimohonkan:0,Diajukan:0,Diproses:0,Disetujui:0,Ditolak:0,Selesai:0};
       all.forEach(r=>{ if(stats[r.Status]!==undefined) stats[r.Status]++; });
       const perLayanan={}; Object.keys(LABELS).forEach(k=>perLayanan[k]=0);
       all.forEach(r=>{ if(perLayanan[r._jenis]!==undefined) perLayanan[r._jenis]++; });
@@ -979,7 +1066,8 @@ const DemoBackend = (function(){
     // ---- Agenda Surat (setara getAgendaSurat/add/update/deleteAgendaSurat di Kode.gs) ----
     _agendaGuard(email){
       const u = load().users.find(x=>x.Email===email);
-      if(!u || u.Role!=='Tendik Fak.') throw new Error('Akses ditolak: Agenda Surat khusus untuk Tendik Fak.');
+      const ok = u && (u.Role==='Tendik Fak.' || (u.Role==='Admin' && String(u.Email).toLowerCase()==='admin@fpsh.ac.id'));
+      if(!ok) throw new Error('Akses ditolak: Agenda Surat khusus untuk Tendik Fak. dan Super Admin.');
     },
     getAgendaSurat(actorEmail){
       this._agendaGuard(actorEmail);
@@ -989,7 +1077,9 @@ const DemoBackend = (function(){
       this._agendaGuard(actorEmail);
       const f = ['KodeIndeks','Nomor','Tujuan','Perihal'];
       if(f.some(k=>!String((payload||{})[k]||'').trim())) return {success:false, message:'Kode/Indeks, Nomor, Tujuan, dan Perihal wajib diisi.'};
+      if(!AGENDA_KODE_MAP[String(payload.KodeIndeks).trim()]) return {success:false, message:'Kode/Indeks tidak ada dalam daftar.'};
       const db = load(); if(!db.AGENDA_SURAT) db.AGENDA_SURAT = [];
+      if(db.AGENDA_SURAT.some(r=> String(r.Nomor).trim().toLowerCase()===String(payload.Nomor).trim().toLowerCase())) return {success:false, message:'Nomor "'+String(payload.Nomor).trim()+'" sudah dipakai. Ubah No. Urut atau ketik nomor lain.'};
       const row = {ID:'ag-'+Date.now()+Math.random().toString(36).slice(2,5), DicatatOleh:actorEmail, TanggalDicatat:new Date().toISOString()};
       f.forEach(k=> row[k] = String(payload[k]).trim());
       db.AGENDA_SURAT.push(row); save(db);
@@ -1001,6 +1091,8 @@ const DemoBackend = (function(){
       if(!row) return {success:false, message:'Data tidak ditemukan.'};
       const f = ['KodeIndeks','Nomor','Tujuan','Perihal'];
       if(f.some(k=> updates && updates[k]!==undefined && !String(updates[k]).trim())) return {success:false, message:'Kode/Indeks, Nomor, Tujuan, dan Perihal wajib diisi.'};
+      if(updates && updates.KodeIndeks!==undefined && updates.KodeIndeks!==row.KodeIndeks && !AGENDA_KODE_MAP[String(updates.KodeIndeks).trim()]) return {success:false, message:'Kode/Indeks tidak ada dalam daftar.'};
+      if(updates && updates.Nomor!==undefined && db.AGENDA_SURAT.some(r=> r.ID!==id && String(r.Nomor).trim().toLowerCase()===String(updates.Nomor).trim().toLowerCase())) return {success:false, message:'Nomor "'+String(updates.Nomor).trim()+'" sudah dipakai. Ubah No. Urut atau ketik nomor lain.'};
       f.forEach(k=>{ if(updates && updates[k]!==undefined) row[k] = String(updates[k]).trim(); });
       save(db);
       return {success:true, message:'Agenda surat berhasil diperbarui.'};
@@ -1012,6 +1104,62 @@ const DemoBackend = (function(){
       if(db.AGENDA_SURAT.length===n) return {success:false, message:'Data tidak ditemukan.'};
       save(db);
       return {success:true, message:'Agenda surat berhasil dihapus.'};
+    },
+    // ---- Agenda Surat Masuk (setara getAgendaMasuk/add/update/delete/getAgendaMasukFile di Kode.gs) ----
+    // Catatan pratinjau: ISI FILE hanya disimpan di memori halaman (hilang saat refresh);
+    // di aplikasi sungguhan file disimpan permanen di Google Drive.
+    _masukFiles: {},
+    _masukCheck(p, file){
+      const f = ['NomorSuratMasuk','Pengirim','Tujuan','TanggalSurat','PerihalSurat'];
+      if(f.some(k=>!String((p||{})[k]||'').trim())) return 'Nomor Surat Masuk, Pengirim, Tujuan, Tanggal Surat, dan Perihal Surat wajib diisi.';
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(String(p.TanggalSurat).trim())) return 'Format Tanggal Surat tidak valid.';
+      if(file && file.data){
+        const ext = String(file.name||'').split('.').pop().toLowerCase();
+        if(!['pdf','jpg','jpeg','png','doc','docx','xls','xlsx'].includes(ext)) return 'Jenis file tidak diizinkan. Gunakan PDF, JPG, PNG, DOC/DOCX, atau XLS/XLSX.';
+        if(Math.floor(file.data.length*3/4) > 5*1024*1024) return 'Ukuran file melebihi 5 MB.';
+      }
+      return '';
+    },
+    getAgendaMasuk(actorEmail){
+      this._agendaGuard(actorEmail);
+      return (load().AGENDA_MASUK||[]).slice().sort((a,b)=> new Date(b.TanggalDicatat)-new Date(a.TanggalDicatat));
+    },
+    addAgendaMasuk(payload, file, actorEmail){
+      this._agendaGuard(actorEmail);
+      const err = this._masukCheck(payload, file); if(err) return {success:false, message:err};
+      const db = load(); if(!db.AGENDA_MASUK) db.AGENDA_MASUK = [];
+      const id = 'mk-'+Date.now()+Math.random().toString(36).slice(2,5);
+      const row = {ID:id, DicatatOleh:actorEmail, TanggalDicatat:new Date().toISOString(), AdaFile:false, FileNama:'', FileUkuran:''};
+      ['NomorSuratMasuk','Pengirim','Tujuan','TanggalSurat','PerihalSurat'].forEach(k=> row[k]=String(payload[k]).trim());
+      if(file && file.data){ row.AdaFile = true; row.FileNama = file.name; row.FileUkuran = Math.floor(file.data.length*3/4); this._masukFiles[id] = {nama:file.name, data:file.data}; }
+      db.AGENDA_MASUK.push(row); save(db);
+      return {success:true, message:'Surat masuk berhasil dicatat'+(row.AdaFile?' dan diarsipkan.':'.')};
+    },
+    updateAgendaMasuk(id, updates, file, actorEmail){
+      this._agendaGuard(actorEmail);
+      const db = load(); const row = (db.AGENDA_MASUK||[]).find(r=>r.ID===id);
+      if(!row) return {success:false, message:'Data tidak ditemukan.'};
+      const err = this._masukCheck(updates, file); if(err) return {success:false, message:err};
+      ['NomorSuratMasuk','Pengirim','Tujuan','TanggalSurat','PerihalSurat'].forEach(k=> row[k]=String(updates[k]).trim());
+      if(file && file.data){ row.AdaFile = true; row.FileNama = file.name; row.FileUkuran = Math.floor(file.data.length*3/4); this._masukFiles[id] = {nama:file.name, data:file.data}; }
+      save(db);
+      return {success:true, message:'Surat masuk berhasil diperbarui.'};
+    },
+    deleteAgendaMasuk(id, actorEmail){
+      this._agendaGuard(actorEmail);
+      const db = load(); const n = (db.AGENDA_MASUK||[]).length;
+      db.AGENDA_MASUK = (db.AGENDA_MASUK||[]).filter(r=>r.ID!==id);
+      if(db.AGENDA_MASUK.length===n) return {success:false, message:'Data tidak ditemukan.'};
+      delete this._masukFiles[id]; save(db);
+      return {success:true, message:'Surat masuk berhasil dihapus.'};
+    },
+    getAgendaMasukFile(id, actorEmail){
+      this._agendaGuard(actorEmail);
+      const f = this._masukFiles[id];
+      if(!f) throw new Error('Pratinjau: isi file hanya tersimpan sampai halaman dimuat ulang. Di aplikasi sungguhan file tersimpan di Google Drive.');
+      const ext = f.nama.split('.').pop().toLowerCase();
+      const mime = {pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png'}[ext] || 'application/octet-stream';
+      return {nama:f.nama, mime, base64:f.data};
     },
     getAllMasterItems(masterKey){
       const db = load();
@@ -1084,8 +1232,19 @@ if (HAS_GAS || HAS_REMOTE_URL) document.getElementById('demoNote').classList.add
    1. STATE
    ============================================================ */
 let CURRENT_USER = null;
+// Layanan 'Permohonan Surat' (alur Dimohonkan -> Diajukan -> Diproses -> Disetujui/Ditolak -> Selesai);
+// setara SURAT_FLOW_SERVICES di Code.gs.
+const SURAT_FLOW_SERVICES = ['SURAT_KET_IJIN','SURAT_TUGAS','TUGAS_AKHIR','YUDISIUM'];
 let SERVICE_META = null;
 let CURRENT_PAGE = 'dashboard';
+
+// Semester & Tahun Akademik BERJALAN (Ganjil: Agu–Jan, Genap: Feb–Jul) — default
+// isian KSM pada form Pendaftaran Sidang TA.
+const AY_BERJALAN = (function(){
+  const d = new Date(), y = d.getFullYear(), m = d.getMonth()+1;
+  const mulai = m >= 8 ? y : y-1;
+  return { ta: mulai+'/'+(mulai+1), prev: (mulai-1)+'/'+mulai, semester: (m >= 8 || m === 1) ? 'Ganjil' : 'Genap' };
+})();
 
 const SERVICE_FORM_CONFIG = {
   PEMINJAMAN_RUANG: {
@@ -1110,9 +1269,14 @@ const SERVICE_FORM_CONFIG = {
   },
   SURAT_KET_IJIN: {
     title:'Surat Keterangan / Izin',
-    desc:'Observasi Tugas PBL/PjBL, Praktik Kerja/Magang, MBKM, CoE, Pertukaran Mahasiswa, dan sejenisnya.',
+    desc:'Surat Keterangan (Praktik Kerja/Magang, Aktif Organisasi, Kelakuan Baik, Belum Pernah Menerima Beasiswa) dan Surat Ijin (Penelitian).',
     fields:[
-      {key:'JenisSurat', label:'Jenis Surat', type:'select', full:true, options:['Observasi Tugas Mata Kuliah PBL/PjBL','Praktik Kerja/Magang','MBKM','CoE (Center of Excellence)','Pertukaran Pelajar/Mahasiswa','Lainnya']},
+      {key:'JenisSurat', label:'Jenis Surat', type:'dependent', full:true, sublabel:'Pilihan',
+        sublabels:{Keterangan:'Surat Keterangan untuk', Ijin:'Ijin untuk'},
+        groups:{
+          'Keterangan':['Praktik Kerja/Magang','Aktif Organisasi','Kelakuan Baik','Belum Pernah Menerima Beasiswa'],
+          'Ijin':['Penelitian Tugas Akhir','Penelitian Mata Kuliah PBL/PjBL','Penelitian Lainnya']
+        }},
       {key:'MataKuliahKegiatan', label:'Mata Kuliah / Nama Kegiatan', type:'text'},
       {key:'TempatTujuan', label:'Instansi/Tempat Tujuan', type:'text'},
       {key:'TanggalMulai', label:'Tanggal Mulai', type:'date'},
@@ -1123,9 +1287,14 @@ const SERVICE_FORM_CONFIG = {
   },
   SURAT_TUGAS: {
     title:'Surat Tugas / Rekomendasi',
-    desc:'Penelitian, Pengabdian kepada Masyarakat, Kerja Sama, dan sejenisnya.',
+    desc:'Surat Tugas (Kepanitiaan, Seminar, Sarasehan, Workshop, Lomba) dan Surat Rekomendasi (Beasiswa, MBKM, CoE, Pertukaran Mahasiswa, Penelitian, Pengabdian Masyarakat, Kerjasama).',
     fields:[
-      {key:'Jenis', label:'Jenis Surat', type:'select', full:true, options:['Penelitian','Pengabdian kepada Masyarakat','Kerjasama','Lainnya']},
+      {key:'Jenis', label:'Jenis Surat', type:'dependent', full:true, sublabel:'Pilihan',
+        sublabels:{Tugas:'Kegiatan', Rekomendasi:'Rekomendasi untuk'},
+        groups:{
+          'Tugas':['Kepanitiaan','Seminar','Sarasehan','Workshop','Lomba'],
+          'Rekomendasi':['Beasiswa','MBKM','CoE','Pertukaran Mahasiswa','Penelitian','Pengabdian Masyarakat','Kerjasama']
+        }},
       {key:'JudulKegiatan', label:'Judul Kegiatan', type:'text', full:true},
       {key:'InstansiTujuan', label:'Instansi Tujuan', type:'text'},
       {key:'TanggalMulai', label:'Tanggal Mulai', type:'date'},
@@ -1135,45 +1304,53 @@ const SERVICE_FORM_CONFIG = {
   },
   TUGAS_AKHIR: {
     title:'Permohonan Judul & Pembimbing Tugas Akhir',
-    desc:'Ajukan usulan judul dan dosen pembimbing tugas akhir.',
+    desc:'Khusus Mahasiswa. Ajukan usulan judul tugas akhir; Dosen Pembimbing ditetapkan lewat Plotting Dosen Pembimbing oleh Ketua Prodi.',
+    roles:['Mahasiswa'],
     fields:[
       {key:'Prodi', label:'Program Studi', type:'text'},
       {key:'BidangKajian', label:'Bidang Kajian', type:'text'},
       {key:'JudulUsulan1', label:'Judul Usulan 1', type:'text', full:true},
       {key:'JudulUsulan2', label:'Judul Usulan 2', type:'text', full:true},
-      {key:'JudulUsulan3', label:'Judul Usulan 3', type:'text', full:true},
-      {key:'DosenPembimbingUsulan', label:'Dosen Pembimbing yang Diusulkan', type:'text', full:true}
+      {key:'JudulUsulan3', label:'Judul Usulan 3', type:'text', full:true}
     ]
   },
   YUDISIUM: {
-    title:'Pendaftaran Yudisium',
-    desc:'Ajukan pendaftaran yudisium kelulusan.',
+    title:'Pendaftaran Sidang TA',
+    desc:'Khusus Mahasiswa. Daftar sidang tugas akhir: KSM semester & tahun akademik berjalan, total SKS, IPK/Transkrip Sementara.',
+    roles:['Mahasiswa'],
     fields:[
       {key:'Prodi', label:'Program Studi', type:'text'},
-      {key:'IPK', label:'IPK', type:'text'},
-      {key:'TotalSKS', label:'Total SKS Lulus', type:'number'},
-      {key:'NoSkripsiTA', label:'Nomor Skripsi/Tugas Akhir', type:'text'},
-      {key:'BuktiBebasPerpus', label:'Tautan Bukti Bebas Pustaka', type:'text', full:true},
-      {key:'BuktiBebasLab', label:'Tautan Bukti Bebas Laboratorium', type:'text', full:true}
+      {key:'KSMSemester', label:'KSM Semester (berjalan)', type:'select', options:['Ganjil','Genap'], default:AY_BERJALAN.semester},
+      {key:'KSMTahunAkademik', label:'KSM Tahun Akademik (berjalan)', type:'select', options:[AY_BERJALAN.ta, AY_BERJALAN.prev], default:AY_BERJALAN.ta},
+      {key:'TotalSKS', label:'Total SKS', type:'number'},
+      {key:'IPK', label:'IPK (sesuai Transkrip Sementara)', type:'text'},
+      {key:'TautanDokumen', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'url', full:true, googleLink:true, placeholder:'https://drive.google.com/... (KSM & Transkrip Sementara)'}
     ]
   },
   LEGALISASI: {
     title:'Legalisasi Dokumen (Ijazah, Transkrip, Sertifikat)',
-    desc:'Ajukan legalisasi/pengesahan salinan ijazah, transkrip nilai, atau sertifikat.',
+    desc:'Khusus Mahasiswa/Alumni. Ajukan legalisasi/pengesahan salinan ijazah, transkrip nilai, atau sertifikat.',
+    roles:['Mahasiswa'], identityLabel:'Mahasiswa/Alumni (NIM)', alumni:true,
     fields:[
       {key:'Prodi', label:'Program Studi', type:'text'},
       {key:'JenisDokumen', label:'Jenis Dokumen', type:'select', options:['Ijazah','Transkrip Nilai','Sertifikat','Lainnya']},
       {key:'JumlahLembar', label:'Jumlah Lembar/Salinan', type:'number'},
       {key:'Keperluan', label:'Keperluan', type:'textarea', full:true},
-      {key:'FilePendukung', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'text', full:true}
+      {key:'FilePendukung', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'url', full:true, googleLink:true, placeholder:'https://drive.google.com/...'}
     ]
   },
   LAINNYA: {
-    title:'Permohonan Lainnya',
-    desc:'Untuk permohonan yang belum tercakup pada kategori lainnya.',
+    title:'Kehilangan Dokumen',
+    desc:'Laporkan kehilangan Ijazah, Transkrip, atau Sertifikat (PESMABA, Student Day, Mahasiswa Berprestasi Akademik/Non Akademik).',
     fields:[
-      {key:'JudulPermohonan', label:'Judul Permohonan', type:'text', full:true},
-      {key:'Deskripsi', label:'Deskripsi Permohonan', type:'textarea', full:true}
+      {key:'JudulPermohonan', label:'Dokumen yang Hilang', type:'dependent', full:true, prefix:'Kehilangan ', sublabel:'Jenis Sertifikat',
+        groups:{
+          'Ijazah':[],
+          'Transkrip':[],
+          'Sertifikat':['PESMABA','Student Day','Mahasiswa Berprestasi Akademik','Mahasiswa Berprestasi Non Akademik']
+        }},
+      {key:'Deskripsi', label:'Kronologi Kehilangan', type:'textarea', full:true},
+      {key:'TautanDokumen', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'url', full:true, googleLink:true, placeholder:'https://drive.google.com/... (salinan/foto dokumen asli)'}
     ]
   }
   // Catatan: SKL (Surat Keterangan Lulus) sengaja tidak lagi didaftarkan di
@@ -1272,7 +1449,12 @@ function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"']/g,
 // pemohon/pengguna yang melihatnya — HANYA teks tampilan yang berubah, nilai
 // Status yang sebenarnya tersimpan/dipakai untuk kelas warna badge & logika
 // lain di seluruh aplikasi (filter, tabel Kelola, dst.) TETAP 'Diajukan'.
-function customerStatusLabel(status){ return status === 'Diajukan' ? 'Digunakan' : status; }
+// Dikecualikan untuk 4 layanan Permohonan Surat (jenis ada di SURAT_FLOW_SERVICES):
+// di sana 'Diajukan' adalah tahap alur surat, bukan 'sedang digunakan'.
+function customerStatusLabel(status, jenis){
+  if(SURAT_FLOW_SERVICES.indexOf(jenis) > -1) return status;
+  return status === 'Diajukan' ? 'Digunakan' : status;
+}
 // Kolom 'SAMPAI' (dulu berjudul 'Jam Selesai') pada tabel 'Customer
 // (Pemohon/Pengguna)': sheet Peminjaman_Ruang punya kolom 'JamSelesai' tapi
 // TIDAK pernah diisi lewat form pemohon maupun proses "Selesai"
@@ -1330,9 +1512,12 @@ function isProdiScopedRole(){ return CURRENT_USER && PRODI_SCOPED_ROLES.includes
 // & Barang/Inv." saja (di luar "Manajemen Pengguna" yang khusus Super Admin).
 const MANAGER_ROLES = ['Tendik Fak.', 'Tendik Prodi', 'Admin'];
 function isManager(){ return CURRENT_USER && MANAGER_ROLES.includes(CURRENT_USER.Role); }
-// Agenda Surat: KHUSUS role 'Tendik Fak.' (tidak untuk Tendik Prodi/Admin/Pimpinan).
-// Pembatasan yang sama juga ditegakkan di server (assertAgendaSuratRole_ di Kode.gs).
-function isTendikFak(){ return !!CURRENT_USER && CURRENT_USER.Role === 'Tendik Fak.'; }
+// Agenda Surat: role 'Tendik Fak.' + akun Super Admin (admin@fpsh.ac.id).
+// Tendik Prodi, Pimpinan, dan Admin lain tidak boleh. Pembatasan yang sama
+// juga ditegakkan di server (assertAgendaSuratRole_ di Kode.gs).
+function canAccessAgenda(){
+  return !!CURRENT_USER && (CURRENT_USER.Role === 'Tendik Fak.' || (CURRENT_USER.Role === 'Admin' && isSuperAdmin()));
+}
 
 function showPanel(name){
   document.getElementById('loginPanel').classList.toggle('hidden', name!=='login');
@@ -1481,7 +1666,7 @@ async function bootApp(){
   document.querySelectorAll('.admin-only').forEach(el=> el.classList.toggle('hidden', !isStaff()));
   document.querySelectorAll('.superadmin-only').forEach(el=> el.classList.toggle('hidden', !isSuperAdmin()));
   document.querySelectorAll('.manager-only').forEach(el=> el.classList.toggle('hidden', !isManager()));
-  document.querySelectorAll('.tendikfak-only').forEach(el=> el.classList.toggle('hidden', !isTendikFak()));
+  document.querySelectorAll('.tendikfak-only').forEach(el=> el.classList.toggle('hidden', !canAccessAgenda()));
 
   if(!SERVICE_META) SERVICE_META = await callServer('getServiceMeta');
   navigate('dashboard');
@@ -1530,10 +1715,23 @@ const PAGE_TITLES = {
   'admin-requests':['Semua Pengajuan','Kelola seluruh pengajuan layanan fakultas'],
   'admin-master':['Data Ruang & Barang/Inv.','Kelola data induk ruang dan barang/inventaris fakultas'],
   'admin-users':['Manajemen Pengguna','Kelola akun Tendik, Dosen, dan Mahasiswa'],
-  'admin-agenda':['Agenda Surat','Catat dan kelola agenda surat fakultas']
+  'admin-agenda':['Agenda Surat','Surat keluar dan surat masuk fakultas']
 };
 
+// Layanan khusus Mahasiswa (cfg.roles) disembunyikan dari menu & kartu untuk
+// pengguna login yang perannya tidak termasuk; tamu tetap melihat semuanya.
+function serviceAllowedForCurrent(key){
+  const cfg = SERVICE_FORM_CONFIG[key];
+  return !CURRENT_USER || !cfg || !cfg.roles || cfg.roles.includes(CURRENT_USER.Role);
+}
+function applyServiceMenuByRole(){
+  Object.keys(SERVICE_FORM_CONFIG).forEach(key=>{
+    const btn = document.querySelector('.sb-link[data-page="svc-'+key+'"]');
+    if(btn) btn.style.display = serviceAllowedForCurrent(key) ? '' : 'none';
+  });
+}
 async function navigate(page){
+  applyServiceMenuByRole();
   if((page==='riwayat' || page==='akun') && !CURRENT_USER){
     toast('Silakan masuk terlebih dahulu untuk mengakses halaman ini.', 'error');
     page = 'dashboard';
@@ -1546,8 +1744,8 @@ async function navigate(page){
     toast('Halaman Data Ruang & Barang/Inv. khusus untuk Tendik Fak./Tendik Prodi/Admin.', 'error');
     page = 'dashboard';
   }
-  if(page==='admin-agenda' && !isTendikFak()){
-    toast('Halaman Agenda Surat khusus untuk Tendik Fak.', 'error');
+  if(page==='admin-agenda' && !canAccessAgenda()){
+    toast('Halaman Agenda Surat khusus untuk Tendik Fak. dan Super Admin.', 'error');
     page = 'dashboard';
   }
   if(page==='admin-users' && !isSuperAdmin()){
@@ -1595,6 +1793,247 @@ async function navigate(page){
 /* ============================================================
    5. DASHBOARD
    ============================================================ */
+
+/* ============================================================
+   5b. DIAGRAM DASHBOARD (SVG murni, tanpa pustaka luar)
+   Pemetaan layanan -> jenis diagram:
+     Peminjaman Ruang ........ Batang (horizontal)
+     Peminjaman Barang ....... Piktogram
+     Surat Keterangan/Izin ... Lingkaran
+     Surat Tugas/Rekomendasi . Garis (tren bulanan)
+     Judul & Pembimbing TA ... Pencar (lama proses vs tanggal)
+     Pendaftaran Sidang TA ... Histogram + Poligon Frekuensi (IPK)
+     Legalisasi Dokumen ...... Kotak Garis (jumlah lembar per jenis)
+     Kehilangan Dokumen ...... Batang (vertikal, per status)
+   + Diagram respon Tendik Fak./Tendik Prodi (tercepat di paling atas).
+   ============================================================ */
+const CH_PALETTE = ['#c91d23','#0e7c86','#4c53b4','#2f7a57','#c9a400','#5b6472','#b3432d'];
+const CH_STATUS_COLOR = {Dimohonkan:'#4c53b4', Diajukan:'#5b6472', Diproses:'#c9a400', Disetujui:'#2f7a57', Ditolak:'#b3432d', Selesai:'#0e7c86', Diagendakan:'#4c53b4'};
+function chEmpty(){ return '<div class="ch-empty">Belum ada data untuk diagram ini.</div>'; }
+function chTrunc(s,n){ s=String(s==null?'':s); return s.length>n ? s.slice(0,n-1)+'…' : s; }
+function chNum(n){ return Number(n).toLocaleString('id-ID'); }
+function chCount(arr){ const m={}; arr.forEach(k=>{ if(k===''||k==null) return; m[k]=(m[k]||0)+1; }); return Object.keys(m).map(k=>({label:k,value:m[k]})).sort((a,b)=>b.value-a.value); }
+function chNiceMax(v){ if(v<=5) return 5; const p=Math.pow(10, Math.floor(Math.log10(v))); const m=Math.ceil(v/p)*p; return m; }
+function chQuantile(sorted,q){ const pos=(sorted.length-1)*q, lo=Math.floor(pos), hi=Math.ceil(pos); return sorted[lo]+(sorted[hi]-sorted[lo])*(pos-lo); }
+function chDays(a,b){ return (new Date(b)-new Date(a))/86400000; }
+
+// Batang horizontal
+function chartBarH(items){
+  if(!items.length) return chEmpty();
+  const W=360, rowH=26, padL=130, padR=36, H=items.length*rowH+6;
+  const max=Math.max(...items.map(i=>i.value))||1;
+  return `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagram batang">${items.map((it,i)=>{
+    const y=i*rowH+3, w=Math.max(2,(W-padL-padR)*it.value/max);
+    return `<text x="${padL-6}" y="${y+15}" text-anchor="end">${esc(chTrunc(it.label,22))}</text>
+      <rect x="${padL}" y="${y+3}" width="${w}" height="${rowH-9}" rx="3" style="fill:${CH_PALETTE[i%CH_PALETTE.length]}"></rect>
+      <text x="${padL+w+5}" y="${y+15}" style="font-weight:700">${chNum(it.value)}</text>`;
+  }).join('')}</svg>`;
+}
+// Batang vertikal
+function chartBarV(items){
+  if(!items.length) return chEmpty();
+  const W=360,H=210,padL=28,padB=34,padT=16,padR=8;
+  const max=chNiceMax(Math.max(...items.map(i=>i.value)));
+  const bw=(W-padL-padR)/items.length;
+  const ticks=[0,.5,1].map(f=>Math.round(max*f));
+  return `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagram batang">
+    ${ticks.map(t=>{const y=padT+(H-padT-padB)*(1-t/max); return `<line class="ax" x1="${padL}" x2="${W-padR}" y1="${y}" y2="${y}"></line><text class="mut" x="${padL-4}" y="${y+3}" text-anchor="end">${t}</text>`;}).join('')}
+    ${items.map((it,i)=>{
+      const h=(H-padT-padB)*it.value/max, x=padL+i*bw+bw*0.18, w=bw*0.64, y=H-padB-h;
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" style="fill:${CH_STATUS_COLOR[it.label]||CH_PALETTE[i%CH_PALETTE.length]}"></rect>
+        <text x="${x+w/2}" y="${y-4}" text-anchor="middle" style="font-weight:700">${chNum(it.value)}</text>
+        <text x="${x+w/2}" y="${H-padB+14}" text-anchor="middle">${esc(chTrunc(it.label,10))}</text>`;
+    }).join('')}</svg>`;
+}
+// Lingkaran
+function chartPie(items){
+  if(!items.length) return chEmpty();
+  const total=items.reduce((a,b)=>a+b.value,0), cx=70, cy=70, r=64;
+  let ang=-Math.PI/2, paths='';
+  if(items.length===1){ paths=`<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:${CH_PALETTE[0]}"></circle>`; }
+  else items.forEach((it,i)=>{
+    const a=it.value/total*Math.PI*2, x1=cx+r*Math.cos(ang), y1=cy+r*Math.sin(ang);
+    ang+=a; const x2=cx+r*Math.cos(ang), y2=cy+r*Math.sin(ang);
+    paths+=`<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${a>Math.PI?1:0} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" style="fill:${CH_PALETTE[i%CH_PALETTE.length]};stroke:#fff;stroke-width:1.5"></path>`;
+  });
+  return `<div class="ch-pie"><svg viewBox="0 0 140 140" role="img" aria-label="Diagram lingkaran">${paths}</svg>
+    <ul>${items.map((it,i)=>`<li><i style="background:${CH_PALETTE[i%CH_PALETTE.length]}"></i><span>${esc(chTrunc(it.label,26))}</span><b>${chNum(it.value)} (${Math.round(it.value/total*100)}%)</b></li>`).join('')}</ul></div>`;
+}
+// Garis
+function chartLine(points){
+  if(!points.length || points.every(p=>p.value===0)) return chEmpty();
+  const W=360,H=200,padL=28,padB=28,padT=18,padR=14;
+  const max=chNiceMax(Math.max(...points.map(p=>p.value)));
+  const sx=i=>padL+(W-padL-padR)*(points.length===1?0.5:i/(points.length-1)), sy=v=>padT+(H-padT-padB)*(1-v/max);
+  const ticks=[0,.5,1].map(f=>Math.round(max*f));
+  return `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagram garis">
+    ${ticks.map(t=>`<line class="ax" x1="${padL}" x2="${W-padR}" y1="${sy(t)}" y2="${sy(t)}"></line><text class="mut" x="${padL-4}" y="${sy(t)+3}" text-anchor="end">${t}</text>`).join('')}
+    <polyline points="${points.map((p,i)=>sx(i)+','+sy(p.value)).join(' ')}" style="fill:none;stroke:#c91d23;stroke-width:2.2"></polyline>
+    ${points.map((p,i)=>`<circle cx="${sx(i)}" cy="${sy(p.value)}" r="3.6" style="fill:#fff;stroke:#c91d23;stroke-width:2"></circle>
+      <text x="${sx(i)}" y="${sy(p.value)-8}" text-anchor="middle" style="font-weight:700">${p.value}</text>
+      <text class="mut" x="${sx(i)}" y="${H-padB+14}" text-anchor="middle">${esc(p.label)}</text>`).join('')}</svg>`;
+}
+// Pencar: x = tanggal pengajuan, y = lama proses (hari)
+function chartScatter(pts){
+  if(!pts.length) return chEmpty();
+  const W=360,H=210,padL=32,padB=30,padT=12,padR=10;
+  const xs=pts.map(p=>p.x), minX=Math.min(...xs), maxX=Math.max(...xs), spanX=(maxX-minX)||1;
+  const maxY=chNiceMax(Math.max(...pts.map(p=>p.y),1));
+  const sx=x=>padL+(W-padL-padR)*(x-minX)/spanX, sy=y=>padT+(H-padT-padB)*(1-y/maxY);
+  const fmt=t=>new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+  const used=[...new Set(pts.map(p=>p.s))];
+  return `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagram pencar">
+    ${[0,.5,1].map(f=>{const v=Math.round(maxY*f); return `<line class="ax" x1="${padL}" x2="${W-padR}" y1="${sy(v)}" y2="${sy(v)}"></line><text class="mut" x="${padL-4}" y="${sy(v)+3}" text-anchor="end">${v}</text>`;}).join('')}
+    ${pts.map(p=>`<circle cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="4.4" style="fill:${CH_STATUS_COLOR[p.s]||'#5b6472'};fill-opacity:.8;stroke:#fff;stroke-width:1"><title>${esc(p.s)} — ${p.y.toFixed(1)} hari</title></circle>`).join('')}
+    <text class="mut" x="${padL}" y="${H-padB+16}">${fmt(minX)}</text><text class="mut" x="${W-padR}" y="${H-padB+16}" text-anchor="end">${fmt(maxX)}</text>
+    <text class="mut" x="${(W+padL)/2}" y="${H-4}" text-anchor="middle">Tanggal pengajuan →  (sumbu tegak: lama proses, hari)</text></svg>
+    <div class="ch-legend">${used.map(s=>`<span><i style="background:${CH_STATUS_COLOR[s]||'#5b6472'}"></i>${esc(s)}</span>`).join('')}</div>`;
+}
+// Histogram + poligon frekuensi (nilai IPK, kelas lebar 0,25 dari 2,00 s.d. 4,00)
+function chartHistPoly(vals){
+  if(!vals.length) return chEmpty();
+  const lo=2, step=.25, nb=8, bins=new Array(nb).fill(0);
+  vals.forEach(v=>{ let i=Math.floor((v-lo)/step); if(i<0)i=0; if(i>=nb)i=nb-1; bins[i]++; });
+  const W=360,H=210,padL=28,padB=34,padT=16,padR=10, n=nb+2;
+  const max=chNiceMax(Math.max(...bins)), bw=(W-padL-padR)/n;
+  const sy=v=>padT+(H-padT-padB)*(1-v/max);
+  const poly=[0,...bins,0].map((v,i)=>`${(padL+bw*(i+.5)).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
+  return `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Histogram dan poligon frekuensi">
+    ${[0,.5,1].map(f=>{const v=Math.round(max*f); return `<line class="ax" x1="${padL}" x2="${W-padR}" y1="${sy(v)}" y2="${sy(v)}"></line><text class="mut" x="${padL-4}" y="${sy(v)+3}" text-anchor="end">${v}</text>`;}).join('')}
+    ${bins.map((v,i)=>`<rect x="${padL+bw*(i+1)}" y="${sy(v)}" width="${bw}" height="${(H-padT-padB)*v/max}" style="fill:#c91d23;fill-opacity:.28;stroke:#c91d23;stroke-width:1"></rect>`).join('')}
+    <polyline points="${poly}" style="fill:none;stroke:#0e7c86;stroke-width:2.2"></polyline>
+    ${[0,...bins,0].map((v,i)=>`<circle cx="${padL+bw*(i+.5)}" cy="${sy(v)}" r="3" style="fill:#0e7c86"></circle>`).join('')}
+    ${bins.map((v,i)=> v? `<text x="${padL+bw*(i+1.5)}" y="${sy(v)-6}" text-anchor="middle" style="font-weight:700">${v}</text>`:'').join('')}
+    ${[0,2,4,6,8].map(k=>`<text class="mut" x="${padL+bw*(k+1)}" y="${H-padB+13}" text-anchor="middle">${(lo+k*step).toFixed(2).replace('.',',')}</text>`).join('')}
+    <text class="mut" x="${(W+padL)/2}" y="${H-4}" text-anchor="middle">IPK (kelas 0,25)</text></svg>
+    <div class="ch-legend"><span><i style="background:#c91d23;opacity:.4"></i>Histogram</span><span><i style="background:#0e7c86"></i>Poligon frekuensi</span></div>`;
+}
+// Kotak garis (boxplot) per kategori
+function chartBox(groups){
+  groups=groups.filter(g=>g.vals.length);
+  if(!groups.length) return chEmpty();
+  const W=360,H=220,padL=30,padB=40,padT=14,padR=8;
+  const all=groups.flatMap(g=>g.vals), max=chNiceMax(Math.max(...all)), bw=(W-padL-padR)/groups.length;
+  const sy=v=>padT+(H-padT-padB)*(1-v/max);
+  return `<svg class="ch-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagram kotak garis">
+    ${[0,.5,1].map(f=>{const v=Math.round(max*f); return `<line class="ax" x1="${padL}" x2="${W-padR}" y1="${sy(v)}" y2="${sy(v)}"></line><text class="mut" x="${padL-4}" y="${sy(v)+3}" text-anchor="end">${v}</text>`;}).join('')}
+    ${groups.map((g,i)=>{
+      const s=g.vals.slice().sort((a,b)=>a-b), mn=s[0], mx=s[s.length-1], q1=chQuantile(s,.25), md=chQuantile(s,.5), q3=chQuantile(s,.75);
+      const cx=padL+bw*(i+.5), bx=cx-bw*.22, w=bw*.44, col=CH_PALETTE[i%CH_PALETTE.length];
+      return `<line x1="${cx}" x2="${cx}" y1="${sy(mn)}" y2="${sy(mx)}" style="stroke:${col};stroke-width:1.6"></line>
+        <line x1="${cx-w/4}" x2="${cx+w/4}" y1="${sy(mn)}" y2="${sy(mn)}" style="stroke:${col};stroke-width:1.6"></line>
+        <line x1="${cx-w/4}" x2="${cx+w/4}" y1="${sy(mx)}" y2="${sy(mx)}" style="stroke:${col};stroke-width:1.6"></line>
+        <rect x="${bx}" y="${sy(q3)}" width="${w}" height="${Math.max(1.5,sy(q1)-sy(q3))}" style="fill:${col};fill-opacity:.25;stroke:${col};stroke-width:1.6"></rect>
+        <line x1="${bx}" x2="${bx+w}" y1="${sy(md)}" y2="${sy(md)}" style="stroke:${col};stroke-width:2.6"></line>
+        <text x="${cx}" y="${H-padB+14}" text-anchor="middle">${esc(chTrunc(g.label,11))}</text>
+        <text class="mut" x="${cx}" y="${H-padB+26}" text-anchor="middle">n=${s.length}, med ${+md.toFixed(1)}</text>`;
+    }).join('')}</svg>`;
+}
+// Piktogram
+function chartPicto(items, icon){
+  if(!items.length) return chEmpty();
+  const max=Math.max(...items.map(i=>i.value)), unit=max<=10?1:Math.ceil(max/10);
+  return `<div class="ch-picto">${items.map(it=>`<div class="row"><span class="lb" title="${esc(it.label)}">${esc(chTrunc(it.label,18))}</span>
+      <span class="ic">${icon.repeat(Math.max(1,Math.ceil(it.value/unit)))}</span><b>${chNum(it.value)}</b></div>`).join('')}</div>
+    <div class="ch-legend"><span>1 ${icon} = ${unit} unit</span></div>`;
+}
+// Durasi ramah baca dari jam
+function chDur(h){
+  if(h<1) return Math.max(1,Math.round(h*60))+' menit';
+  if(h<48) return (+h.toFixed(1)).toString().replace('.',',')+' jam';
+  return (+(h/24).toFixed(1)).toString().replace('.',',')+' hari';
+}
+// Diagram respon petugas: rata-rata waktu dari pengajuan sampai tindakan petugas
+// (TanggalUpdate - TanggalPengajuan); makin cepat makin atas.
+function chartResponse(rows, petugas){
+  const agg={};
+  rows.forEach(r=>{
+    const p=petugas[r.p]; if(!p || !r.u || !r.t) return;
+    const hrs=(new Date(r.u)-new Date(r.t))/3600000;
+    if(!isFinite(hrs) || hrs<0) return;
+    (agg[r.p]=agg[r.p]||{nama:p.nama, role:p.role, tot:0, n:0}); agg[r.p].tot+=hrs; agg[r.p].n++;
+  });
+  const list=Object.keys(agg).map(k=>({...agg[k], avg:agg[k].tot/agg[k].n})).sort((a,b)=>a.avg-b.avg || b.n-a.n);
+  if(!list.length) return chEmpty();
+  const fastest=Math.max(list[0].avg,0.01);
+  return `<div class="ch-resp">${list.map((x,i)=>`<div class="row"><span class="rk">${i+1}</span>
+      <span class="nm"><b title="${esc(x.nama)}">${esc(x.nama)}</b><span>${esc(x.role)}</span></span>
+      <span class="track"><span class="fill" style="display:block;width:${Math.max(6,Math.min(100,fastest/Math.max(x.avg,0.01)*100))}%"></span></span>
+      <span class="val">${chDur(x.avg)}<small>${x.n} pengajuan ditangani</small></span></div>`).join('')}</div>`;
+}
+
+function buildServiceChart(key, rows){
+  const R=rows.filter(r=>r.j===key);
+  let type='', html='', sub='';
+  switch(key){
+    case 'PEMINJAMAN_RUANG': {
+      type='Batang';
+      const names=[]; R.forEach(r=>String(r.ru).split(',').forEach(s=>{ s=s.trim(); if(s) names.push(s); }));
+      html=chartBarH(chCount(names).slice(0,6)); sub='Ruang yang paling sering diajukan.'; break; }
+    case 'PEMINJAMAN': {
+      type='Piktogram';
+      const m={}; R.forEach(r=>String(r.br).split(',').forEach(s=>{
+        const mt=s.trim().match(/^(.*?)(?:\s*\(([^)]*)\))?\s*x\s*(\d+)\s*$/i);
+        const nm=mt?mt[1].trim():s.trim(), q=mt?parseInt(mt[3],10):1; if(nm) m[nm]=(m[nm]||0)+q; }));
+      html=chartPicto(Object.keys(m).map(k=>({label:k,value:m[k]})).sort((a,b)=>b.value-a.value).slice(0,6), '📦'); sub='Total unit barang yang dipinjam.'; break; }
+    case 'SURAT_KET_IJIN': {
+      type='Lingkaran';
+      const c=chCount(R.map(r=>r.js)); const top=c.slice(0,5), rest=c.slice(5).reduce((a,b)=>a+b.value,0);
+      if(rest) top.push({label:'Lainnya',value:rest});
+      html=chartPie(top); sub='Komposisi jenis surat keterangan/izin.'; break; }
+    case 'SURAT_TUGAS': {
+      type='Garis';
+      const now=new Date(), pts=[];
+      for(let i=5;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+        pts.push({key:d.getFullYear()+'-'+d.getMonth(), label:d.toLocaleDateString('id-ID',{month:'short'}), value:0}); }
+      R.forEach(r=>{ const d=new Date(r.t); if(isNaN(d)) return; const p=pts.find(x=>x.key===d.getFullYear()+'-'+d.getMonth()); if(p) p.value++; });
+      html=chartLine(pts); sub='Jumlah pengajuan per bulan (6 bulan terakhir).'; break; }
+    case 'TUGAS_AKHIR': {
+      type='Pencar';
+      const now=Date.now(), pts=[];
+      R.forEach(r=>{ const t=new Date(r.t).getTime(); if(isNaN(t)) return;
+        const end=(r.s==='Selesai'||r.s==='Ditolak') && r.u ? new Date(r.u).getTime() : now;
+        pts.push({x:t, y:Math.max(0,(end-t)/86400000), s:r.s}); });
+      html=chartScatter(pts); sub='Tiap titik = satu pengajuan; makin tinggi makin lama diproses.'; break; }
+    case 'YUDISIUM': {
+      type='Histogram & Poligon';
+      const v=R.map(r=>parseFloat(String(r.ipk).replace(',','.'))).filter(x=>x>0 && x<=4);
+      html=chartHistPoly(v); sub='Sebaran IPK pendaftar sidang TA.'; break; }
+    case 'LEGALISASI': {
+      type='Kotak Garis';
+      const g={}; R.forEach(r=>{ const n=parseFloat(r.lb); if(r.jd && n>=0){ (g[r.jd]=g[r.jd]||[]).push(n); } });
+      html=chartBox(Object.keys(g).map(k=>({label:k,vals:g[k]}))); sub='Sebaran jumlah lembar/salinan per jenis dokumen.'; break; }
+    case 'LAINNYA': {
+      type='Batang';
+      const order=['Dimohonkan','Diajukan','Diproses','Disetujui','Ditolak','Selesai'];
+      const c=chCount(R.map(r=>r.s)).sort((a,b)=>order.indexOf(a.label)-order.indexOf(b.label));
+      html=chartBarV(c); sub='Jumlah laporan kehilangan dokumen per status.'; break; }
+    default: return '';
+  }
+  return `<div class="chart-card">
+    <div class="ch-head"><h3>${esc(SERVICE_FORM_CONFIG[key].title)}</h3><span class="ch-type">${type}</span></div>
+    <p class="ch-sub">${esc(sub)}</p>
+    ${html}
+    <div class="ch-foot"><span>${R.length} pengajuan</span><button class="ch-link" onclick="navigate('svc-${key}')">Ajukan layanan →</button></div>
+  </div>`;
+}
+
+async function loadDashboardChartsHtml(email, role, prodi, keys){
+  let data;
+  try{ data = await callServer('getDashboardChartData', email, role, prodi); }
+  catch(e){ return `<div class="card card-pad" style="color:var(--muted);font-size:13px;">Diagram belum dapat dimuat: ${esc(e && e.message || e)}. Pastikan Kode.gs versi terbaru sudah di-deploy.</div>`; }
+  const rows=(data&&data.rows)||[], petugas=(data&&data.petugas)||{};
+  return `
+    <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">${keys.length} kategori layanan — klik "Ajukan layanan" pada tiap diagram</span></div>
+    <div class="chart-grid">${keys.map(k=>buildServiceChart(k, rows)).join('')}</div>
+    <div class="section-title"><h2>Respon Customer Service</h2><span class="hint">Tendik Fak. &amp; Tendik Prodi — paling responsif di atas</span></div>
+    <div class="chart-card wide">
+      <div class="ch-head"><h3>Rata-rata waktu respon petugas</h3><span class="ch-type">Batang peringkat</span></div>
+      <p class="ch-sub">Dihitung dari waktu pengajuan sampai tindakan terakhir petugas pada pengajuan tersebut; makin singkat makin responsif.</p>
+      ${chartResponse(rows, petugas)}
+    </div>`;
+}
+
 async function renderDashboard(){
   const content = document.getElementById('content');
 
@@ -1602,13 +2041,7 @@ async function renderDashboard(){
   // tanpa statistik pribadi (perlu identitas login untuk itu), namun tetap
   // menampilkan tabel Customer (seluruh pemohon/pengguna) untuk transparansi. ----
   if(!CURRENT_USER){
-    const guestSvcCards = Object.keys(SERVICE_FORM_CONFIG).map((key,i)=>`
-      <button class="service-card" onclick="navigate('svc-${key}')">
-        <div class="top"><span class="sb-num">0${i+1}</span></div>
-        <h3>${esc(SERVICE_FORM_CONFIG[key].title)}</h3>
-        <p>${esc(SERVICE_FORM_CONFIG[key].desc)}</p>
-      </button>
-    `).join('');
+    const guestChartsHtml = await loadDashboardChartsHtml('', 'Tendik Fak.', '', Object.keys(SERVICE_FORM_CONFIG));
 
     // Tamu tidak punya akun/role, jadi diambil dengan sudut pandang staf
     // (seluruh fakultas) supaya tabel Customer bisa menampilkan semua pemohon.
@@ -1624,12 +2057,11 @@ async function renderDashboard(){
         <td>${fmtTime24(r.TanggalPengajuan)}</td>
         <td>${jamSelesaiDisplay(r)}</td>
         <td>${esc(r.Petugas||'-')}</td>
-        <td><span class="pill ${esc(r.Status)}">${esc(customerStatusLabel(r.Status))}</span></td>
+        <td><span class="pill ${esc(r.Status)}">${esc(customerStatusLabel(r.Status, r._jenis))}</span></td>
       </tr>`).join('') : `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
 
     content.innerHTML = `
-      <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">${Object.keys(SERVICE_FORM_CONFIG).length} kategori layanan tersedia</span></div>
-      <div class="service-grid">${guestSvcCards}</div>
+      ${guestChartsHtml}
 
       <div class="section-title"><h2>Customer (Pemohon/Pengguna)</h2></div>
       <div class="card tbl-wrap"><table>
@@ -1646,6 +2078,7 @@ async function renderDashboard(){
 
   const statCards = [
     ['total','Total Pengajuan',s.total],
+    ['','Dimohonkan',s.Dimohonkan||0],
     ['','Diajukan',s.Diajukan],
     ['','Diproses',s.Diproses],
     ['','Disetujui',s.Disetujui],
@@ -1654,13 +2087,8 @@ async function renderDashboard(){
     <div class="stat-card ${cls}"><div class="n">${n}</div><div class="l">${esc(label)}</div></div>
   `).join('');
 
-  const svcCards = Object.keys(SERVICE_FORM_CONFIG).map((key,i)=>`
-    <button class="service-card" onclick="navigate('svc-${key}')">
-      <div class="top"><span class="sb-num">0${i+1}</span><span class="count">${data.perLayanan[key]||0} pengajuan</span></div>
-      <h3>${esc(SERVICE_FORM_CONFIG[key].title)}</h3>
-      <p>${esc(SERVICE_FORM_CONFIG[key].desc)}</p>
-    </button>
-  `).join('');
+  const chartsHtml = await loadDashboardChartsHtml(CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit,
+    Object.keys(SERVICE_FORM_CONFIG).filter(serviceAllowedForCurrent));
 
   const recentRows = data.recent.length ? data.recent.map(r=>`
     <tr>
@@ -1673,14 +2101,13 @@ async function renderDashboard(){
       <td>${fmtTime24(r.TanggalPengajuan)}</td>
       <td>${jamSelesaiDisplay(r)}</td>
       <td>${esc(r.Petugas||'-')}</td>
-      <td><span class="pill ${esc(r.Status)}">${esc(customerStatusLabel(r.Status))}</span></td>
+      <td><span class="pill ${esc(r.Status)}">${esc(customerStatusLabel(r.Status, r._jenis))}</span></td>
     </tr>`).join('') : `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px;">Belum ada pengajuan.</td></tr>`;
 
   content.innerHTML = `
     <div class="stat-grid">${statCards}</div>
 
-    <div class="section-title"><h2>Ajukan Layanan</h2><span class="hint">${Object.keys(SERVICE_FORM_CONFIG).length} kategori layanan tersedia</span></div>
-    <div class="service-grid">${svcCards}</div>
+    ${chartsHtml}
 
     <div class="section-title"><h2>${isStaff() ? (isProdiScopedRole() ? 'Pemohon Program Studi Anda' : 'Customer (Pemohon/Pengguna)') : 'Pengajuan Terbaru Saya'}</h2></div>
     <div class="card tbl-wrap"><table>
@@ -1802,6 +2229,16 @@ async function renderServiceForm(key){
   const content = document.getElementById('content');
   const isGuest = !CURRENT_USER;
 
+  // Layanan khusus Mahasiswa: akun Dosen/Tendik/staf tidak punya isian di sini.
+  if(!isGuest && cfg.roles && !cfg.roles.includes(CURRENT_USER.Role)){
+    content.innerHTML = `
+      <div class="card card-pad">
+        <h2 style="margin-top:0;font-size:17px;">${esc(cfg.title)}</h2>
+        <div class="msg error">Layanan ini khusus ${cfg.alumni ? 'Mahasiswa/Alumni' : 'Mahasiswa'}. Akun ${esc(CURRENT_USER.Role)} tidak dapat mengajukannya.</div>
+      </div>`;
+    return;
+  }
+
   // Pengguna yang sudah login & punya NIM/NIP terisi: cek dulu apakah masih
   // ada pengajuan (jenis layanan apa pun) yang belum berstatus 'Selesai'.
   // Kalau ada, "Formulir pengajuan layanan" TIDAK ditampilkan — hanya daftar
@@ -1873,10 +2310,26 @@ async function renderServiceForm(key){
   // (Master_Mahasiswa/Master_Dosen/Master_Tendik), datanya langsung tampil
   // sebagai info di bawah kotak NIM/NIP (lihat listener di bawah) dan
   // dikirim lewat field tersembunyi saat submit.
+  // Peran yang boleh memakai layanan ini (cfg.roles; kosong = Mahasiswa, Dosen,
+  // Tendik). Layanan khusus Mahasiswa (Judul & Pembimbing TA, Pendaftaran
+  // Sidang TA, Legalisasi) hanya menampilkan NIM — tanpa pilihan Dosen/Tendik.
+  const PERAN_INFO = {Mahasiswa:{id:'NIM', label:'Mahasiswa (NIM)'}, Dosen:{id:'NIDN', label:'Dosen (NIDN)'}, Tendik:{id:'NIP', label:'Tendik (NIP)'}};
+  const allowedRoles = cfg.roles || ['Mahasiswa','Dosen','Tendik'];
+  const idAwal = PERAN_INFO[allowedRoles[0]].id;
+  const peranHtml = allowedRoles.length > 1
+    ? `<div class="radio-group" id="svcGuestPeranGroup">${allowedRoles.map((r,i)=>`
+        <label class="radio-opt"><input type="radio" name="_guestPeran" value="${r}" ${i===0?'checked':''}><span>${esc(PERAN_INFO[r].label)}</span></label>`).join('')}
+      </div>`
+    : `<div style="font-size:14px;font-weight:600;padding:2px 0 4px;">${esc(cfg.identityLabel || PERAN_INFO[allowedRoles[0]].label)}</div>
+       <input type="hidden" name="_guestPeran" value="${allowedRoles[0]}">`;
   const identityFieldsHtml = isGuest ? `
     <div class="field full">
-      <label>NIM / NIP</label>
-      <input type="text" name="_guestNimNip" id="svcGuestNimNip" required autocomplete="off">
+      <label>Anda mengajukan sebagai</label>
+      ${peranHtml}
+    </div>
+    <div class="field full">
+      <label id="svcGuestIdLabel">${idAwal}</label>
+      <input type="text" name="_guestNimNip" id="svcGuestNimNip" required autocomplete="off" placeholder="Masukkan ${idAwal}">
       <input type="hidden" name="_guestRole" id="svcGuestRole">
       <input type="hidden" name="_guestNama" id="svcGuestNama">
       <input type="hidden" name="_guestEmail" id="svcGuestEmail">
@@ -1885,11 +2338,28 @@ async function renderServiceForm(key){
     </div>
   ` : '';
 
+  // Alamat Email Aktif — WAJIB di semua pengajuan (Mahasiswa, Dosen, Tendik).
+  // Tamu: terisi otomatis dari data induk begitu NIM/NIDN/NIP ditemukan (jika
+  // data induk punya email) tetapi tetap bisa diubah; pengguna login: terisi
+  // dari email akun dan bisa diganti ke alamat yang aktif dipakai.
+  const emailAktifHtml = `
+    <div class="field full">
+      <label>Alamat Email Aktif</label>
+      <input type="email" name="EmailAktif" id="svcEmailAktif" required autocomplete="email" placeholder="nama@gmail.com" value="${isGuest ? '' : esc(CURRENT_USER.Email||'')}">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Wajib diisi dengan email yang aktif dipakai — dipakai petugas untuk menghubungi Anda.</div>
+    </div>`;
+
   const fieldsHtml = cfg.fields.map(f=>{
     const fullClass = f.full ? 'full' : '';
+    if(f.type === 'dependent'){
+      return `<div class="field ${fullClass}"><label>${esc(f.label)}</label>
+        <select name="${f.key}__kat" data-dep-kat="${f.key}" required><option value="">Pilih...</option>${Object.keys(f.groups).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>
+        <div class="field ${fullClass}" data-dep-subwrap="${f.key}" style="display:none;"><label data-dep-sublabel="${f.key}">${esc(f.sublabel||'Pilihan')}</label>
+        <select name="${f.key}__sub" data-dep-sub="${f.key}"></select></div>`;
+    }
     if(f.type === 'select'){
       return `<div class="field ${fullClass}"><label>${esc(f.label)}</label>
-        <select name="${f.key}" required><option value="">Pilih...</option>${f.options.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>`;
+        <select name="${f.key}" required><option value="">Pilih...</option>${f.options.map(o=>`<option value="${esc(o)}" ${f.default===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
     }
     if(f.type === 'textarea'){
       return `<div class="field ${fullClass}"><label>${esc(f.label)}</label><textarea name="${f.key}" rows="3" ${f.required===false?'':'required'}></textarea></div>`;
@@ -2072,7 +2542,7 @@ async function renderServiceForm(key){
           pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$" autocomplete="off" ${f.required===false?'':'required'}>
       </div>`;
     }
-    return `<div class="field ${fullClass}"><label>${esc(f.label)}</label><input type="${f.type}" name="${f.key}" value="${esc(defaultVal)}" ${f.required===false?'':'required'}></div>`;
+    return `<div class="field ${fullClass}"><label>${esc(f.label)}</label><input type="${f.type}" name="${f.key}" value="${esc(defaultVal)}" ${f.placeholder?`placeholder="${esc(f.placeholder)}"`:''} ${f.required===false?'':'required'}></div>`;
   }).join('');
 
   const historyBlock = isGuest ? '' : `
@@ -2121,7 +2591,7 @@ async function renderServiceForm(key){
         <p style="color:var(--muted);font-size:13px;margin-top:-8px;">${esc(cfg.desc)}</p>
         <div id="svcMsg"></div>
         <form id="svcForm">
-          <div class="form-grid">${identityFieldsHtml}<div id="svcRestFields" style="display:contents;">${fieldsHtml}</div></div>
+          <div class="form-grid">${identityFieldsHtml}<div id="svcRestFields" style="display:contents;">${emailAktifHtml}${fieldsHtml}</div></div>
           <div id="svcPendingBlock" style="display:none;margin-top:14px;"></div>
           <div id="svcFutureDateHint" class="msg" style="display:none;margin-top:14px;background:var(--indigo-bg);color:var(--indigo);"></div>
           <div style="margin-top:18px;" id="svcSubmitWrap"><button type="submit" class="btn btn-primary" id="svcSubmitBtn">${esc(submitLabel)}</button></div>
@@ -2527,6 +2997,13 @@ async function renderServiceForm(key){
     const pendingEl = document.getElementById('svcPendingBlock');
     const submitWrap = document.getElementById('svcSubmitWrap');
     let lookupTimer = null;
+    // Peran yang dipilih menentukan jenis nomor identitas: Mahasiswa = NIM,
+    // Dosen = NIDN, Tendik = NIP (dicari di data induk peran tsb).
+    const idLabelPeran = (p)=> ({Mahasiswa:'NIM', Dosen:'NIDN', Tendik:'NIP'})[p] || 'NIM';
+    const peranDipilih = ()=> (document.querySelector('input[name="_guestPeran"]:checked') || document.querySelector('input[name="_guestPeran"]') || {}).value || 'Mahasiswa';
+    const idLabelEl = document.getElementById('svcGuestIdLabel');
+    const emailAktifEl = document.getElementById('svcEmailAktif');
+    if(emailAktifEl) emailAktifEl.addEventListener('input', ()=>{ emailAktifEl.dataset.auto = '0'; });
 
     // Sembunyikan sisa form (field lain + tombol kirim) dan tampilkan daftar
     // riwayat yang belum selesai, ATAU sebaliknya tampilkan kembali sisa form
@@ -2554,12 +3031,13 @@ async function renderServiceForm(key){
       hintEl.style.color = 'var(--muted)';
       hintEl.textContent = 'Mencari data induk...';
       try{
-        const res = await callServer('lookupIdentityByNimNip', val);
+        const res = await callServer('lookupIdentityByNimNip', val, peranDipilih(), !!cfg.alumni);
         if(res && res.found){
           roleEl.value = res.Role;
           namaEl.value = res.Nama;
           emailEl.value = res.Email;
           prodiEl.value = res.ProdiUnit || '';
+          if(emailAktifEl && (!emailAktifEl.value || emailAktifEl.dataset.auto==='1')){ emailAktifEl.value = res.Email || ''; emailAktifEl.dataset.auto = '1'; }
           hintEl.style.color = '#1a7f37';
           hintEl.innerHTML = 'Ditemukan di data induk (' + esc(res.Role) + ')<br>'
             + '<b>' + esc(res.Nama) + '</b><br>'
@@ -2574,7 +3052,7 @@ async function renderServiceForm(key){
           setPendingView(pending, val);
         } else {
           hintEl.style.color = '#b42318';
-          hintEl.textContent = 'NIM/NIP tidak ditemukan di data induk.';
+          hintEl.textContent = (cfg.alumni ? 'NIM' : idLabelPeran(peranDipilih())) + ' tidak ditemukan di data induk ' + (cfg.alumni ? 'Mahasiswa/Alumni' : peranDipilih()) + '.';
         }
       } catch(err){
         hintEl.innerHTML = '';
@@ -2586,7 +3064,35 @@ async function renderServiceForm(key){
       lookupTimer = setTimeout(doLookup, 500);
     });
     nimEl.addEventListener('blur', doLookup);
+    document.querySelectorAll('input[name="_guestPeran"]').forEach(r=>{
+      r.addEventListener('change', ()=>{
+        const lbl = idLabelPeran(peranDipilih());
+        idLabelEl.textContent = lbl;
+        nimEl.placeholder = 'Masukkan ' + lbl;
+        nimEl.value = '';
+        doLookup();
+      });
+    });
   }
+
+  // Field 'dependent' (mis. Jenis Surat: Keterangan/Ijin -> pilihan rinci):
+  // pilihan kedua mengikuti pilihan pertama; kalau kelompoknya tidak punya
+  // pilihan rinci (mis. Ijazah/Transkrip), kotak kedua disembunyikan.
+  const refreshDependent = (katEl)=>{
+    const f = cfg.fields.find(x=>x.key===katEl.dataset.depKat);
+    const wrap = document.querySelector(`[data-dep-subwrap="${f.key}"]`);
+    const sub = document.querySelector(`[data-dep-sub="${f.key}"]`);
+    const lbl = document.querySelector(`[data-dep-sublabel="${f.key}"]`);
+    const opts = (f.groups[katEl.value] || []);
+    if(opts.length){
+      lbl.textContent = (f.sublabels && f.sublabels[katEl.value]) || f.sublabel || 'Pilihan';
+      sub.innerHTML = '<option value="">Pilih...</option>' + opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+      sub.required = true; wrap.style.display = '';
+    } else {
+      sub.innerHTML = ''; sub.required = false; wrap.style.display = 'none';
+    }
+  };
+  document.querySelectorAll('[data-dep-kat]').forEach(el=> el.addEventListener('change', ()=>refreshDependent(el)));
 
   document.getElementById('svcForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -2595,7 +3101,7 @@ async function renderServiceForm(key){
     msgBox.innerHTML = '';
 
     if(isGuest && !document.getElementById('svcGuestNama').value){
-      msgBox.innerHTML = '<div class="msg error">NIM/NIP belum ditemukan di data induk. Periksa kembali NIM/NIP Anda sebelum mengirim.</div>';
+      msgBox.innerHTML = '<div class="msg error">NIM/NIDN/NIP belum ditemukan di data induk. Pilih peran yang sesuai dan periksa kembali nomor identitas Anda sebelum mengirim.</div>';
       return;
     }
     if(isGuest && guestHasPending){
@@ -2648,6 +3154,20 @@ async function renderServiceForm(key){
       pukulEl.focus();
       return;
     }
+    const emailAktifVal = (document.getElementById('svcEmailAktif')||{value:''}).value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailAktifVal)){
+      msgBox.innerHTML = '<div class="msg error">Alamat Email Aktif wajib diisi dengan format yang benar (contoh: nama@gmail.com).</div>';
+      const el = document.getElementById('svcEmailAktif'); if(el) el.focus();
+      return;
+    }
+    for(const f of cfg.fields.filter(x=>x.googleLink)){
+      const el = document.querySelector(`[name="${f.key}"]`);
+      if(!el || !/^https:\/\/([a-z0-9-]+\.)*(google\.com|goo\.gl)(\/|$)\S*$/i.test(el.value.trim())){
+        msgBox.innerHTML = '<div class="msg error">'+esc(f.label)+' wajib diisi dengan tautan Google Drive yang valid (diawali https://drive.google.com/...).</div>';
+        if(el) el.focus();
+        return;
+      }
+    }
     btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Mengirim...';
     const fd = new FormData(e.target);
     const payload = {};
@@ -2665,6 +3185,17 @@ async function renderServiceForm(key){
         payload[f.key] = 'Lainnya: ' + payload[otherKey].trim();
       }
       delete payload[otherKey];
+    });
+
+    // Field 'dependent': gabungkan pilihan pertama + kedua jadi satu nilai untuk
+    // kolom sheet, mis. "Keterangan - Praktik Kerja/Magang", "Tugas - Seminar",
+    // "Kehilangan Sertifikat - PESMABA". Kolom bantu '<key>__kat'/'<key>__sub'
+    // tidak ikut dikirim.
+    cfg.fields.filter(f=>f.type==='dependent').forEach(f=>{
+      const kat = (payload[f.key+'__kat']||'').trim();
+      const sub = (payload[f.key+'__sub']||'').trim();
+      payload[f.key] = (f.prefix||'') + kat + (sub ? ' - ' + sub : '');
+      delete payload[f.key+'__kat']; delete payload[f.key+'__sub'];
     });
 
     // Field 'checklist' bisa punya beberapa checkbox tercentang dengan nama
@@ -2711,7 +3242,7 @@ async function renderServiceForm(key){
       payload.NIM = payload._guestNimNip;
       payload.ProdiUnit = payload._guestProdi || '';
       if(!payload.Prodi) payload.Prodi = payload._guestProdi || '';
-      delete payload._guestNama; delete payload._guestEmail; delete payload._guestRole; delete payload._guestNimNip; delete payload._guestProdi;
+      delete payload._guestNama; delete payload._guestEmail; delete payload._guestRole; delete payload._guestNimNip; delete payload._guestProdi; delete payload._guestPeran;
     } else {
       payload.NamaPemohon = CURRENT_USER.Nama;
       payload.NamaMahasiswa = CURRENT_USER.Nama;
@@ -2728,6 +3259,7 @@ async function renderServiceForm(key){
       if(res.success){
         msgBox.innerHTML = '<div class="msg success">'+esc(res.message)+' Nomor referensi: <b>'+esc(res.id)+'</b></div>';
         e.target.reset();
+        document.querySelectorAll('[data-dep-kat]').forEach(el=>refreshDependent(el)); // reset tidak memicu 'change'
         // form.reset() mengembalikan tanggal & kotak 'Pukul' ke nilai awal
         // saat form dirender, TAPI tidak memicu event 'change'/'input' pada
         // input-nya — jadi kotak tampilan tanggal terformat & label tombol
@@ -2783,6 +3315,7 @@ async function loadSvcHistory(key){
       </div>
       ${(r.NamaRuang||r.NamaBarang) ? `<div style="font-size:13px;font-weight:600;margin-top:5px;">${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang)}</div>` : ''}
       <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${fmtDateWithDay(r.TanggalPengajuan)}</div>
+      ${r.DosenPembimbingDitetapkan ? `<div style="font-size:12.5px;margin-top:6px;"><b>Dosen Pembimbing:</b> ${esc(r.DosenPembimbingDitetapkan)}</div>` : ''}
       ${r.CatatanAdmin ? `<div style="font-size:12px;margin-top:6px;background:var(--paper);padding:8px 10px;border-radius:7px;">${esc(r.CatatanAdmin)}</div>` : ''}
     </div>
   `).join('');
@@ -2984,6 +3517,21 @@ async function removeRequestItem(sheetKey, id){
   loadAdminReqTable();
 }
 
+// Frontend: daftar status yang boleh dipilih role aktif pada modal Kelola.
+// Server tetap menjadi penentu akhir (updateRequestStatus di Code.gs).
+function modalStatusOptions(row){
+  const all = SERVICE_META.statusListByService[row._jenis] || SERVICE_META.statusList;
+  const flow = SERVICE_META.suratFlow;
+  if(!flow || flow.services.indexOf(row._jenis) === -1) return all;
+  const role = CURRENT_USER.Role;
+  const cur = row.Status || 'Dimohonkan';
+  if(role === 'Admin') return all;
+  const t = flow.transitions[cur];
+  const out = [cur];
+  if(t && t.roles.indexOf(role) > -1) t.to.forEach(x=>out.push(x));
+  return out;
+}
+
 function openReqModal(row){
   const cfg = SERVICE_FORM_CONFIG[row._jenis];
   const detailRows = cfg.fields.map(f=>`<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">${esc(f.label)}</div><div style="font-size:13px;">${esc(row[f.key]||'-')}</div></div>`).join('');
@@ -2996,9 +3544,16 @@ function openReqModal(row){
         <div class="mono" style="margin-bottom:10px;">${esc(row.ID)}</div>
         <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Pemohon</div><div style="font-size:13px;">${esc(row.NamaPemohon||row.NamaMahasiswa)} (${esc(row.Role||'Mahasiswa')}) — ${esc(row.Email)}</div></div>
         <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Program Studi / Unit</div><div style="font-size:13px;">${esc(row.ProdiUnit||row.Prodi||'-')}</div></div>
+        <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Email Aktif</div><div style="font-size:13px;">${esc(row.EmailAktif||'-')}</div></div>
         ${detailRows}
+        ${row._jenis==='TUGAS_AKHIR' ? (CURRENT_USER.Role==='Ketua Prodi'
+          ? `<div class="field"><label>Plotting Dosen Pembimbing (Ketua Prodi)</label>
+              <input type="text" id="modalPlotting" list="modalPlottingList" value="${esc(row.DosenPembimbingDitetapkan||'')}" placeholder="Pilih / ketik nama dosen pembimbing" autocomplete="off">
+              <datalist id="modalPlottingList"></datalist></div>`
+          : `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Dosen Pembimbing (Plotting oleh Ketua Prodi)</div><div style="font-size:13px;">${esc(row.DosenPembimbingDitetapkan||'Belum diplot')}</div></div>`) : ''}
         <div class="field"><label>Status</label>
-          <select id="modalStatus">${(SERVICE_META.statusListByService[row._jenis]||SERVICE_META.statusList).map(s=>`<option ${s===row.Status?'selected':''}>${s}</option>`).join('')}</select>
+          <select id="modalStatus">${modalStatusOptions(row).map(s=>`<option ${s===row.Status?'selected':''}>${s}</option>`).join('')}</select>
+          ${(SERVICE_META.suratFlow && SERVICE_META.suratFlow.services.indexOf(row._jenis)>-1 && modalStatusOptions(row).length<2) ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Pada tahap "${esc(row.Status||'Dimohonkan')}", peran Anda tidak memiliki tindakan perubahan status.</div>` : ''}
         </div>
         ${cfg.fields.some(f=>f.key==='NomorSurat') || SERVICE_FORM_CONFIG[row._jenis] && 'NomorSurat' in row ? `<div class="field"><label>Nomor Surat</label><input type="text" id="modalNomorSurat" value="${esc(row.NomorSurat||'')}"></div>` : ''}
         <div class="field"><label>Catatan Admin</label><textarea id="modalCatatan" rows="3">${esc(row.CatatanAdmin||'')}</textarea></div>
@@ -3009,6 +3564,12 @@ function openReqModal(row){
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  const plotList = overlay.querySelector('#modalPlottingList');
+  if(plotList){
+    callServer('getDosenPembimbingOptions', CURRENT_USER.Email).then(list=>{
+      plotList.innerHTML = (list||[]).map(n=>`<option value="${esc(n)}">`).join('');
+    }).catch(()=>{});
+  }
   const close = ()=> overlay.remove();
   overlay.querySelector('.modal-close').addEventListener('click', close);
   overlay.querySelector('.modal-close-btn').addEventListener('click', close);
@@ -3023,6 +3584,8 @@ function openReqModal(row){
     };
     const nomorEl = overlay.querySelector('#modalNomorSurat');
     if(nomorEl) updates.NomorSurat = nomorEl.value;
+    const plotEl = overlay.querySelector('#modalPlotting');
+    if(plotEl) updates.DosenPembimbingDitetapkan = plotEl.value.trim();
     try{
       const res = await callServer('updateRequestStatus', row._jenis, row.ID, updates, CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit);
       toast(res.message, res.success?'success':'error');
@@ -3164,21 +3727,98 @@ async function removeMasterItem(id, nama){
    9c. TENDIK FAK. — AGENDA SURAT
    Kolom: Kode/Indeks, Nomor, Tujuan, Perihal (+ tanggal dicatat otomatis).
    ============================================================ */
+// Daftar Kode/Indeks surat — bersumber dari "Daftar_Kode_Dokumen.xlsx".
+// (Daftar yang sama dipakai server di Kode.gs: AGENDA_SURAT_KODE.)
+const AGENDA_KODE = [
+  {kode:"E.1.a", ket:"Instansi Pemerintahan / Lembaga"},
+  {kode:"E.1.b", ket:"PP. Muh / PWM / PWA / Organisasi"},
+  {kode:"E.1.c", ket:"Dikti / Kopertis / Depdikbud"},
+  {kode:"E.1.d", ket:"BMPTS / BMPTSI / BKPTIS ( APTISI )"},
+  {kode:"E.1.e", ket:"Dep. Agama / Kopertais"},
+  {kode:"E.2.a", ket:"Surat Tugas Kepanitian, Tim"},
+  {kode:"E.2.b", ket:"Surat Tugas mengikuti seminar / kursus"},
+  {kode:"E.2.c", ket:"Surat Tugas Struktural , Mutasi"},
+  {kode:"E.2.d", ket:"Surat Lamaran Pegawai & Dosen (diklasifikasikan menurut Ijazah )"},
+  {kode:"E.2.e", ket:"Surat cuti nikah , melahirkan , mengundurkan diri"},
+  {kode:"E.2.f", ket:"Haji"},
+  {kode:"E.2.g", ket:"Surat keterangan / Surat Kuasa"},
+  {kode:"E.2.h", ket:"Dosen Kontrak/ Karyawan kontrak"},
+  {kode:"E.3.a", ket:"Bantuan Dana, Permohonan Dana"},
+  {kode:"E.3.b", ket:"Transfer Uang"},
+  {kode:"E.3.c", ket:"Pengumuman tentang biaya studi / bea siswa"},
+  {kode:"E.3.d", ket:"Lembur"},
+  {kode:"E.3.e", ket:"Pinjam Meminjam / Piutang"},
+  {kode:"E.4.a", ket:"Barang habis pakai"},
+  {kode:"E.4.b", ket:"Barang Laboratorium"},
+  {kode:"E.4.c", ket:"Peralatan kantor / Komputer / Mebelair"},
+  {kode:"E.4.d", ket:"Buku, Sertifikat"},
+  {kode:"E.4.e", ket:"Penawaran hotel"},
+  {kode:"E.4.f", ket:"Barang bergerak"},
+  {kode:"E.4.g", ket:"Barang tetap / gedung"},
+  {kode:"E.5.a", ket:"Ucapan terima kasih / selamat / duka / pengantar"},
+  {kode:"E.5.b", ket:"Undangan"},
+  {kode:"E.5.c", ket:"Surat Perjanjian Kerjasama"},
+  {kode:"E.5.d", ket:"Praktek Kerja Industri / Penelitian"},
+  {kode:"E.5.e", ket:"Kunjungan / Studi banding"}
+];
+const AGENDA_KODE_MAP = Object.fromEntries(AGENDA_KODE.map(k=>[k.kode,k.ket]));
+const ROMAN_MONTHS = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 const AGENDA_FIELDS = [
-  {key:'KodeIndeks', label:'Kode/Indeks', type:'text', ph:'cth. 421.2'},
-  {key:'Nomor',      label:'Nomor',       type:'text', ph:'cth. 012/II.3.AU/F/FPSH/2026'},
-  {key:'Tujuan',     label:'Tujuan',      type:'text', ph:'cth. Kepala Biro Akademik'},
-  {key:'Perihal',    label:'Perihal',     type:'textarea', ph:'cth. Permohonan data mahasiswa aktif'}
+  {key:'KodeIndeks', label:'Kode/Indeks'},
+  {key:'Nomor',      label:'Nomor'},
+  {key:'Tujuan',     label:'Tujuan'},
+  {key:'Perihal',    label:'Perihal'}
 ];
 let AGENDA_ROWS = [];
 
+// Format Nomor: <kode>/<nomor urut>/FPSH-UMM/<bulan romawi>/<tahun>
+//   contoh: E.5.d/286/FPSH-UMM/X/2026
+const AGENDA_NOMOR_RE = /^(.+?)\/(\d+)\/FPSH-UMM\/([IVX]+)\/(\d{4})$/;
+function parseAgendaNomor(n){
+  const m = AGENDA_NOMOR_RE.exec(String(n||'').trim());
+  return m ? {kode:m[1], urut:parseInt(m[2],10), bulan:m[3], tahun:parseInt(m[4],10)} : null;
+}
+function buildAgendaNomor(kode, urut, bulan, tahun){
+  return (kode && urut && bulan && tahun) ? `${kode}/${urut}/FPSH-UMM/${bulan}/${tahun}` : '';
+}
+// Nomor urut berjalan per TAHUN (semua kode digabung): terbesar tahun itu + 1.
+function nextAgendaUrut(tahun){
+  let max = 0;
+  AGENDA_ROWS.forEach(r=>{
+    const p = parseAgendaNomor(r.Nomor);
+    if(p && p.tahun === Number(tahun) && p.urut > max) max = p.urut;
+  });
+  return max + 1;
+}
+
+let AGENDA_TAB = 'keluar';
+
 async function renderAdminAgenda(){
-  const content = document.getElementById('content');
-  content.innerHTML = `
+  document.getElementById('content').innerHTML = `
+    <div class="ag-tabs" role="tablist">
+      <button class="ag-tab ${AGENDA_TAB==='keluar'?'active':''}" data-tab="keluar" role="tab">&#8599; Surat Keluar</button>
+      <button class="ag-tab ${AGENDA_TAB==='masuk'?'active':''}" data-tab="masuk" role="tab">&#8601; Surat Masuk</button>
+    </div>
+    <div id="agendaPane"></div>`;
+  document.querySelectorAll('.ag-tab').forEach(b=> b.addEventListener('click', ()=>{
+    AGENDA_TAB = b.dataset.tab;
+    document.querySelectorAll('.ag-tab').forEach(x=> x.classList.toggle('active', x===b));
+    renderAgendaPane();
+  }));
+  await renderAgendaPane();
+}
+
+async function renderAgendaPane(){
+  if(AGENDA_TAB === 'masuk') await renderAgendaMasukPane();
+  else await renderAgendaKeluarPane();
+}
+
+async function renderAgendaKeluarPane(){
+  document.getElementById('agendaPane').innerHTML = `
     <div class="filter-bar">
       <input type="text" id="agendaSearch" placeholder="Cari kode / nomor / tujuan / perihal..." style="flex:1; min-width:220px; max-width:400px;">
       <span style="margin-left:auto;"></span>
-      <button class="btn btn-gold btn-sm" id="addAgendaBtn">+ Tambah Agenda Surat</button>
+      <button class="btn btn-gold btn-sm" id="addAgendaBtn">+ Tambah Surat Keluar</button>
     </div>
     <div id="agendaTable"></div>
   `;
@@ -3204,7 +3844,10 @@ function drawAgendaTable(){
   const box = document.getElementById('agendaTable');
   if(!box) return;
   const q = (document.getElementById('agendaSearch')||{value:''}).value.toLowerCase().trim();
-  const rows = q ? AGENDA_ROWS.filter(r => AGENDA_FIELDS.some(f => String(r[f.key]||'').toLowerCase().includes(q))) : AGENDA_ROWS;
+  const rows = q ? AGENDA_ROWS.filter(r =>
+      AGENDA_FIELDS.some(f => String(r[f.key]||'').toLowerCase().includes(q)) ||
+      String(AGENDA_KODE_MAP[r.KodeIndeks]||'').toLowerCase().includes(q)
+    ) : AGENDA_ROWS;
 
   if(!rows.length){
     box.innerHTML = `<div class="card"><div class="empty"><div class="em-icon">&#9993;</div><h3>${AGENDA_ROWS.length ? 'Tidak ada hasil' : 'Belum ada agenda surat'}</h3><p>${AGENDA_ROWS.length ? 'Coba kata kunci lain.' : 'Tambahkan agenda surat pertama lewat tombol di atas.'}</p></div></div>`;
@@ -3215,7 +3858,10 @@ function drawAgendaTable(){
     <tbody>${rows.map((r,i)=>`
       <tr>
         <td>${i+1}</td>
-        ${AGENDA_FIELDS.map(f=>`<td>${r[f.key]!==undefined && r[f.key]!=='' ? esc(r[f.key]) : '-'}</td>`).join('')}
+        <td><b>${esc(r.KodeIndeks||'-')}</b>${AGENDA_KODE_MAP[r.KodeIndeks] ? `<div style="font-size:11.5px; color:var(--muted); max-width:210px;">${esc(AGENDA_KODE_MAP[r.KodeIndeks])}</div>` : ''}</td>
+        <td style="white-space:nowrap;">${esc(r.Nomor||'-')}</td>
+        <td>${esc(r.Tujuan||'-')}</td>
+        <td>${esc(r.Perihal||'-')}</td>
         <td style="white-space:nowrap;">${r.TanggalDicatat ? esc(fmtDate(r.TanggalDicatat)) : '-'}</td>
         <td style="white-space:nowrap;">
           <button class="btn btn-ghost btn-sm" onclick="openAgendaModal('${esc(r.ID)}')">Edit</button>
@@ -3228,20 +3874,60 @@ function drawAgendaTable(){
 function openAgendaModal(id){
   const row = id ? AGENDA_ROWS.find(r => r.ID === id) : null;
   const isEdit = !!row;
+  const now = new Date();
+  const parsed = isEdit ? parseAgendaNomor(row.Nomor) : null;
+
+  // Nilai awal komponen nomor
+  let kode  = isEdit ? (row.KodeIndeks||'') : '';
+  let tahun = parsed ? parsed.tahun : now.getFullYear();
+  let bulan = parsed ? parsed.bulan : ROMAN_MONTHS[now.getMonth()];
+  let urut  = parsed ? parsed.urut  : nextAgendaUrut(tahun);
+  // Edit data yang formatnya tidak standar -> langsung mode manual.
+  const startManual = isEdit && !parsed;
+
+  // Kode lama di luar daftar (data sebelum fitur ini) tetap bisa dipilih.
+  const kodeOptions = AGENDA_KODE.slice();
+  if(kode && !AGENDA_KODE_MAP[kode]) kodeOptions.unshift({kode, ket:'(kode lama)'});
+
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.innerHTML = `
     <div class="modal">
-      <div class="modal-head"><h3>${isEdit?'Edit':'Tambah'} Agenda Surat</h3><button class="modal-close">&times;</button></div>
+      <div class="modal-head"><h3>${isEdit?'Edit':'Tambah'} Surat Keluar</h3><button class="modal-close">&times;</button></div>
       <div class="modal-body">
-        ${AGENDA_FIELDS.map(f=>{
-          const val = isEdit ? esc(row[f.key]||'') : '';
-          return `<div class="field"><label for="ag_${f.key}">${esc(f.label)}</label>` +
-            (f.type==='textarea'
-              ? `<textarea id="ag_${f.key}" rows="3" placeholder="${esc(f.ph)}">${val}</textarea>`
-              : `<input type="text" id="ag_${f.key}" value="${val}" placeholder="${esc(f.ph)}">`) +
-            `</div>`;
-        }).join('')}
+        <div class="field">
+          <label for="ag_KodeIndeks">Kode/Indeks</label>
+          <select id="ag_KodeIndeks">
+            <option value="">— Pilih kode —</option>
+            ${kodeOptions.map(k=>`<option value="${esc(k.kode)}" ${k.kode===kode?'selected':''}>${esc(k.kode)} — ${esc(k.ket)}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Nomor</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
+            <div>
+              <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">No. Urut</div>
+              <input type="number" id="ag_Urut" min="1" step="1" value="${urut}">
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Bulan</div>
+              <select id="ag_Bulan">${ROMAN_MONTHS.map(m=>`<option value="${m}" ${m===bulan?'selected':''}>${m}</option>`).join('')}</select>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Tahun</div>
+              <input type="number" id="ag_Tahun" min="2000" max="2999" step="1" value="${tahun}">
+            </div>
+          </div>
+          <input type="text" id="ag_Nomor" value="${esc(isEdit ? (row.Nomor||'') : '')}" ${startManual?'':'readonly'} placeholder="Pilih kode untuk membuat nomor otomatis" style="${startManual?'':'background:#f6f4e6;'}">
+          <label style="display:flex; align-items:center; gap:8px; margin:8px 0 0; font-weight:500; text-transform:none; letter-spacing:0; font-size:13px; cursor:pointer;">
+            <input type="checkbox" id="ag_Manual" style="width:auto; height:auto;" ${startManual?'checked':''}> Ketik nomor secara manual
+          </label>
+          <div style="font-size:11.5px; color:var(--muted); margin-top:4px;">Format otomatis: &lt;kode&gt;/&lt;no. urut&gt;/FPSH-UMM/&lt;bulan&gt;/&lt;tahun&gt;. No. urut berjalan per tahun.</div>
+        </div>
+
+        <div class="field"><label for="ag_Tujuan">Tujuan</label><input type="text" id="ag_Tujuan" value="${esc(isEdit?(row.Tujuan||''):'')}" placeholder="cth. Kepala Biro Akademik"></div>
+        <div class="field"><label for="ag_Perihal">Perihal</label><textarea id="ag_Perihal" rows="3" placeholder="cth. Permohonan data mahasiswa aktif">${esc(isEdit?(row.Perihal||''):'')}</textarea></div>
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost modal-close-btn">Batal</button>
@@ -3249,18 +3935,50 @@ function openAgendaModal(id){
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  const $ = sel => overlay.querySelector(sel);
   const close = ()=> overlay.remove();
-  overlay.querySelector('.modal-close').addEventListener('click', close);
-  overlay.querySelector('.modal-close-btn').addEventListener('click', close);
+  $('.modal-close').addEventListener('click', close);
+  $('.modal-close-btn').addEventListener('click', close);
   overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
-  overlay.querySelector('#ag_KodeIndeks').focus();
 
-  overlay.querySelector('#agendaSaveBtn').addEventListener('click', async ()=>{
-    const btn = overlay.querySelector('#agendaSaveBtn');
-    const payload = {};
-    AGENDA_FIELDS.forEach(f=> payload[f.key] = overlay.querySelector('#ag_'+f.key).value.trim());
-    const kosong = AGENDA_FIELDS.find(f => !payload[f.key]);
-    if(kosong){ toast(kosong.label+' wajib diisi.', 'error'); overlay.querySelector('#ag_'+kosong.key).focus(); return; }
+  let urutTouched = isEdit;   // saat Tambah: No. Urut ikut otomatis sampai diubah manual
+  const refreshNomor = ()=>{
+    if($('#ag_Manual').checked) return;
+    $('#ag_Nomor').value = buildAgendaNomor($('#ag_KodeIndeks').value, $('#ag_Urut').value, $('#ag_Bulan').value, $('#ag_Tahun').value);
+  };
+  $('#ag_KodeIndeks').addEventListener('change', refreshNomor);
+  $('#ag_Bulan').addEventListener('change', refreshNomor);
+  $('#ag_Urut').addEventListener('input', ()=>{ urutTouched = true; refreshNomor(); });
+  $('#ag_Tahun').addEventListener('input', ()=>{
+    const t = $('#ag_Tahun').value;
+    if(!urutTouched && /^\d{4}$/.test(t)) $('#ag_Urut').value = nextAgendaUrut(t);
+    refreshNomor();
+  });
+  $('#ag_Manual').addEventListener('change', ()=>{
+    const manual = $('#ag_Manual').checked, n = $('#ag_Nomor');
+    n.readOnly = !manual;
+    n.style.background = manual ? '' : '#f6f4e6';
+    if(manual) n.focus(); else refreshNomor();
+  });
+  if(!startManual && !isEdit) refreshNomor();   // Tambah: kosong sampai kode dipilih
+  if(isEdit && parsed && !startManual){
+    // Edit nomor standar: tampilkan nomor tersimpan apa adanya (jangan diubah diam-diam).
+    $('#ag_Nomor').value = row.Nomor;
+  }
+  (isEdit ? $('#ag_Tujuan') : $('#ag_KodeIndeks')).focus();
+
+  $('#agendaSaveBtn').addEventListener('click', async ()=>{
+    const btn = $('#agendaSaveBtn');
+    const payload = {
+      KodeIndeks: $('#ag_KodeIndeks').value.trim(),
+      Nomor:      $('#ag_Nomor').value.trim(),
+      Tujuan:     $('#ag_Tujuan').value.trim(),
+      Perihal:    $('#ag_Perihal').value.trim()
+    };
+    if(!payload.KodeIndeks){ toast('Kode/Indeks wajib dipilih.', 'error'); $('#ag_KodeIndeks').focus(); return; }
+    if(!payload.Nomor){ toast('Nomor wajib diisi.', 'error'); $('#ag_Nomor').focus(); return; }
+    if(!payload.Tujuan){ toast('Tujuan wajib diisi.', 'error'); $('#ag_Tujuan').focus(); return; }
+    if(!payload.Perihal){ toast('Perihal wajib diisi.', 'error'); $('#ag_Perihal').focus(); return; }
     btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
     try{
       const res = isEdit
@@ -3282,6 +4000,211 @@ async function removeAgenda(id){
     toast(res.message, res.success?'success':'error');
   }catch(err){ toast('Gagal menghapus: '+(err && err.message ? err.message : err), 'error'); }
   loadAgendaTable();
+}
+
+/* ============================================================
+   9d. AGENDA SURAT MASUK (+ arsip file)
+   Kolom: Nomor Surat Masuk, Pengirim, Tujuan, Tanggal Surat, Perihal Surat.
+   ============================================================ */
+const MASUK_FIELDS = [
+  {key:'NomorSuratMasuk', label:'Nomor Surat Masuk'},
+  {key:'Pengirim',        label:'Pengirim'},
+  {key:'Tujuan',          label:'Tujuan'},
+  {key:'TanggalSurat',    label:'Tanggal Surat'},
+  {key:'PerihalSurat',    label:'Perihal Surat'}
+];
+const MASUK_MAX_BYTES = 5*1024*1024;
+const MASUK_EXT = ['pdf','jpg','jpeg','png','doc','docx','xls','xlsx'];
+let MASUK_ROWS = [];
+
+// 'yyyy-MM-dd' -> '05 Okt 2026' (tanpa new Date agar tidak bergeser zona waktu)
+function fmtTglSurat(v){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v||''));
+  if(!m) return String(v||'-');
+  const bln = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  return `${m[3]} ${bln[parseInt(m[2],10)-1]||m[2]} ${m[1]}`;
+}
+function fmtUkuran(b){
+  b = Number(b)||0;
+  return b >= 1048576 ? (b/1048576).toFixed(2)+' MB' : Math.max(1,Math.round(b/1024))+' KB';
+}
+function readFileAsPayload(file){
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = ()=> resolve({name:file.name, size:file.size, data:String(fr.result).split(',')[1]||''});
+    fr.onerror = ()=> reject(new Error('Gagal membaca file.'));
+    fr.readAsDataURL(file);
+  });
+}
+function checkMasukFile(file){
+  if(!file) return '';
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(!MASUK_EXT.includes(ext)) return 'Jenis file tidak diizinkan. Gunakan PDF, JPG, PNG, DOC/DOCX, atau XLS/XLSX.';
+  if(file.size > MASUK_MAX_BYTES) return 'Ukuran file '+fmtUkuran(file.size)+' melebihi batas 5 MB.';
+  return '';
+}
+
+async function renderAgendaMasukPane(){
+  document.getElementById('agendaPane').innerHTML = `
+    <div class="filter-bar">
+      <input type="text" id="masukSearch" placeholder="Cari nomor / pengirim / tujuan / perihal..." style="flex:1; min-width:220px; max-width:400px;">
+      <span style="margin-left:auto;"></span>
+      <button class="btn btn-gold btn-sm" id="addMasukBtn">+ Tambah Surat Masuk</button>
+    </div>
+    <div id="masukTable"></div>
+  `;
+  document.getElementById('masukSearch').addEventListener('input', drawMasukTable);
+  document.getElementById('addMasukBtn').addEventListener('click', ()=> openMasukModal(null));
+  await loadMasukTable();
+}
+
+async function loadMasukTable(){
+  const box = document.getElementById('masukTable');
+  if(!box) return;
+  box.innerHTML = '<div class="center-load"><span class="loader"></span></div>';
+  try{
+    MASUK_ROWS = await callServer('getAgendaMasuk', CURRENT_USER.Email) || [];
+  }catch(err){
+    box.innerHTML = '<div class="msg error">Gagal memuat Surat Masuk: '+esc(err && err.message ? err.message : err)+'</div>';
+    return;
+  }
+  drawMasukTable();
+}
+
+function drawMasukTable(){
+  const box = document.getElementById('masukTable');
+  if(!box) return;
+  const q = (document.getElementById('masukSearch')||{value:''}).value.toLowerCase().trim();
+  const rows = q ? MASUK_ROWS.filter(r =>
+      MASUK_FIELDS.some(f => String(r[f.key]||'').toLowerCase().includes(q)) ||
+      String(r.FileNama||'').toLowerCase().includes(q) ||
+      fmtTglSurat(r.TanggalSurat).toLowerCase().includes(q)
+    ) : MASUK_ROWS;
+
+  if(!rows.length){
+    box.innerHTML = `<div class="card"><div class="empty"><div class="em-icon">&#128229;</div><h3>${MASUK_ROWS.length ? 'Tidak ada hasil' : 'Belum ada surat masuk'}</h3><p>${MASUK_ROWS.length ? 'Coba kata kunci lain.' : 'Catat surat masuk pertama lewat tombol di atas.'}</p></div></div>`;
+    return;
+  }
+  box.innerHTML = `<div class="card tbl-wrap"><table>
+    <thead><tr><th>No</th>${MASUK_FIELDS.map(f=>`<th>${esc(f.label)}</th>`).join('')}<th>Arsip</th><th></th></tr></thead>
+    <tbody>${rows.map((r,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td style="white-space:nowrap;"><b>${esc(r.NomorSuratMasuk||'-')}</b></td>
+        <td>${esc(r.Pengirim||'-')}</td>
+        <td>${esc(r.Tujuan||'-')}</td>
+        <td style="white-space:nowrap;">${esc(fmtTglSurat(r.TanggalSurat))}</td>
+        <td>${esc(r.PerihalSurat||'-')}</td>
+        <td>${r.AdaFile
+          ? `<button class="btn btn-ghost btn-sm" onclick="viewMasukFile('${esc(r.ID)}')">&#128206; Lihat</button><div style="font-size:11px; color:var(--muted); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(r.FileNama)}">${esc(r.FileNama)} · ${esc(fmtUkuran(r.FileUkuran))}</div>`
+          : '<span style="color:var(--muted);">-</span>'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost btn-sm" onclick="openMasukModal('${esc(r.ID)}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="removeMasuk('${esc(r.ID)}')">Hapus</button>
+        </td>
+      </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openMasukModal(id){
+  const row = id ? MASUK_ROWS.find(r => r.ID === id) : null;
+  const isEdit = !!row;
+  const v = k => isEdit ? esc(row[k]||'') : '';
+  const today = new Date(); const pad = n=> String(n).padStart(2,'0');
+  const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-head"><h3>${isEdit?'Edit':'Tambah'} Surat Masuk</h3><button class="modal-close">&times;</button></div>
+      <div class="modal-body">
+        <div class="field"><label for="mk_NomorSuratMasuk">Nomor Surat Masuk</label><input type="text" id="mk_NomorSuratMasuk" value="${v('NomorSuratMasuk')}" placeholder="Nomor sebagaimana tertera pada surat"></div>
+        <div class="field"><label for="mk_Pengirim">Pengirim</label><input type="text" id="mk_Pengirim" value="${v('Pengirim')}" placeholder="cth. Dinas Pendidikan Kota Malang"></div>
+        <div class="field"><label for="mk_Tujuan">Tujuan</label><input type="text" id="mk_Tujuan" value="${v('Tujuan')}" placeholder="cth. Dekan FPSH"></div>
+        <div class="field"><label for="mk_TanggalSurat">Tanggal Surat</label><input type="date" id="mk_TanggalSurat" value="${isEdit ? esc(String(row.TanggalSurat||'').slice(0,10)) : todayStr}"></div>
+        <div class="field"><label for="mk_PerihalSurat">Perihal Surat</label><textarea id="mk_PerihalSurat" rows="3" placeholder="cth. Undangan rapat koordinasi">${v('PerihalSurat')}</textarea></div>
+        <div class="field">
+          <label for="mk_File">Arsip Surat (File)</label>
+          <input type="file" id="mk_File" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" style="height:auto; padding:10px;">
+          <div id="mk_FileInfo" style="font-size:12px; color:var(--muted); margin-top:5px;">
+            ${isEdit && row.AdaFile ? `Arsip saat ini: <b>${esc(row.FileNama)}</b> (${esc(fmtUkuran(row.FileUkuran))}). Pilih file baru hanya jika ingin menggantinya.<br>` : ''}
+            Opsional. PDF, JPG, PNG, DOC/DOCX, XLS/XLSX — maksimal 5 MB.
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost modal-close-btn">Batal</button>
+        <button class="btn btn-primary" id="masukSaveBtn">Simpan</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const $ = sel => overlay.querySelector(sel);
+  const close = ()=> overlay.remove();
+  $('.modal-close').addEventListener('click', close);
+  $('.modal-close-btn').addEventListener('click', close);
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+  $('#mk_NomorSuratMasuk').focus();
+
+  $('#mk_File').addEventListener('change', ()=>{
+    const f = $('#mk_File').files[0];
+    const err = checkMasukFile(f);
+    if(err){ toast(err, 'error'); $('#mk_File').value = ''; }
+  });
+
+  $('#masukSaveBtn').addEventListener('click', async ()=>{
+    const btn = $('#masukSaveBtn');
+    const payload = {};
+    MASUK_FIELDS.forEach(f=> payload[f.key] = $('#mk_'+f.key).value.trim());
+    const kosong = MASUK_FIELDS.find(f => !payload[f.key]);
+    if(kosong){ toast(kosong.label+' wajib diisi.', 'error'); $('#mk_'+kosong.key).focus(); return; }
+    const chosen = $('#mk_File').files[0] || null;
+    const ferr = checkMasukFile(chosen);
+    if(ferr){ toast(ferr, 'error'); return; }
+
+    btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+    try{
+      const file = chosen ? await readFileAsPayload(chosen) : null;
+      const res = isEdit
+        ? await callServer('updateAgendaMasuk', row.ID, payload, file, CURRENT_USER.Email)
+        : await callServer('addAgendaMasuk', payload, file, CURRENT_USER.Email);
+      toast(res.message, res.success?'success':'error');
+      if(res.success){ close(); loadMasukTable(); }
+      else { btn.disabled=false; btn.textContent='Simpan'; }
+    }catch(err){ toast('Gagal menyimpan: '+(err && err.message ? err.message : err), 'error'); btn.disabled=false; btn.textContent='Simpan'; }
+  });
+}
+
+async function viewMasukFile(id){
+  // Buka tab kosong SEKARANG (di dalam klik pengguna) agar tidak diblokir pop-up.
+  const w = window.open('', '_blank');
+  try{
+    const f = await callServer('getAgendaMasukFile', id, CURRENT_USER.Email);
+    const bin = atob(f.base64); const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], {type:f.mime}));
+    if(w && /^(application\/pdf|image\/)/.test(f.mime)){ w.location = url; }
+    else{
+      const a = document.createElement('a'); a.href = url; a.download = f.nama;
+      document.body.appendChild(a); a.click(); a.remove();
+      if(w) w.close();
+    }
+    setTimeout(()=> URL.revokeObjectURL(url), 120000);
+  }catch(err){
+    if(w) w.close();
+    toast('Gagal membuka arsip: '+(err && err.message ? err.message : err), 'error');
+  }
+}
+
+async function removeMasuk(id){
+  const row = MASUK_ROWS.find(r => r.ID === id);
+  const label = row ? (row.NomorSuratMasuk + ' — ' + row.PerihalSurat) : id;
+  if(!confirm('Hapus surat masuk "'+label+'"?'+(row && row.AdaFile ? '\nFile arsipnya juga akan dihapus.' : '')+'\nTindakan ini tidak dapat dibatalkan.')) return;
+  try{
+    const res = await callServer('deleteAgendaMasuk', id, CURRENT_USER.Email);
+    toast(res.message, res.success?'success':'error');
+  }catch(err){ toast('Gagal menghapus: '+(err && err.message ? err.message : err), 'error'); }
+  loadMasukTable();
 }
 
 /* ============================================================

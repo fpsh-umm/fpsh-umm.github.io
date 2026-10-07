@@ -3094,6 +3094,62 @@ async function renderServiceForm(key){
   };
   document.querySelectorAll('[data-dep-kat]').forEach(el=> el.addEventListener('change', ()=>refreshDependent(el)));
 
+  // Surat Keterangan/Izin -> Jenis Surat 'Keterangan' + 'Surat Keterangan untuk'
+  // = 'Aktif Organisasi': kotak 'Mata Kuliah / Nama Kegiatan', 'Instansi/Tempat
+  // Tujuan', 'Tanggal Mulai', 'Tanggal Selesai', dan 'Tautan Berkas Pendukung' DISEMBUNYIKAN (& dinonaktifkan
+  // supaya tidak ikut divalidasi/dikirim), diganti 5 baris isian ORMAWA + Tahun.
+  // Blok ORMAWA sengaja disisipkan lewat JS (bukan lewat cfg.fields) supaya tidak
+  // muncul sebagai kolom tambahan di tabel admin/modal edit. Hasilnya digabung
+  // jadi teks bernomor dan disimpan di kolom 'MataKuliahKegiatan' (tanpa kolom
+  // baru di sheet) saat submit — lihat blok 'ORMAWA' pada handler submit.
+  let syncOrmawa = ()=>{};
+  if(key === 'SURAT_KET_IJIN'){
+    const katEl = content.querySelector('[data-dep-kat="JenisSurat"]');
+    const subEl = content.querySelector('[data-dep-sub="JenisSurat"]');
+    const subWrap = content.querySelector('[data-dep-subwrap="JenisSurat"]');
+    if(katEl && subEl && subWrap){
+      const block = document.createElement('div');
+      block.className = 'field full';
+      block.style.display = 'none';
+      block.innerHTML = `<label>Semester</label>
+        <input type="number" name="Semester" min="1" max="14" inputmode="numeric" placeholder="mis. 7" style="max-width:120px;margin-bottom:12px;" disabled required>
+        <label>ORMAWA</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">${[1,2,3,4,5].map(i=>`
+          <div style="display:grid;grid-template-columns:22px 1fr auto 84px;gap:8px;align-items:center;">
+            <span style="font-weight:600;">${i}.</span>
+            <input type="text" name="OrmawaNama_${i}" data-ormawa-nama="${i}" placeholder="Nama ORMAWA" autocomplete="off" disabled>
+            <span style="font-size:13px;white-space:nowrap;">Tahun :</span>
+            <input type="text" name="OrmawaTahun_${i}" data-ormawa-tahun="${i}" placeholder="2024" inputmode="numeric" maxlength="4" pattern="^(19|20)[0-9]{2}$" title="Tahun 4 digit, mis. 2024" autocomplete="off" disabled>
+          </div>`).join('')}
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Isi minimal 1 ORMAWA; baris 2–5 boleh dikosongkan. Jika nama ORMAWA diisi, tahunnya wajib diisi.</div>`;
+      block.dataset.ormawaBlock = '1';
+      subWrap.insertAdjacentElement('afterend', block);
+      const updateReq = ()=>{
+        for(let i=1;i<=5;i++){
+          const nm = block.querySelector(`[data-ormawa-nama="${i}"]`), th = block.querySelector(`[data-ormawa-tahun="${i}"]`);
+          const req = i===1 || nm.value.trim() !== '' || th.value.trim() !== '';
+          nm.required = req; th.required = req;
+        }
+      };
+      block.addEventListener('input', updateReq);
+      syncOrmawa = ()=>{
+        const on = katEl.value === 'Keterangan' && subEl.value === 'Aktif Organisasi';
+        block.style.display = on ? '' : 'none';
+        block.querySelectorAll('input').forEach(inp=>{ inp.disabled = !on; if(!on) inp.value = ''; });
+        ['MataKuliahKegiatan','TempatTujuan','TanggalMulai','TanggalSelesai','FilePendukung'].forEach(k=>{
+          const inp = content.querySelector(`[name="${k}"]`);
+          if(!inp) return;
+          const fld = inp.closest('.field'); if(fld) fld.style.display = on ? 'none' : '';
+          inp.disabled = on;
+        });
+        if(on) updateReq();
+      };
+      katEl.addEventListener('change', syncOrmawa);
+      subEl.addEventListener('change', syncOrmawa);
+    }
+  }
+
   document.getElementById('svcForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const btn = document.getElementById('svcSubmitBtn');
@@ -3198,6 +3254,20 @@ async function renderServiceForm(key){
       delete payload[f.key+'__kat']; delete payload[f.key+'__sub'];
     });
 
+    // ORMAWA (Surat Keterangan 'Aktif Organisasi'): gabungkan baris isian
+    // ORMAWA + Tahun jadi teks bernomor di kolom 'MataKuliahKegiatan', mis.
+    // "1. HIMA Hukum (Tahun 2023)\n2. BEM FPSH (Tahun 2024)". Kolom bantu
+    // 'OrmawaNama_n'/'OrmawaTahun_n' tidak ikut dikirim (bukan kolom di sheet).
+    if(key === 'SURAT_KET_IJIN'){
+      const lines = [];
+      for(let i=1;i<=5;i++){
+        const nm = (payload['OrmawaNama_'+i]||'').trim(), th = (payload['OrmawaTahun_'+i]||'').trim();
+        delete payload['OrmawaNama_'+i]; delete payload['OrmawaTahun_'+i];
+        if(nm) lines.push((lines.length+1) + '. ' + nm + (th ? ' (Tahun ' + th + ')' : ''));
+      }
+      if(lines.length) payload.MataKuliahKegiatan = lines.join('\n');
+    }
+
     // Field 'checklist' bisa punya beberapa checkbox tercentang dengan nama
     // yang sama — FormData hanya menyisakan nilai terakhir lewat forEach di
     // atas, jadi di sini seluruh nilai yang tercentang digabung jadi satu
@@ -3260,6 +3330,7 @@ async function renderServiceForm(key){
         msgBox.innerHTML = '<div class="msg success">'+esc(res.message)+' Nomor referensi: <b>'+esc(res.id)+'</b></div>';
         e.target.reset();
         document.querySelectorAll('[data-dep-kat]').forEach(el=>refreshDependent(el)); // reset tidak memicu 'change'
+        syncOrmawa();
         // form.reset() mengembalikan tanggal & kotak 'Pukul' ke nilai awal
         // saat form dirender, TAPI tidak memicu event 'change'/'input' pada
         // input-nya — jadi kotak tampilan tanggal terformat & label tombol

@@ -2011,7 +2011,7 @@ function buildServiceChart(key, rows){
     default: return '';
   }
   return `<div class="chart-card">
-    <div class="ch-head"><h3>${esc(SERVICE_FORM_CONFIG[key].title)}</h3><span class="ch-type">${type}</span></div>
+    <div class="ch-head"><h3>${esc(SERVICE_FORM_CONFIG[key].title)}</h3></div>
     <p class="ch-sub">${esc(sub)}</p>
     ${html}
     <div class="ch-foot"><span>${R.length} pengajuan</span><button class="ch-link" onclick="navigate('svc-${key}')">Ajukan layanan →</button></div>

@@ -689,7 +689,51 @@ const CONFIG = {
 const HAS_GAS = (typeof google !== 'undefined' && google.script && google.script.run);
 const HAS_REMOTE_URL = !!(CONFIG.SCRIPT_URL && CONFIG.SCRIPT_URL.trim() !== '');
 
+/* ---- PERCEPATAN: cache sisi browser untuk panggilan BACA ----
+   - Panggilan baca yang sama (nama fungsi + argumen) dalam rentang TTL tidak
+     dikirim ulang ke server: hasil lama langsung dipakai (pindah menu jadi instan).
+   - Panggilan identik yang sedang berjalan digabung jadi satu (tidak dobel).
+   - Setiap panggilan yang MENGUBAH data otomatis mengosongkan cache ini.
+   Ubah angka TTL (milidetik) di bawah kalau ingin lebih lama/singkat. */
+const CLIENT_CACHE_TTL = {
+  getServiceMeta: 600000,
+  getDashboardBundle: 45000,
+  getMyRequests: 45000,
+  getAllRequests: 45000,
+  getMasterOptions: 120000,
+  getAllMasterItems: 45000,
+  getRoomAvailability: 45000,
+  getBarangAvailability: 45000,
+  getPendingRequestsByNimNip: 8000,
+  getAppConfig: 60000
+};
+const CLIENT_READ_ONLY = ['login','lookupIdentityByNimNip','getActiveRoomUsage','getActiveBarangUsage',
+  'getAllUsers','getAgendaSurat','getAgendaMasuk','getAgendaMasukFile','getDashboardStats',
+  'getDashboardChartData','getDosenPembimbingOptions'];
+const CLIENT_CACHE = new Map();
+function cloneResult_(v){
+  try{ return (typeof structuredClone === 'function') ? structuredClone(v) : JSON.parse(JSON.stringify(v)); }
+  catch(e){ return v; }
+}
 function callServer(fnName, ...args){
+  const ttl = CLIENT_CACHE_TTL[fnName];
+  if(!ttl){
+    const isWrite = CLIENT_READ_ONLY.indexOf(fnName) === -1;
+    if(isWrite) CLIENT_CACHE.clear();
+    const p = Promise.resolve().then(()=> callServerRaw(fnName, ...args));
+    return isWrite ? p.then(r=>{ CLIENT_CACHE.clear(); return r; }, e=>{ CLIENT_CACHE.clear(); throw e; }) : p;
+  }
+  const key = fnName + '|' + JSON.stringify(args);
+  const hit = CLIENT_CACHE.get(key);
+  if(hit && hit.exp > Date.now()) return hit.promise.then(cloneResult_);
+  const promise = Promise.resolve().then(()=> callServerRaw(fnName, ...args));
+  const entry = { promise, exp: Date.now() + ttl };
+  CLIENT_CACHE.set(key, entry);
+  promise.catch(()=>{ if(CLIENT_CACHE.get(key) === entry) CLIENT_CACHE.delete(key); });
+  return promise.then(cloneResult_);
+}
+
+function callServerRaw(fnName, ...args){
   if (HAS_REMOTE_URL){
     return fetch(CONFIG.SCRIPT_URL, {
       method: 'POST',
@@ -1236,6 +1280,7 @@ let CURRENT_USER = null;
 // setara SURAT_FLOW_SERVICES di Code.gs.
 const SURAT_FLOW_SERVICES = ['SURAT_KET_IJIN','SURAT_TUGAS','TUGAS_AKHIR','YUDISIUM'];
 let SERVICE_META = null;
+let META_READY = null;
 let CURRENT_PAGE = 'dashboard';
 
 // Semester & Tahun Akademik BERJALAN (Ganjil: Agu–Jan, Genap: Feb–Jul) — default
@@ -1243,8 +1288,33 @@ let CURRENT_PAGE = 'dashboard';
 const AY_BERJALAN = (function(){
   const d = new Date(), y = d.getFullYear(), m = d.getMonth()+1;
   const mulai = m >= 8 ? y : y-1;
-  return { ta: mulai+'/'+(mulai+1), prev: (mulai-1)+'/'+mulai, semester: (m >= 8 || m === 1) ? 'Ganjil' : 'Genap' };
+  return { ta: mulai+'/'+(mulai+1), prev: (mulai-1)+'/'+mulai, next: (mulai+1)+'/'+(mulai+2), mulai: mulai, semester: (m >= 8 || m === 1) ? 'Ganjil' : 'Genap' };
 })();
+
+// Tahun Akademik & Semester (Ganjil/Genap) — WAJIB di SEMUA jenis layanan karena
+// Layanan Prima dilaporkan tiap semester. Disisipkan otomatis ke depan daftar
+// field tiap layanan (lihat blok setelah SERVICE_FORM_CONFIG). Kolom di sheet:
+// 'TahunAkademik' & 'SemesterAkademik' (BUKAN 'Semester' — kolom itu sudah dipakai
+// Surat Keterangan untuk semester ke-N mahasiswa).
+const AY_OPTIONS = [AY_BERJALAN.prev, AY_BERJALAN.ta, AY_BERJALAN.next];
+// Daftar Tahun Akademik untuk filter (4 tahun ke belakang s.d. tahun depan).
+const AY_FILTER_LIST = (function(){
+  const out = [];
+  for(let y = AY_BERJALAN.mulai + 1; y >= AY_BERJALAN.mulai - 4; y--) out.push(y+'/'+(y+1));
+  return out;
+})();
+const AKADEMIK_FIELDS = [
+  {key:'TahunAkademik', label:'Tahun Akademik', type:'select', options:AY_OPTIONS, default:AY_BERJALAN.ta},
+  {key:'SemesterAkademik', label:'Semester', type:'select', options:['Ganjil','Genap'], default:AY_BERJALAN.semester}
+];
+// Nilai Tahun Akademik/Semester sebuah baris. Data LAMA (sebelum kolom ini ada)
+// pada Pendaftaran Sidang TA memakai KSMTahunAkademik/KSMSemester — dipakai sbg cadangan.
+function akademikVal(row, key){
+  if(!row) return '';
+  if(key === 'TahunAkademik') return row.TahunAkademik || row.KSMTahunAkademik || '';
+  if(key === 'SemesterAkademik') return row.SemesterAkademik || row.KSMSemester || '';
+  return row[key] || '';
+}
 
 const SERVICE_FORM_CONFIG = {
   PEMINJAMAN_RUANG: {
@@ -1318,12 +1388,10 @@ const SERVICE_FORM_CONFIG = {
   },
   YUDISIUM: {
     title:'Pendaftaran Sidang TA',
-    desc:'Khusus Mahasiswa. Daftar sidang tugas akhir: KSM semester & tahun akademik berjalan, total SKS, IPK/Transkrip Sementara.',
+    desc:'Khusus Mahasiswa. Daftar sidang tugas akhir: pilih Tahun Akademik & Semester (sesuai KSM berjalan), total SKS, IPK/Transkrip Sementara.',
     roles:['Mahasiswa'],
     fields:[
       {key:'Prodi', label:'Program Studi', type:'text'},
-      {key:'KSMSemester', label:'KSM Semester (berjalan)', type:'select', options:['Ganjil','Genap'], default:AY_BERJALAN.semester},
-      {key:'KSMTahunAkademik', label:'KSM Tahun Akademik (berjalan)', type:'select', options:[AY_BERJALAN.ta, AY_BERJALAN.prev], default:AY_BERJALAN.ta},
       {key:'TotalSKS', label:'Total SKS', type:'number'},
       {key:'IPK', label:'IPK (sesuai Transkrip Sementara)', type:'text'},
       {key:'TautanDokumen', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'url', full:true, googleLink:true, placeholder:'https://drive.google.com/... (KSM & Transkrip Sementara)'}
@@ -1367,6 +1435,12 @@ const SERVICE_FORM_CONFIG = {
 /* ============================================================
    2. HELPERS
    ============================================================ */
+// Sisipkan Tahun Akademik & Semester di DEPAN daftar field setiap layanan.
+Object.keys(SERVICE_FORM_CONFIG).forEach(k=>{
+  const cfg = SERVICE_FORM_CONFIG[k];
+  cfg.fields = AKADEMIK_FIELDS.concat(cfg.fields.filter(f=> f.key !== 'TahunAkademik' && f.key !== 'SemesterAkademik'));
+});
+
 function toast(msg, type){
   const el = document.createElement('div');
   el.className = 'toast ' + (type||'');
@@ -1670,7 +1744,12 @@ async function bootApp(){
   document.querySelectorAll('.manager-only').forEach(el=> el.classList.toggle('hidden', !isManager()));
   document.querySelectorAll('.tendikfak-only').forEach(el=> el.classList.toggle('hidden', !canAccessAgenda()));
 
-  if(!SERVICE_META) SERVICE_META = await callServer('getServiceMeta');
+  // PERCEPATAN: getServiceMeta berjalan PARALEL dengan pemuatan dashboard
+  // (dashboard tidak memakainya); halaman lain menunggu kalau belum selesai.
+  if(!SERVICE_META){
+    META_READY = callServer('getServiceMeta').then(m=>{ SERVICE_META = m; return m; });
+    META_READY.catch(()=>{});
+  }
   navigate('dashboard');
 }
 
@@ -1734,6 +1813,10 @@ function applyServiceMenuByRole(){
 }
 async function navigate(page){
   applyServiceMenuByRole();
+  if(page !== 'dashboard' && !SERVICE_META){
+    try{ if(META_READY) await META_READY; }catch(e){ /* dicoba ulang di bawah */ }
+    if(!SERVICE_META) SERVICE_META = await callServer('getServiceMeta');
+  }
   if((page==='riwayat' || page==='akun') && !CURRENT_USER){
     toast('Silakan masuk terlebih dahulu untuk mengakses halaman ini.', 'error');
     page = 'dashboard';
@@ -2020,9 +2103,25 @@ function buildServiceChart(key, rows){
   </div>`;
 }
 
-async function loadDashboardChartsHtml(email, role, prodi, keys){
+/* PERCEPATAN: statistik + data diagram diambil dalam SATU panggilan.
+   Kalau Kode.gs di server belum diperbarui (belum ada getDashboardBundle),
+   otomatis memakai 2 panggilan lama secara paralel. */
+async function fetchDashboardBundle(email, role, prodi){
+  try{
+    return await callServer('getDashboardBundle', email, role, prodi);
+  }catch(e){
+    const [stats, chart] = await Promise.all([
+      callServer('getDashboardStats', email, role, prodi),
+      callServer('getDashboardChartData', email, role, prodi).catch(()=>null)
+    ]);
+    stats.chart = chart;
+    return stats;
+  }
+}
+
+async function loadDashboardChartsHtml(email, role, prodi, keys, pre){
   let data;
-  try{ data = await callServer('getDashboardChartData', email, role, prodi); }
+  try{ data = pre || await callServer('getDashboardChartData', email, role, prodi); }
   catch(e){ return `<div class="card card-pad" style="color:var(--muted);font-size:13px;">Diagram belum dapat dimuat: ${esc(e && e.message || e)}. Pastikan Kode.gs versi terbaru sudah di-deploy.</div>`; }
   const rows=(data&&data.rows)||[], petugas=(data&&data.petugas)||{};
   return `
@@ -2043,11 +2142,12 @@ async function renderDashboard(){
   // tanpa statistik pribadi (perlu identitas login untuk itu), namun tetap
   // menampilkan tabel Customer (seluruh pemohon/pengguna) untuk transparansi. ----
   if(!CURRENT_USER){
-    const guestChartsHtml = await loadDashboardChartsHtml('', 'Tendik Fak.', '', Object.keys(SERVICE_FORM_CONFIG));
+    const guestBundle = await fetchDashboardBundle('', 'Tendik Fak.', '');
+    const guestChartsHtml = await loadDashboardChartsHtml('', 'Tendik Fak.', '', Object.keys(SERVICE_FORM_CONFIG), guestBundle.chart);
 
     // Tamu tidak punya akun/role, jadi diambil dengan sudut pandang staf
     // (seluruh fakultas) supaya tabel Customer bisa menampilkan semua pemohon.
-    const guestData = await callServer('getDashboardStats', '', 'Tendik Fak.');
+    const guestData = guestBundle;
     const guestRecentRows = guestData.recent.length ? guestData.recent.map(r=>`
       <tr>
         <td class="mono">${esc(r.ID)}</td>
@@ -2075,7 +2175,7 @@ async function renderDashboard(){
   }
 
   // ---- Mode login (Mahasiswa/Dosen/Tendik/Admin): dasbor lengkap dengan statistik. ----
-  const data = await callServer('getDashboardStats', CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit);
+  const data = await fetchDashboardBundle(CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit);
   const s = data.stats;
 
   const statCards = [
@@ -2090,7 +2190,7 @@ async function renderDashboard(){
   `).join('');
 
   const chartsHtml = await loadDashboardChartsHtml(CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit,
-    Object.keys(SERVICE_FORM_CONFIG).filter(serviceAllowedForCurrent));
+    Object.keys(SERVICE_FORM_CONFIG).filter(serviceAllowedForCurrent), data.chart);
 
   const recentRows = data.recent.length ? data.recent.map(r=>`
     <tr>
@@ -2241,6 +2341,15 @@ async function renderServiceForm(key){
     return;
   }
 
+  // PERCEPATAN: semua data yang dibutuhkan form diminta SEKALIGUS (paralel).
+  // Panggilan identik berikutnya di bawah otomatis memakai permintaan yang
+  // sama (lihat cache/penggabungan di callServer), jadi tidak lagi berurutan.
+  cfg.fields.filter(f => f.master).forEach(f => { callServer('getMasterOptions', f.master).catch(()=>{}); });
+  if(cfg.fields.some(f => f.master === 'MASTER_RUANG')) callServer('getRoomAvailability', todayDateStr()).catch(()=>{});
+  if(cfg.fields.some(f => f.master === 'MASTER_BARANG')) callServer('getBarangAvailability', todayDateStr(), todayDateStr()).catch(()=>{});
+  if(!isGuest && CURRENT_USER.NIM_NIP) callServer('getPendingRequestsByNimNip', CURRENT_USER.NIM_NIP).catch(()=>{});
+  callServer('getAppConfig').catch(()=>{});
+
   // Pengguna yang sudah login & punya NIM/NIP terisi: cek dulu apakah masih
   // ada pengajuan (jenis layanan apa pun) yang belum berstatus 'Selesai'.
   // Kalau ada, "Formulir pengajuan layanan" TIDAK ditampilkan — hanya daftar
@@ -2358,7 +2467,9 @@ async function renderServiceForm(key){
       <div style="font-size:12px;color:var(--muted);margin-top:4px;">Wajib diisi dengan email yang aktif dipakai — dipakai petugas untuk menghubungi Anda.</div>
     </div>`;
 
-  const fieldsHtml = cfg.fields.map(f=>{
+  // Tahun Akademik & Semester tidak lagi dipilih pemohon (diatur di sheet 'Config'),
+  // jadi kedua isian ini tidak ditampilkan di form.
+  const fieldsHtml = cfg.fields.filter(f=> f.key !== 'TahunAkademik' && f.key !== 'SemesterAkademik').map(f=>{
     const fullClass = f.full ? 'full' : '';
     if(f.type === 'dependent'){
       return `<div class="field ${fullClass}"><label>${esc(f.label)}</label>
@@ -2593,11 +2704,21 @@ async function renderServiceForm(key){
     </div>
   ` : '';
 
+  // Info periode akademik (dari sheet 'Config') — hanya ditampilkan, tidak diisi pemohon.
+  let akademikInfoHtml = '';
+  try{
+    const ac = await callServer('getAppConfig');
+    if(ac && ac.tahunAkademik){
+      akademikInfoHtml = `<div class="msg" style="margin:0 0 12px;font-size:12.5px;background:var(--indigo-bg);color:var(--indigo);">Tahun Akademik <strong>${esc(ac.tahunAkademik)}</strong> &middot; Semester <strong>${esc(ac.semesterAkademik)}</strong> &mdash; dicatat otomatis oleh sistem.</div>`;
+    }
+  }catch(e){ /* info tambahan saja — form tetap bisa dipakai */ }
+
   content.innerHTML = `
     <div class="${isGuest ? '' : 'two-col'}">
       <div class="card card-pad">
         <h2 style="margin-top:0;font-size:17px;">${esc(cfg.title)}</h2>
         <p style="color:var(--muted);font-size:13px;margin-top:-8px;">${esc(cfg.desc)}</p>
+        ${akademikInfoHtml}
         <div id="svcMsg"></div>
         <form id="svcForm">
           <div class="form-grid">${identityFieldsHtml}<div id="svcRestFields" style="display:contents;">${emailAktifHtml}${fieldsHtml}</div></div>
@@ -3120,9 +3241,15 @@ async function renderServiceForm(key){
       const block = document.createElement('div');
       block.className = 'field full';
       block.style.display = 'none';
-      block.innerHTML = `<label>Semester</label>
-        <input type="number" name="Semester" min="1" max="14" inputmode="numeric" placeholder="mis. 7" style="max-width:120px;margin-bottom:12px;" disabled required>
-        <label>ORMAWA</label>
+      // Isian 'Semester' (semester ke-N mahasiswa) dipisah dari blok ORMAWA karena
+      // dipakai DUA jenis surat: 'Aktif Organisasi' & 'Kelakuan Baik'.
+      const semBlock = document.createElement('div');
+      semBlock.className = 'field full';
+      semBlock.style.display = 'none';
+      semBlock.innerHTML = `<label>Semester</label>
+        <input type="number" name="Semester" min="1" max="14" inputmode="numeric" placeholder="mis. 7" style="max-width:120px;" disabled required>`;
+      subWrap.insertAdjacentElement('afterend', semBlock);
+      block.innerHTML = `<label>ORMAWA</label>
         <div style="display:flex;flex-direction:column;gap:8px;">${[1,2,3,4,5].map(i=>`
           <div style="display:grid;grid-template-columns:22px 1fr auto 84px;gap:8px;align-items:center;">
             <span style="font-weight:600;">${i}.</span>
@@ -3133,7 +3260,7 @@ async function renderServiceForm(key){
         </div>
         <div style="font-size:12px;color:var(--muted);margin-top:4px;">Isi minimal 1 ORMAWA; baris 2–5 boleh dikosongkan. Jika nama ORMAWA diisi, tahunnya wajib diisi.</div>`;
       block.dataset.ormawaBlock = '1';
-      subWrap.insertAdjacentElement('afterend', block);
+      semBlock.insertAdjacentElement('afterend', block);
       const updateReq = ()=>{
         for(let i=1;i<=5;i++){
           const nm = block.querySelector(`[data-ormawa-nama="${i}"]`), th = block.querySelector(`[data-ormawa-tahun="${i}"]`);
@@ -3147,20 +3274,89 @@ async function renderServiceForm(key){
         // 'Kelakuan Baik': kelima kotak di bawah juga DISEMBUNYIKAN & dinonaktifkan
         // (tidak divalidasi/tidak dikirim), tanpa blok ORMAWA.
         const kb = katEl.value === 'Keterangan' && subEl.value === 'Kelakuan Baik';
-        const sembunyi = on || kb;
+        // 'Belum Pernah Menerima Beasiswa': kelima kotak yang sama + 'Keperluan /
+        // Keterangan Tambahan' juga DISEMBUNYIKAN & dinonaktifkan.
+        const bp = katEl.value === 'Keterangan' && subEl.value === 'Belum Pernah Menerima Beasiswa';
+        // 'Ijin' > 'Penelitian Tugas Akhir': hanya sebagian kotak yang disembunyikan (lihat di bawah).
+        const pta = katEl.value === 'Ijin' && subEl.value === 'Penelitian Tugas Akhir';
+        const sembunyi = on || kb || bp;
+        // Semester tampil untuk 'Aktif Organisasi', 'Kelakuan Baik' & 'Penelitian Tugas Akhir'.
+        const semInp = semBlock.querySelector('input');
+        semBlock.style.display = (on || kb || pta) ? '' : 'none';
+        semInp.disabled = !(on || kb || pta);
+        if(!(on || kb || pta)) semInp.value = '';
+        // 'Keperluan' pada Kelakuan Baik = nama beasiswa yang diajukan (masuk ke
+        // kalimat penutup surat), jadi labelnya disesuaikan.
+        const kepInp = content.querySelector('[name="Keperluan"]');
+        const kepLbl = kepInp && kepInp.closest('.field') ? kepInp.closest('.field').querySelector('label') : null;
+        if(kepLbl){
+          if(!kepLbl.dataset.asli) kepLbl.dataset.asli = kepLbl.textContent;
+          kepLbl.textContent = kb ? 'Nama Beasiswa yang Diajukan' : kepLbl.dataset.asli;
+        }
         block.style.display = on ? '' : 'none';
         block.querySelectorAll('input').forEach(inp=>{ inp.disabled = !on; if(!on) inp.value = ''; });
-        ['MataKuliahKegiatan','TempatTujuan','TanggalMulai','TanggalSelesai','FilePendukung'].forEach(k=>{
+        ['MataKuliahKegiatan','TempatTujuan','TanggalMulai','TanggalSelesai','Keperluan','FilePendukung'].forEach(k=>{
           const inp = content.querySelector(`[name="${k}"]`);
           if(!inp) return;
-          const fld = inp.closest('.field'); if(fld) fld.style.display = sembunyi ? 'none' : '';
-          inp.disabled = sembunyi;
-          if(kb) inp.value = '';
+          // 'Keperluan' disembunyikan untuk 'Belum Pernah Menerima Beasiswa' &
+          // 'Penelitian Tugas Akhir'. Untuk 'Penelitian Tugas Akhir' juga
+          // disembunyikan: Tanggal Mulai, Tanggal Selesai, Tautan Berkas Pendukung.
+          let hide;
+          if(k === 'Keperluan') hide = bp || pta;
+          else if(k === 'TanggalMulai' || k === 'TanggalSelesai' || k === 'FilePendukung') hide = sembunyi || pta;
+          else hide = sembunyi;
+          const fld = inp.closest('.field'); if(fld) fld.style.display = hide ? 'none' : '';
+          inp.disabled = hide;
+          if(hide && (kb || bp || pta)) inp.value = '';
+          // 'Mata Kuliah / Nama Kegiatan' -> 'Judul Tugas Akhir / Skripsi' (tetap
+          // disimpan di kolom 'MataKuliahKegiatan').
+          if(k === 'MataKuliahKegiatan' && fld){
+            const lb = fld.querySelector('label');
+            if(lb){
+              if(!lb.dataset.asli) lb.dataset.asli = lb.textContent;
+              lb.textContent = pta ? 'Judul Tugas Akhir / Skripsi' : lb.dataset.asli;
+            }
+          }
         });
         if(on) updateReq();
       };
       katEl.addEventListener('change', syncOrmawa);
       subEl.addEventListener('change', syncOrmawa);
+    }
+  }
+
+  // Surat Tugas/Rekomendasi -> Jenis 'Rekomendasi' + 'Rekomendasi untuk' =
+  // 'Beasiswa': kotak 'Instansi Tujuan', 'Tanggal Mulai', 'Tanggal Selesai' dan
+  // 'Keperluan / Keterangan Tambahan' DISEMBUNYIKAN & dinonaktifkan (tidak
+  // divalidasi/tidak dikirim). Kotak 'Judul Kegiatan' dipakai sebagai 'Nama
+  // Beasiswa' (tetap disimpan di kolom 'JudulKegiatan', tanpa kolom baru di
+  // sheet) dan masuk ke kalimat "...mengajukan beasiswa <nama>" pada PDF surat.
+  if(key === 'SURAT_TUGAS'){
+    const katEl = content.querySelector('[data-dep-kat="Jenis"]');
+    const subEl = content.querySelector('[data-dep-sub="Jenis"]');
+    if(katEl && subEl){
+      const judulInp = content.querySelector('[name="JudulKegiatan"]');
+      const judulLbl = judulInp && judulInp.closest('.field') ? judulInp.closest('.field').querySelector('label') : null;
+      const syncBeasiswa = ()=>{
+        const bs = katEl.value === 'Rekomendasi' && subEl.value === 'Beasiswa';
+        if(judulLbl){
+          if(!judulLbl.dataset.asli) judulLbl.dataset.asli = judulLbl.textContent;
+          judulLbl.textContent = bs ? 'Nama Beasiswa' : judulLbl.dataset.asli;
+        }
+        if(judulInp){
+          if(!judulInp.dataset.asliPh) judulInp.dataset.asliPh = judulInp.getAttribute('placeholder') || '';
+          judulInp.placeholder = bs ? 'mis. Beasiswa KIP Kuliah' : judulInp.dataset.asliPh;
+        }
+        ['InstansiTujuan','TanggalMulai','TanggalSelesai','Keperluan'].forEach(k=>{
+          const inp = content.querySelector(`[name="${k}"]`);
+          if(!inp) return;
+          const fld = inp.closest('.field'); if(fld) fld.style.display = bs ? 'none' : '';
+          inp.disabled = bs;
+          if(bs) inp.value = '';
+        });
+      };
+      katEl.addEventListener('change', syncBeasiswa);
+      subEl.addEventListener('change', syncBeasiswa);
     }
   }
 
@@ -3399,7 +3595,7 @@ async function loadSvcHistory(key){
         <span class="pill ${esc(r.Status)}">${esc(r.Status)}</span>
       </div>
       ${(r.NamaRuang||r.NamaBarang) ? `<div style="font-size:13px;font-weight:600;margin-top:5px;">${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang)}</div>` : ''}
-      <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${fmtDateWithDay(r.TanggalPengajuan)}</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${fmtDateWithDay(r.TanggalPengajuan)}${akademikVal(r,'TahunAkademik') ? ' &middot; TA '+esc(akademikVal(r,'TahunAkademik'))+(akademikVal(r,'SemesterAkademik') ? ' '+esc(akademikVal(r,'SemesterAkademik')) : '') : ''}</div>
       ${r.DosenPembimbingDitetapkan ? `<div style="font-size:12.5px;margin-top:6px;"><b>Dosen Pembimbing:</b> ${esc(r.DosenPembimbingDitetapkan)}</div>` : ''}
       ${r.CatatanAdmin ? `<div style="font-size:12px;margin-top:6px;background:var(--paper);padding:8px 10px;border-radius:7px;">${esc(r.CatatanAdmin)}</div>` : ''}
     </div>
@@ -3417,11 +3613,13 @@ async function renderRiwayat(){
     return;
   }
   content.innerHTML = `<div class="card tbl-wrap"><table>
-    <thead><tr><th>ID</th><th>Layanan</th><th>Hari &amp; Tanggal</th><th>Status</th><th>Catatan Admin</th></tr></thead>
+    <thead><tr><th>ID</th><th>Layanan</th><th>Tahun Akademik</th><th>Semester</th><th>Hari &amp; Tanggal</th><th>Status</th><th>Catatan Admin</th></tr></thead>
     <tbody>${rows.map(r=>`
       <tr>
         <td class="mono">${esc(r.ID)}</td>
         <td>${esc(r._label)}</td>
+        <td>${esc(akademikVal(r,'TahunAkademik')||'-')}</td>
+        <td>${esc(akademikVal(r,'SemesterAkademik')||'-')}</td>
         <td>${fmtDateWithDay(r.TanggalPengajuan)}</td>
         <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
         <td style="max-width:260px;">${esc(r.CatatanAdmin||'-')}</td>
@@ -3474,12 +3672,16 @@ async function renderAdminRequests(){
     <div class="tabs">${tabs}</div>
     <div class="filter-bar">
       <select id="filterStatus"><option value="">Semua Status</option>${(SERVICE_META.statusListByService[adminReqTab]||SERVICE_META.statusList).map(s=>`<option>${s}</option>`).join('')}</select>
+      <select id="filterTA"><option value="">Semua Tahun Akademik</option>${AY_FILTER_LIST.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+      <select id="filterSemester"><option value="">Semua Semester</option><option>Ganjil</option><option>Genap</option></select>
       <input type="text" id="filterSearch" placeholder="Cari nama / ID / email...">
     </div>
     <div id="adminReqTable"></div>
   `;
   content.querySelectorAll('.tab').forEach(t=> t.addEventListener('click', ()=>{ adminReqTab = t.dataset.tab; renderAdminRequests(); }));
   document.getElementById('filterStatus').addEventListener('change', loadAdminReqTable);
+  document.getElementById('filterTA').addEventListener('change', loadAdminReqTable);
+  document.getElementById('filterSemester').addEventListener('change', loadAdminReqTable);
   document.getElementById('filterSearch').addEventListener('input', loadAdminReqTable);
   loadAdminReqTable();
 }
@@ -3509,6 +3711,10 @@ async function loadAdminReqTable(){
   const statusFilter = document.getElementById('filterStatus').value;
   const search = document.getElementById('filterSearch').value.toLowerCase();
   if(statusFilter) rows = rows.filter(r=>r.Status===statusFilter);
+  const taFilter = document.getElementById('filterTA').value;
+  const smFilter = document.getElementById('filterSemester').value;
+  if(taFilter) rows = rows.filter(r=> akademikVal(r,'TahunAkademik')===taFilter);
+  if(smFilter) rows = rows.filter(r=> akademikVal(r,'SemesterAkademik')===smFilter);
   if(search) rows = rows.filter(r => JSON.stringify(r).toLowerCase().includes(search));
 
   if(!rows.length){
@@ -3540,7 +3746,7 @@ async function loadAdminReqTable(){
   }
 
   box.innerHTML = `<div class="card tbl-wrap"><table>
-    <thead><tr><th>ID</th><th>Pemohon</th><th>Email</th><th>Prodi/Unit</th><th>Objek Dipinjam</th><th>Hari &amp; Tanggal</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>ID</th><th>Pemohon</th><th>Email</th><th>Prodi/Unit</th><th>Objek Dipinjam</th><th>Tahun Akademik</th><th>Semester</th><th>Hari &amp; Tanggal</th><th>Status</th><th></th></tr></thead>
     <tbody>${rows.map(r=>`
       <tr>
         <td class="mono">${esc(r.ID)}</td>
@@ -3548,6 +3754,8 @@ async function loadAdminReqTable(){
         <td>${esc(r.Email)}</td>
         <td>${esc(r.ProdiUnit||r.Prodi||'-')}</td>
         <td>${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang||'-')}</td>
+        <td>${esc(akademikVal(r,'TahunAkademik')||'-')}</td>
+        <td>${esc(akademikVal(r,'SemesterAkademik')||'-')}</td>
         <td>${fmtDateWithDay(r.TanggalPengajuan)}</td>
         <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
         <td><button class="btn btn-ghost btn-sm" onclick='openReqModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Kelola</button></td>
@@ -3619,7 +3827,7 @@ function modalStatusOptions(row){
 
 function openReqModal(row){
   const cfg = SERVICE_FORM_CONFIG[row._jenis];
-  const detailRows = cfg.fields.map(f=>`<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">${esc(f.label)}</div><div style="font-size:13px;">${esc(row[f.key]||'-')}</div></div>`).join('');
+  const detailRows = cfg.fields.map(f=>`<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">${esc(f.label)}</div><div style="font-size:13px;">${esc(akademikVal(row, f.key)||'-')}</div></div>`).join('');
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.innerHTML = `

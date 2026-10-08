@@ -1269,7 +1269,8 @@ const SERVICE_FORM_CONFIG = {
   },
   SURAT_KET_IJIN: {
     title:'Surat Keterangan / Izin',
-    desc:'Surat Keterangan (Praktik Kerja/Magang, Aktif Organisasi, Kelakuan Baik, Belum Pernah Menerima Beasiswa) dan Surat Ijin (Penelitian).',
+    desc:'Khusus Mahasiswa/Alumni. Surat Keterangan (Praktik Kerja/Magang, Aktif Organisasi, Kelakuan Baik, Belum Pernah Menerima Beasiswa) dan Surat Ijin (Penelitian).',
+    roles:['Mahasiswa'], identityLabel:'Mahasiswa/Alumni (NIM)', alumni:true,
     fields:[
       {key:'JenisSurat', label:'Jenis Surat', type:'dependent', full:true, sublabel:'Pilihan',
         sublabels:{Keterangan:'Surat Keterangan untuk', Ijin:'Ijin untuk'},
@@ -1287,7 +1288,8 @@ const SERVICE_FORM_CONFIG = {
   },
   SURAT_TUGAS: {
     title:'Surat Tugas / Rekomendasi',
-    desc:'Surat Tugas (Kepanitiaan, Seminar, Sarasehan, Workshop, Lomba) dan Surat Rekomendasi (Beasiswa, MBKM, CoE, Pertukaran Mahasiswa, Penelitian, Pengabdian Masyarakat, Kerjasama).',
+    desc:'Khusus Mahasiswa/Alumni. Surat Tugas (Kepanitiaan, Seminar, Sarasehan, Workshop, Lomba) dan Surat Rekomendasi (Beasiswa, MBKM, CoE, Pertukaran Mahasiswa, Penelitian, Pengabdian Masyarakat, Kerjasama).',
+    roles:['Mahasiswa'], identityLabel:'Mahasiswa/Alumni (NIM)', alumni:true,
     fields:[
       {key:'Jenis', label:'Jenis Surat', type:'dependent', full:true, sublabel:'Pilihan',
         sublabels:{Tugas:'Kegiatan', Rekomendasi:'Rekomendasi untuk'},
@@ -2028,7 +2030,7 @@ async function loadDashboardChartsHtml(email, role, prodi, keys){
     <div class="chart-grid">${keys.map(k=>buildServiceChart(k, rows)).join('')}</div>
     <div class="section-title"><h2>Respon Customer Service</h2><span class="hint">Tendik Fak. &amp; Tendik Prodi — paling responsif di atas</span></div>
     <div class="chart-card wide">
-      <div class="ch-head"><h3>Rata-rata waktu respon petugas</h3><span class="ch-type">Batang peringkat</span></div>
+      <div class="ch-head"><h3>Rata-rata waktu respon petugas</h3></div>
       <p class="ch-sub">Dihitung dari waktu pengajuan sampai tindakan terakhir petugas pada pengajuan tersebut; makin singkat makin responsif.</p>
       ${chartResponse(rows, petugas)}
     </div>`;
@@ -2322,11 +2324,18 @@ async function renderServiceForm(key){
       </div>`
     : `<div style="font-size:14px;font-weight:600;padding:2px 0 4px;">${esc(cfg.identityLabel || PERAN_INFO[allowedRoles[0]].label)}</div>
        <input type="hidden" name="_guestPeran" value="${allowedRoles[0]}">`;
-  const identityFieldsHtml = isGuest ? `
-    <div class="field full">
+  // Permohonan Surat (SURAT_FLOW_SERVICES) hanya untuk Mahasiswa/Alumni, jadi
+  // pilihan/label 'Anda mengajukan sebagai' tidak ditampilkan — peran tetap
+  // dikirim lewat input tersembunyi.
+  const hidePeran = SURAT_FLOW_SERVICES.indexOf(key) > -1;
+  const peranBlockHtml = hidePeran
+    ? `<input type="hidden" name="_guestPeran" value="${allowedRoles[0]}">`
+    : `<div class="field full">
       <label>Anda mengajukan sebagai</label>
       ${peranHtml}
-    </div>
+    </div>`;
+  const identityFieldsHtml = isGuest ? `
+    ${peranBlockHtml}
     <div class="field full">
       <label id="svcGuestIdLabel">${idAwal}</label>
       <input type="text" name="_guestNimNip" id="svcGuestNimNip" required autocomplete="off" placeholder="Masukkan ${idAwal}">
@@ -3135,13 +3144,18 @@ async function renderServiceForm(key){
       block.addEventListener('input', updateReq);
       syncOrmawa = ()=>{
         const on = katEl.value === 'Keterangan' && subEl.value === 'Aktif Organisasi';
+        // 'Kelakuan Baik': kelima kotak di bawah juga DISEMBUNYIKAN & dinonaktifkan
+        // (tidak divalidasi/tidak dikirim), tanpa blok ORMAWA.
+        const kb = katEl.value === 'Keterangan' && subEl.value === 'Kelakuan Baik';
+        const sembunyi = on || kb;
         block.style.display = on ? '' : 'none';
         block.querySelectorAll('input').forEach(inp=>{ inp.disabled = !on; if(!on) inp.value = ''; });
         ['MataKuliahKegiatan','TempatTujuan','TanggalMulai','TanggalSelesai','FilePendukung'].forEach(k=>{
           const inp = content.querySelector(`[name="${k}"]`);
           if(!inp) return;
-          const fld = inp.closest('.field'); if(fld) fld.style.display = on ? 'none' : '';
-          inp.disabled = on;
+          const fld = inp.closest('.field'); if(fld) fld.style.display = sembunyi ? 'none' : '';
+          inp.disabled = sembunyi;
+          if(kb) inp.value = '';
         });
         if(on) updateReq();
       };

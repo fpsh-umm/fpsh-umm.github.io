@@ -342,9 +342,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .ch-resp .fill{height:100%; border-radius:99px; background:linear-gradient(90deg,var(--navy-700),var(--navy-800));}
 .ch-resp .val{text-align:right; font-weight:600;}
 .ch-resp .val small{display:block; font-weight:400; color:var(--muted); font-size:11px;}
+.ch-resp-sum{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:12px;}
+.ch-resp-sum .box{background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:2px;}
+.ch-resp-sum .rl{font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--navy-700);}
+.ch-resp-sum b{font-size:24px; line-height:1.2; color:var(--navy-800);}
+.ch-resp-sum .ds{font-size:11.5px; color:var(--muted);}
 @media (max-width:700px){
   .chart-grid{grid-template-columns:1fr;}
-  .ch-resp .row{grid-template-columns:24px 1fr 90px;}
+  .ch-resp .row{grid-template-columns:24px 1fr 130px;}
   .ch-resp .track{display:none;}
 }
 
@@ -2041,10 +2046,20 @@ function chartResponse(rows, petugas){
   const list=Object.keys(agg).map(k=>({...agg[k], avg:agg[k].tot/agg[k].n})).sort((a,b)=>a.avg-b.avg || b.n-a.n);
   if(!list.length) return chEmpty();
   const fastest=Math.max(list[0].avg,0.01);
-  return `<div class="ch-resp">${list.map((x,i)=>`<div class="row"><span class="rk">${i+1}</span>
+  const total=list.reduce((a,x)=>a+x.n,0);
+  const pct=n=>(Math.round(n/total*1000)/10).toString().replace('.',',')+'%';
+  // Ringkasan per peran: % penanganan, rata-rata lama penanganan, jumlah Tendik yang menangani
+  const byRole={};
+  list.forEach(x=>{ const g=(byRole[x.role]=byRole[x.role]||{role:x.role, n:0, tot:0, tendik:0}); g.n+=x.n; g.tot+=x.tot; g.tendik++; });
+  const roles=Object.keys(byRole).map(k=>byRole[k]).sort((a,b)=>b.n-a.n);
+  const summary=`<div class="ch-resp-sum">${roles.map(g=>`<div class="box"><span class="rl">${esc(g.role)}</span>
+      <b>${pct(g.n)}</b><span class="ds">${g.n} penanganan</span>
+      <span class="ds">Rata-rata ${chDur(g.tot/g.n)}</span>
+      <span class="ds">${g.tendik} Tendik menangani</span></div>`).join('')}</div>`;
+  return summary+`<div class="ch-resp">${list.map((x,i)=>`<div class="row"><span class="rk">${i+1}</span>
       <span class="nm"><b title="${esc(x.nama)}">${esc(x.nama)}</b><span>${esc(x.role)}</span></span>
       <span class="track"><span class="fill" style="display:block;width:${Math.max(6,Math.min(100,fastest/Math.max(x.avg,0.01)*100))}%"></span></span>
-      <span class="val">${chDur(x.avg)}<small>${x.n} pengajuan ditangani</small></span></div>`).join('')}</div>`;
+      <span class="val">${pct(x.n)}<small>${x.n} penanganan · rata-rata ${chDur(x.avg)}</small></span></div>`).join('')}</div>`;
 }
 
 function buildServiceChart(key, rows){
@@ -2129,8 +2144,8 @@ async function loadDashboardChartsHtml(email, role, prodi, keys, pre){
     <div class="chart-grid">${keys.map(k=>buildServiceChart(k, rows)).join('')}</div>
     <div class="section-title"><h2>Respon Customer Service</h2><span class="hint">Tendik Fak. &amp; Tendik Prodi — paling responsif di atas</span></div>
     <div class="chart-card wide">
-      <div class="ch-head"><h3>Rata-rata waktu respon petugas</h3></div>
-      <p class="ch-sub">Dihitung dari waktu pengajuan sampai tindakan terakhir petugas pada pengajuan tersebut; makin singkat makin responsif.</p>
+      <div class="ch-head"><h3>Penanganan &amp; waktu respon petugas</h3></div>
+      <p class="ch-sub">Persentase = porsi jumlah penanganan terhadap seluruh penanganan. Lama penanganan dihitung dari waktu pengajuan sampai tindakan terakhir petugas; makin singkat makin responsif.</p>
       ${chartResponse(rows, petugas)}
     </div>`;
 }

@@ -87,7 +87,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   --lp-maroon:#e8242a; --lp-maroon-dark:#c91d23; --lp-ink:#1c2740; --lp-sub:#3b4a63;
   --lp-line:#dfe6ee; --lp-soft:#eff3f8; --lp-ph:#9aa6b8;
   position:fixed; inset:0; z-index:100; overflow-y:auto;
-  display:flex; align-items:center; justify-content:center; padding:20px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;
   background:linear-gradient(165deg,#b3151b 0%,#e8242a 55%,#fcee1f 135%);
   font-family:var(--sans);
 }
@@ -95,8 +95,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   position:relative; width:100%; max-width:440px; background:#fff;
   border-radius:28px; border-top:8px solid #fcee1f;
   padding:40px 34px 32px; box-shadow:0 24px 60px rgba(0,0,0,.35);
-  max-height:calc(100vh - 40px); overflow-y:auto; margin:auto;
+  max-height:calc(100vh - 80px); overflow-y:auto; margin:auto;
 }
+/* Hak cipta di dasar halaman Login (card tetap di tengah; footer menempel di bawah) */
+.lp-footer{flex:0 0 auto; width:100%; text-align:center; padding:14px 8px 2px; font-size:12.5px; line-height:1.5; color:rgba(255,255,255,.92); text-shadow:0 1px 2px rgba(0,0,0,.25);}
+/* Hak cipta di dasar halaman utama (menempel di bawah walau isi halaman pendek) */
+.app-footer{margin-top:auto; padding:18px 16px 20px; text-align:center; font-size:12.5px; line-height:1.5; color:var(--muted); border-top:1px solid var(--line); background:transparent;}
+@media print{ .app-footer, .lp-footer{display:none;} }
 .lp-close{
   position:absolute; top:14px; right:14px; width:44px; height:44px; border-radius:50%;
   border:none; background:#fff; color:#7d8ba3; display:flex; align-items:center; justify-content:center;
@@ -159,7 +164,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 @media (max-width:480px){
   #authScreen{padding:10px;}
-  .lp-card{padding:34px 20px 24px; border-radius:24px; max-height:calc(100vh - 20px);}
+  .lp-card{padding:34px 20px 24px; border-radius:24px; max-height:calc(100vh - 60px);}
   .lp-title{font-size:24px;}
   .lp-subtitle{font-size:16px;}
   .lp-tab{font-size:13.5px;}
@@ -542,10 +547,6 @@ tbody tr:hover{background:#fffbd9;}
     <h1 class="lp-title">Portal Layanan Prima</h1>
     <p class="lp-subtitle">Fakultas Pendidikan, Sains, dan Humaniora</p>
 
-    <div class="lp-tabs" role="tablist">
-      <button type="button" class="lp-tab active" data-panel="login" role="tab">Masuk</button>
-      <button type="button" class="lp-tab" data-panel="register" role="tab">Daftar Akun</button>
-    </div>
 
     <div id="loginPanel">
       <div id="loginMsg"></div>
@@ -563,7 +564,6 @@ tbody tr:hover{background:#fffbd9;}
             <svg class="lp-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 10 0v3h.5A2.5 2.5 0 0 1 20 12.5v7a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 19.5v-7A2.5 2.5 0 0 1 6.5 10H7zm2 0h6V7a3 3 0 0 0-6 0v3z"/></svg>
             <input type="password" id="loginPw" placeholder="********" required autocomplete="current-password">
           </div>
-          <div class="lp-hint">Gunakan email atau NIM/NIP dan password akun yang terdaftar.</div>
         </div>
         <button type="submit" class="lp-btn" id="loginBtn">Login <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       </form>
@@ -590,6 +590,7 @@ tbody tr:hover{background:#fffbd9;}
       </form>
     </div>
   </div>
+  <div class="lp-footer">&copy; 2026. All Rights Reserved. Design by Tendik LMT, FPSH - UMM</div>
 </div>
 
 <!-- ============================================================
@@ -670,6 +671,7 @@ tbody tr:hover{background:#fffbd9;}
     <div class="content" id="content">
       <div class="center-load"><span class="loader"></span> Memuat...</div>
     </div>
+    <footer class="app-footer">&copy; 2026. All Rights Reserved. Design by Tendik LMT, FPSH - UMM</footer>
   </div>
 </div>
 
@@ -1349,6 +1351,7 @@ const SERVICE_FORM_CONFIG = {
     title:'Surat Keterangan / Izin',
     desc:'Khusus Mahasiswa/Alumni. Surat Keterangan (Praktik Kerja/Magang, Aktif Organisasi, Kelakuan Baik, Belum Pernah Menerima Beasiswa) dan Surat Ijin (Penelitian).',
     roles:['Mahasiswa'], identityLabel:'Mahasiswa/Alumni (NIM)', alumni:true,
+    stepJenis:'JenisSurat',   // tampil bertahap: NIM -> Email + Jenis Surat -> sisa isian
     fields:[
       {key:'JenisSurat', label:'Jenis Surat', type:'dependent', full:true, sublabel:'Pilihan',
         sublabels:{Keterangan:'Surat Keterangan untuk', Ijin:'Ijin untuk'},
@@ -1368,6 +1371,7 @@ const SERVICE_FORM_CONFIG = {
     title:'Surat Tugas / Rekomendasi',
     desc:'Khusus Mahasiswa/Alumni. Surat Tugas (Kepanitiaan, Seminar, Sarasehan, Workshop, Lomba) dan Surat Rekomendasi (Beasiswa, MBKM, CoE, Pertukaran Mahasiswa, Penelitian, Pengabdian Masyarakat, Kerjasama).',
     roles:['Mahasiswa'], identityLabel:'Mahasiswa/Alumni (NIM)', alumni:true,
+    stepJenis:'Jenis',        // tampil bertahap: NIM -> Email + Jenis Surat -> sisa isian
     fields:[
       {key:'Jenis', label:'Jenis Surat', type:'dependent', full:true, sublabel:'Pilihan',
         sublabels:{Tugas:'Kegiatan', Rekomendasi:'Rekomendasi untuk'},
@@ -1387,7 +1391,6 @@ const SERVICE_FORM_CONFIG = {
     desc:'Khusus Mahasiswa. Ajukan usulan judul tugas akhir; Dosen Pembimbing ditetapkan lewat Plotting Dosen Pembimbing oleh Ketua Prodi.',
     roles:['Mahasiswa'],
     fields:[
-      {key:'Prodi', label:'Program Studi', type:'text'},
       {key:'BidangKajian', label:'Bidang Kajian', type:'text'},
       {key:'JudulUsulan1', label:'Judul Usulan 1', type:'text', full:true},
       {key:'JudulUsulan2', label:'Judul Usulan 2', type:'text', full:true},
@@ -1399,7 +1402,6 @@ const SERVICE_FORM_CONFIG = {
     desc:'Khusus Mahasiswa. Daftar sidang tugas akhir: pilih Tahun Akademik & Semester (sesuai KSM berjalan), total SKS, IPK/Transkrip Sementara.',
     roles:['Mahasiswa'],
     fields:[
-      {key:'Prodi', label:'Program Studi', type:'text'},
       {key:'TotalSKS', label:'Total SKS', type:'number'},
       {key:'IPK', label:'IPK (sesuai Transkrip Sementara)', type:'text'},
       {key:'TautanDokumen', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'url', full:true, googleLink:true, placeholder:'https://drive.google.com/... (KSM & Transkrip Sementara)'}
@@ -1410,7 +1412,8 @@ const SERVICE_FORM_CONFIG = {
     desc:'Khusus Mahasiswa/Alumni. Ajukan legalisasi/pengesahan salinan ijazah, transkrip nilai, atau sertifikat.',
     roles:['Mahasiswa'], identityLabel:'Mahasiswa/Alumni (NIM)', alumni:true,
     fields:[
-      {key:'Prodi', label:'Program Studi', type:'text'},
+      {key:'Prodi', formHidden:true, label:'Program Studi', type:'select', options:['Pendidikan Matematika','Pendidikan Biologi','Pendidikan Bahasa Indonesia','Pendidikan Pancasila dan Kewarganegaraan','Pendidikan Bahasa Inggris','Pendidikan Guru Sekolah Dasar','Pendidikan Kepelatihan Olahraga']},
+      {key:'TahunLulus', formHidden:true, label:'Lulusan Tahun', type:'number'},   // hanya diisi pemohon Alumni (lihat blok Alumni pada form Legalisasi)
       {key:'JenisDokumen', label:'Jenis Dokumen', type:'select', options:['Ijazah','Transkrip Nilai','Sertifikat','Lainnya']},
       {key:'JumlahLembar', label:'Jumlah Lembar/Salinan', type:'number'},
       {key:'Keperluan', label:'Keperluan', type:'textarea', full:true},
@@ -1428,7 +1431,7 @@ const SERVICE_FORM_CONFIG = {
           'Sertifikat':['PESMABA','Student Day','Mahasiswa Berprestasi Akademik','Mahasiswa Berprestasi Non Akademik']
         }},
       {key:'Deskripsi', label:'Kronologi Kehilangan', type:'textarea', full:true},
-      {key:'TautanDokumen', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi)', type:'url', full:true, googleLink:true, placeholder:'https://drive.google.com/... (salinan/foto dokumen asli)'}
+      {key:'TautanDokumen', label:'Tautan Dokumen Asli (Google Drive, untuk verifikasi) — opsional', type:'url', full:true, googleLink:true, required:false, placeholder:'https://drive.google.com/... (salinan/foto dokumen asli) — boleh dikosongkan'}
     ]
   }
   // Catatan: SKL (Surat Keterangan Lulus) sengaja tidak lagi didaftarkan di
@@ -2449,7 +2452,10 @@ async function renderServiceForm(key){
   // Sidang TA, Legalisasi) hanya menampilkan NIM — tanpa pilihan Dosen/Tendik.
   const PERAN_INFO = {Mahasiswa:{id:'NIM', label:'Mahasiswa (NIM)'}, Dosen:{id:'NIDN', label:'Dosen (NIDN)'}, Tendik:{id:'NIP', label:'Tendik (NIP)'}};
   const allowedRoles = cfg.roles || ['Mahasiswa','Dosen','Tendik'];
-  const idAwal = PERAN_INFO[allowedRoles[0]].id;
+  // Kehilangan Dokumen: peran (Mahasiswa/Dosen/Tendik) TIDAK dipilih pemohon; NIM/NIDN/NIP
+  // dicari otomatis di ketiga data induk (peran dikirim kosong ke server).
+  const autoPeran = key === 'LAINNYA';
+  const idAwal = autoPeran ? 'NIM / NIDN / NIP' : PERAN_INFO[allowedRoles[0]].id;
   const peranHtml = allowedRoles.length > 1
     ? `<div class="radio-group" id="svcGuestPeranGroup">${allowedRoles.map((r,i)=>`
         <label class="radio-opt"><input type="radio" name="_guestPeran" value="${r}" ${i===0?'checked':''}><span>${esc(PERAN_INFO[r].label)}</span></label>`).join('')}
@@ -2459,16 +2465,51 @@ async function renderServiceForm(key){
   // Permohonan Surat (SURAT_FLOW_SERVICES) hanya untuk Mahasiswa/Alumni, jadi
   // pilihan/label 'Anda mengajukan sebagai' tidak ditampilkan — peran tetap
   // dikirim lewat input tersembunyi.
-  const hidePeran = SURAT_FLOW_SERVICES.indexOf(key) > -1;
+  // Legalisasi Dokumen & Kehilangan Dokumen juga tidak menampilkannya.
+  const hidePeran = SURAT_FLOW_SERVICES.indexOf(key) > -1 || key === 'LEGALISASI' || autoPeran;
   const peranBlockHtml = hidePeran
-    ? `<input type="hidden" name="_guestPeran" value="${allowedRoles[0]}">`
+    ? `<input type="hidden" name="_guestPeran" value="${autoPeran ? '' : allowedRoles[0]}">`
     : `<div class="field full">
       <label>Anda mengajukan sebagai</label>
       ${peranHtml}
     </div>`;
+  // Legalisasi Dokumen: dua jenis pemohon. (1) Mahasiswa Aktif — NIM dicari di data
+  // induk Mahasiswa (Nama/Prodi otomatis, TANPA dropdown Program Studi). (2) Alumni
+  // yang tidak ada di data Mahasiswa — isian manual: NIM, Nama, Program Studi
+  // (dropdown), Lulusan Tahun. Hanya untuk pemohon tamu (yang login sudah punya akun).
+  const withAlumniOption = isGuest && key === 'LEGALISASI';
+  const prodiOptsAlumni = (cfg.fields.find(f=> f.key === 'Prodi') || {options:[]}).options;
+  const statusPemohonHtml = withAlumniOption ? `
+    <div class="field full">
+      <label>Status Pemohon</label>
+      <div class="radio-group" data-radio-group="_statusPemohon">
+        <label class="radio-opt is-checked"><input type="radio" name="_statusPemohon" value="aktif" checked><span>Mahasiswa Aktif</span></label>
+        <label class="radio-opt"><input type="radio" name="_statusPemohon" value="alumni"><span>Alumni (tidak terdaftar di data Mahasiswa)</span></label>
+      </div>
+    </div>` : '';
+  const alumniBlockHtml = withAlumniOption ? `
+    <div id="svcAlumniBlock" style="display:none;">
+      <div class="field full">
+        <label>NIM</label>
+        <input type="text" name="_alumniNim" id="svcAlumniNim" autocomplete="off" placeholder="Masukkan NIM" disabled>
+      </div>
+      <div class="field full">
+        <label>Nama</label>
+        <input type="text" name="_alumniNama" id="svcAlumniNama" autocomplete="off" placeholder="Nama lengkap sesuai ijazah" disabled>
+      </div>
+      <div class="field full">
+        <label>Program Studi</label>
+        <select name="_alumniProdi" id="svcAlumniProdi" disabled><option value="">Pilih...</option>${prodiOptsAlumni.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>
+      </div>
+      <div class="field full">
+        <label>Lulusan Tahun</label>
+        <input type="number" name="_alumniTahun" id="svcAlumniTahun" min="1980" max="${new Date().getFullYear()}" inputmode="numeric" placeholder="mis. 2022" style="max-width:160px;" disabled>
+      </div>
+    </div>` : '';
   const identityFieldsHtml = isGuest ? `
     ${peranBlockHtml}
-    <div class="field full">
+    ${statusPemohonHtml}
+    <div class="field full" id="svcAktifNimWrap">
       <label id="svcGuestIdLabel">${idAwal}</label>
       <input type="text" name="_guestNimNip" id="svcGuestNimNip" required autocomplete="off" placeholder="Masukkan ${idAwal}">
       <input type="hidden" name="_guestRole" id="svcGuestRole">
@@ -2477,6 +2518,7 @@ async function renderServiceForm(key){
       <input type="hidden" name="_guestProdi" id="svcGuestProdi">
       <div id="svcGuestLookupHint" style="font-size:13px;margin-top:6px;color:var(--muted);"></div>
     </div>
+    ${alumniBlockHtml}
   ` : '';
 
   // Alamat Email Aktif — WAJIB di semua pengajuan (Mahasiswa, Dosen, Tendik).
@@ -2492,7 +2534,8 @@ async function renderServiceForm(key){
 
   // Tahun Akademik & Semester tidak lagi dipilih pemohon (diatur di sheet 'Config'),
   // jadi kedua isian ini tidak ditampilkan di form.
-  const fieldsHtml = cfg.fields.filter(f=> f.key !== 'TahunAkademik' && f.key !== 'SemesterAkademik').map(f=>{
+  const visibleFields = cfg.fields.filter(f=> f.key !== 'TahunAkademik' && f.key !== 'SemesterAkademik' && !f.formHidden);
+  const fieldHtmlArr = visibleFields.map(f=>{
     const fullClass = f.full ? 'full' : '';
     if(f.type === 'dependent'){
       return `<div class="field ${fullClass}"><label>${esc(f.label)}</label>
@@ -2686,7 +2729,16 @@ async function renderServiceForm(key){
       </div>`;
     }
     return `<div class="field ${fullClass}"><label>${esc(f.label)}</label><input type="${f.type}" name="${f.key}" value="${esc(defaultVal)}" ${f.placeholder?`placeholder="${esc(f.placeholder)}"`:''} ${f.required===false?'':'required'}></div>`;
-  }).join('');
+  });
+  const fieldsHtml = fieldHtmlArr.join('');
+  // Tampilan BERTAHAP (Surat Keterangan/Izin & Surat Tugas/Rekomendasi): 1) hanya NIM;
+  // 2) setelah NIM ditemukan -> Alamat Email Aktif + Jenis Surat; 3) setelah Jenis
+  // Surat dipilih -> sisa isian & tombol kirim. Lihat syncStage3 di bawah.
+  const jenisIdx = cfg.stepJenis ? visibleFields.findIndex(f=> f.key === cfg.stepJenis) : -1;
+  const stagedJenis = jenisIdx > -1;
+  const restInnerHtml = stagedJenis
+    ? `${emailAktifHtml}${fieldHtmlArr[jenisIdx]}<div id="svcStage3" style="display:contents;">${fieldHtmlArr.filter((_,i)=> i !== jenisIdx).join('')}</div>`
+    : `${emailAktifHtml}${fieldsHtml}`;
 
   const historyBlock = isGuest ? '' : `
       <div>
@@ -2744,7 +2796,7 @@ async function renderServiceForm(key){
         ${akademikInfoHtml}
         <div id="svcMsg"></div>
         <form id="svcForm">
-          <div class="form-grid">${identityFieldsHtml}<div id="svcRestFields" style="display:contents;">${emailAktifHtml}${fieldsHtml}</div></div>
+          <div class="form-grid">${identityFieldsHtml}<div id="svcRestFields" style="display:contents;">${restInnerHtml}</div></div>
           <div id="svcPendingBlock" style="display:none;margin-top:14px;"></div>
           <div id="svcFutureDateHint" class="msg" style="display:none;margin-top:14px;background:var(--indigo-bg);color:var(--indigo);"></div>
           <div style="margin-top:18px;" id="svcSubmitWrap"><button type="submit" class="btn btn-primary" id="svcSubmitBtn">${esc(submitLabel)}</button></div>
@@ -3138,6 +3190,12 @@ async function renderServiceForm(key){
   // kotak isian terpisah) dan disimpan lewat field tersembunyi untuk
   // dikirim saat submit. Berlaku di semua form "Ajukan Layanan".
   let guestHasPending = false; // dibaca oleh handler submit di bawah
+  // Tampilan bertahap Permohonan Surat (SURAT_FLOW_SERVICES): pemohon tamu hanya
+  // melihat kotak NIM dulu; sisa form baru muncul setelah NIM ditemukan.
+  const stagedRest = isGuest && SURAT_FLOW_SERVICES.indexOf(key) > -1;
+  let stage3Open = ()=> true;     // diganti di bawah bila layanan memakai tahap Jenis Surat
+  let alumniMode = ()=> false;    // Legalisasi: true bila pemohon memilih 'Alumni' (isian manual)
+  let syncStatusPemohon = ()=>{};
 
   if(isGuest){
     const nimEl = document.getElementById('svcGuestNimNip');
@@ -3150,10 +3208,14 @@ async function renderServiceForm(key){
     const pendingEl = document.getElementById('svcPendingBlock');
     const submitWrap = document.getElementById('svcSubmitWrap');
     let lookupTimer = null;
+    if(stagedRest){ restEl.style.display = 'none'; submitWrap.style.display = 'none'; }   // awal: HANYA kotak NIM
     // Peran yang dipilih menentukan jenis nomor identitas: Mahasiswa = NIM,
     // Dosen = NIDN, Tendik = NIP (dicari di data induk peran tsb).
     const idLabelPeran = (p)=> ({Mahasiswa:'NIM', Dosen:'NIDN', Tendik:'NIP'})[p] || 'NIM';
-    const peranDipilih = ()=> (document.querySelector('input[name="_guestPeran"]:checked') || document.querySelector('input[name="_guestPeran"]') || {}).value || 'Mahasiswa';
+    const peranDipilih = ()=>{
+      const el = document.querySelector('input[name="_guestPeran"]:checked') || document.querySelector('input[name="_guestPeran"]');
+      return el ? el.value : 'Mahasiswa';     // '' (Kehilangan Dokumen) = cari di semua data induk
+    };
     const idLabelEl = document.getElementById('svcGuestIdLabel');
     const emailAktifEl = document.getElementById('svcEmailAktif');
     if(emailAktifEl) emailAktifEl.addEventListener('input', ()=>{ emailAktifEl.dataset.auto = '0'; });
@@ -3161,23 +3223,35 @@ async function renderServiceForm(key){
     // Sembunyikan sisa form (field lain + tombol kirim) dan tampilkan daftar
     // riwayat yang belum selesai, ATAU sebaliknya tampilkan kembali sisa form
     // kalau tidak ada yang tertunda.
-    const setPendingView = (pending, nimNip)=>{
+    const setPendingView = (pending, nimNip, found)=>{
       guestHasPending = !!(pending && pending.length);
+      const ok = stagedRest ? !!found : true;     // layanan bertahap: tampil hanya bila NIM ditemukan
       if(guestHasPending){
         restEl.style.display = 'none';
         submitWrap.style.display = 'none';
         pendingEl.style.display = 'block';
         pendingEl.innerHTML = renderPendingBlockHtml(pending, nimNip);
       } else {
-        restEl.style.display = 'contents';
-        submitWrap.style.display = 'block';
+        restEl.style.display = ok ? 'contents' : 'none';
+        submitWrap.style.display = (ok && stage3Open()) ? 'block' : 'none';
         pendingEl.style.display = 'none';
         pendingEl.innerHTML = '';
       }
     };
 
-    const doLookup = async ()=>{
+    // PENTING (perbaikan "klik Jenis Surat harus 2x"): doLookup dulu dijalankan LAGI
+    // setiap kotak NIM kehilangan fokus (event 'blur') — termasuk saat pemohon
+    // mengklik dropdown Jenis Surat. Akibatnya sisa form disembunyikan lalu
+    // ditampilkan ulang, sehingga klik pertama 'hilang' & harus diulang. Sekarang
+    // blur tidak mengulang pencarian bila NIM yang sama sudah diperiksa, dan hasil
+    // pencarian lama (balapan async) diabaikan.
+    let lastLookupVal = null, lookupSeq = 0;
+    const doLookup = async (force)=>{
       const val = nimEl.value.trim();
+      clearTimeout(lookupTimer);
+      if(force !== true && val === lastLookupVal) return;   // NIM tidak berubah -> jangan reset tampilan
+      lastLookupVal = val;
+      const seq = ++lookupSeq;
       roleEl.value = ''; namaEl.value = ''; emailEl.value = ''; prodiEl.value = '';
       setPendingView(null);
       if(!val){ hintEl.innerHTML = ''; return; }
@@ -3185,6 +3259,7 @@ async function renderServiceForm(key){
       hintEl.textContent = 'Mencari data induk...';
       try{
         const res = await callServer('lookupIdentityByNimNip', val, peranDipilih(), !!cfg.alumni);
+        if(seq !== lookupSeq) return;                        // sudah ada pencarian yang lebih baru
         if(res && res.found){
           roleEl.value = res.Role;
           namaEl.value = res.Nama;
@@ -3202,30 +3277,81 @@ async function renderServiceForm(key){
           // sembunyikan sisa form & tampilkan riwayat yang belum selesai itu
           // saja; pemohon harus menuntaskannya lebih dulu lewat Admin/Tendik.
           const pending = await callServer('getPendingRequestsByNimNip', val);
-          setPendingView(pending, val);
+          if(seq !== lookupSeq) return;
+          setPendingView(pending, val, true);
         } else {
           hintEl.style.color = '#b42318';
-          hintEl.textContent = (cfg.alumni ? 'NIM' : idLabelPeran(peranDipilih())) + ' tidak ditemukan di data induk ' + (cfg.alumni ? 'Mahasiswa/Alumni' : peranDipilih()) + '.';
+          hintEl.textContent = autoPeran
+            ? 'NIM/NIDN/NIP tidak ditemukan di data induk.'
+            : (cfg.alumni ? 'NIM' : idLabelPeran(peranDipilih())) + ' tidak ditemukan di data induk ' + (cfg.alumni ? 'Mahasiswa/Alumni' : peranDipilih()) + '.';
         }
       } catch(err){
-        hintEl.innerHTML = '';
+        if(seq === lookupSeq){ hintEl.innerHTML = ''; lastLookupVal = null; }   // gagal -> boleh dicoba lagi saat blur
       }
     };
 
     nimEl.addEventListener('input', ()=>{
       clearTimeout(lookupTimer);
-      lookupTimer = setTimeout(doLookup, 500);
+      lookupTimer = setTimeout(()=> doLookup(true), 500);
     });
-    nimEl.addEventListener('blur', doLookup);
+    nimEl.addEventListener('blur', ()=> doLookup(false));
     document.querySelectorAll('input[name="_guestPeran"]').forEach(r=>{
       r.addEventListener('change', ()=>{
         const lbl = idLabelPeran(peranDipilih());
         idLabelEl.textContent = lbl;
         nimEl.placeholder = 'Masukkan ' + lbl;
         nimEl.value = '';
-        doLookup();
+        doLookup(true);
       });
     });
+
+    // ---- Legalisasi: pilihan Mahasiswa Aktif / Alumni ----
+    if(withAlumniOption){
+      const aktifWrap = document.getElementById('svcAktifNimWrap');
+      const alumniBlock = document.getElementById('svcAlumniBlock');
+      const aNim = document.getElementById('svcAlumniNim'), aNama = document.getElementById('svcAlumniNama');
+      const aProdi = document.getElementById('svcAlumniProdi'), aTahun = document.getElementById('svcAlumniTahun');
+      const statusRadios = document.querySelectorAll('input[name="_statusPemohon"]');
+      let lastAlumniNim = null, alumniSeq = 0, alumniTimer = null;
+      alumniMode = ()=>{ const r = document.querySelector('input[name="_statusPemohon"]:checked'); return !!r && r.value === 'alumni'; };
+      // Alumni juga tetap tidak boleh mengajukan bila masih ada pengajuan yang belum 'Selesai'.
+      const checkAlumniPending = async (force)=>{
+        const val = aNim.value.trim();
+        clearTimeout(alumniTimer);
+        if(force !== true && val === lastAlumniNim) return;          // NIM sama -> jangan reset tampilan
+        lastAlumniNim = val;
+        const seq = ++alumniSeq;
+        if(!val){ setPendingView(null); return; }
+        try{
+          const pending = await callServer('getPendingRequestsByNimNip', val);
+          if(seq !== alumniSeq || !alumniMode()) return;
+          setPendingView(pending, val, true);
+        }catch(err){ if(seq === alumniSeq) lastAlumniNim = null; }
+      };
+      syncStatusPemohon = ()=>{
+        const alumni = alumniMode();
+        aktifWrap.style.display = alumni ? 'none' : '';
+        alumniBlock.style.display = alumni ? 'contents' : 'none';
+        nimEl.disabled = alumni; nimEl.required = !alumni;
+        [aNim, aNama, aProdi, aTahun].forEach(el=>{ el.disabled = !alumni; el.required = alumni; });
+        statusRadios.forEach(r=>{ const opt = r.closest('.radio-opt'); if(opt) opt.classList.toggle('is-checked', r.checked); });
+        clearTimeout(lookupTimer); clearTimeout(alumniTimer);
+        lookupSeq++; alumniSeq++;                                     // abaikan pencarian lama yang masih berjalan
+        if(alumni){
+          guestHasPending = false; lastAlumniNim = null;
+          setPendingView(null);
+          if(aNim.value.trim()) checkAlumniPending(true);
+        } else {
+          lastLookupVal = null;
+          setPendingView(null);
+          if(nimEl.value.trim()) doLookup(true);
+        }
+      };
+      statusRadios.forEach(r=> r.addEventListener('change', syncStatusPemohon));
+      aNim.addEventListener('input', ()=>{ clearTimeout(alumniTimer); alumniTimer = setTimeout(()=> checkAlumniPending(true), 500); });
+      aNim.addEventListener('blur', ()=> checkAlumniPending(false));
+      syncStatusPemohon();
+    }
   }
 
   // Field 'dependent' (mis. Jenis Surat: Keterangan/Ijin -> pilihan rinci):
@@ -3246,6 +3372,26 @@ async function renderServiceForm(key){
     }
   };
   document.querySelectorAll('[data-dep-kat]').forEach(el=> el.addEventListener('change', ()=>refreshDependent(el)));
+
+  // Tahap 3 (Surat Keterangan/Izin & Surat Tugas/Rekomendasi): sisa isian + tombol kirim
+  // baru muncul setelah Jenis Surat dipilih lengkap (pilihan utama + pilihan rinci bila ada).
+  if(stagedJenis){
+    const stage3El = document.getElementById('svcStage3');
+    const katJ = content.querySelector(`[data-dep-kat="${cfg.stepJenis}"]`);
+    const subJ = content.querySelector(`[data-dep-sub="${cfg.stepJenis}"]`);
+    stage3Open = ()=> !!(katJ && katJ.value && (!subJ || !subJ.required || subJ.value));
+    const syncStage3 = ()=>{
+      const open = stage3Open();
+      stage3El.style.display = open ? 'contents' : 'none';
+      // Tombol kirim ikut tersembunyi selama tahap 3 belum terbuka (mencegah validasi
+      // native pada isian yang belum terlihat) atau selama sisa form disembunyikan.
+      const restEl2 = document.getElementById('svcRestFields');
+      const restVisible = restEl2 && restEl2.style.display !== 'none';
+      document.getElementById('svcSubmitWrap').style.display = (open && restVisible) ? 'block' : 'none';
+    };
+    [katJ, subJ].forEach(el=>{ if(el) el.addEventListener('change', ()=> setTimeout(syncStage3, 0)); });
+    syncStage3();
+  }
 
   // Surat Keterangan/Izin -> Jenis Surat 'Keterangan' + 'Surat Keterangan untuk'
   // = 'Aktif Organisasi': kotak 'Mata Kuliah / Nama Kegiatan', 'Instansi/Tempat
@@ -3308,13 +3454,13 @@ async function renderServiceForm(key){
         semBlock.style.display = (on || kb || pta) ? '' : 'none';
         semInp.disabled = !(on || kb || pta);
         if(!(on || kb || pta)) semInp.value = '';
-        // 'Keperluan' pada Kelakuan Baik = nama beasiswa yang diajukan (masuk ke
-        // kalimat penutup surat), jadi labelnya disesuaikan.
+        // 'Keperluan' pada Kelakuan Baik: labelnya 'Untuk Keperluan' (masuk ke
+        // kalimat penutup surat: "...dibuat untuk <keperluan> dan agar ...").
         const kepInp = content.querySelector('[name="Keperluan"]');
         const kepLbl = kepInp && kepInp.closest('.field') ? kepInp.closest('.field').querySelector('label') : null;
         if(kepLbl){
           if(!kepLbl.dataset.asli) kepLbl.dataset.asli = kepLbl.textContent;
-          kepLbl.textContent = kb ? 'Nama Beasiswa yang Diajukan' : kepLbl.dataset.asli;
+          kepLbl.textContent = kb ? 'Untuk Keperluan' : kepLbl.dataset.asli;
         }
         block.style.display = on ? '' : 'none';
         block.querySelectorAll('input').forEach(inp=>{ inp.disabled = !on; if(!on) inp.value = ''; });
@@ -3389,7 +3535,7 @@ async function renderServiceForm(key){
     const msgBox = document.getElementById('svcMsg');
     msgBox.innerHTML = '';
 
-    if(isGuest && !document.getElementById('svcGuestNama').value){
+    if(isGuest && !alumniMode() && !document.getElementById('svcGuestNama').value){
       msgBox.innerHTML = '<div class="msg error">NIM/NIDN/NIP belum ditemukan di data induk. Pilih peran yang sesuai dan periksa kembali nomor identitas Anda sebelum mengirim.</div>';
       return;
     }
@@ -3451,8 +3597,9 @@ async function renderServiceForm(key){
     }
     for(const f of cfg.fields.filter(x=>x.googleLink)){
       const el = document.querySelector(`[name="${f.key}"]`);
+      if(el && f.required === false && !el.value.trim()) continue;      // tautan opsional & dikosongkan
       if(!el || !/^https:\/\/([a-z0-9-]+\.)*(google\.com|goo\.gl)(\/|$)\S*$/i.test(el.value.trim())){
-        msgBox.innerHTML = '<div class="msg error">'+esc(f.label)+' wajib diisi dengan tautan Google Drive yang valid (diawali https://drive.google.com/...).</div>';
+        msgBox.innerHTML = '<div class="msg error">'+esc(f.label)+' '+(f.required===false ? 'harus berupa' : 'wajib diisi dengan')+' tautan Google Drive yang valid (diawali https://drive.google.com/...).</div>';
         if(el) el.focus();
         return;
       }
@@ -3535,7 +3682,20 @@ async function renderServiceForm(key){
       payload.Jumlah = totalQty;
     });
 
-    if(isGuest){
+    const modeAlumni = isGuest && alumniMode();
+    delete payload._statusPemohon;
+    if(modeAlumni){
+      // Alumni (isian manual) — Program Studi dari dropdown, 'TahunLulus' hanya terisi untuk alumni.
+      const aNm = (payload._alumniNama||'').trim(), aNimV = (payload._alumniNim||'').trim();
+      const aPr = (payload._alumniProdi||'').trim(), aTh = String(payload._alumniTahun||'').trim();
+      payload.NamaPemohon = aNm; payload.NamaMahasiswa = aNm;
+      payload.Email = (payload.EmailAktif||'').trim();
+      payload.Role = 'Mahasiswa';
+      payload.NIMNIP = aNimV; payload.NIMNIPNIDN = aNimV; payload.NIM = aNimV;
+      payload.ProdiUnit = aPr; payload.Prodi = aPr; payload.TahunLulus = aTh;
+      delete payload._alumniNama; delete payload._alumniNim; delete payload._alumniProdi; delete payload._alumniTahun;
+      delete payload._guestNama; delete payload._guestEmail; delete payload._guestRole; delete payload._guestNimNip; delete payload._guestProdi; delete payload._guestPeran;
+    } else if(isGuest){
       payload.NamaPemohon = payload._guestNama;
       payload.NamaMahasiswa = payload._guestNama;
       payload.Email = payload._guestEmail;
@@ -3564,6 +3724,7 @@ async function renderServiceForm(key){
         e.target.reset();
         document.querySelectorAll('[data-dep-kat]').forEach(el=>refreshDependent(el)); // reset tidak memicu 'change'
         syncOrmawa();
+        syncStatusPemohon();   // reset mengembalikan pilihan ke 'Mahasiswa Aktif'
         // form.reset() mengembalikan tanggal & kotak 'Pukul' ke nilai awal
         // saat form dirender, TAPI tidak memicu event 'change'/'input' pada
         // input-nya — jadi kotak tampilan tanggal terformat & label tombol
@@ -4086,7 +4247,7 @@ async function removeMasterItem(id, nama){
    9c. TENDIK FAK. — AGENDA SURAT
    Kolom: Kode/Indeks, Nomor, Tujuan, Perihal (+ tanggal dicatat otomatis).
    ============================================================ */
-// Daftar Kode/Indeks surat — bersumber dari "Daftar_Kode_Dokumen.xlsx".
+// Daftar Kode/Indeks surat — bersumber dari "Daftar_Kode_Dokumen_Lengkap.xlsx" (50 kode).
 // (Daftar yang sama dipakai server di Kode.gs: AGENDA_SURAT_KODE.)
 const AGENDA_KODE = [
   {kode:"E.1.a", ket:"Instansi Pemerintahan / Lembaga"},
@@ -4107,6 +4268,7 @@ const AGENDA_KODE = [
   {kode:"E.3.c", ket:"Pengumuman tentang biaya studi / bea siswa"},
   {kode:"E.3.d", ket:"Lembur"},
   {kode:"E.3.e", ket:"Pinjam Meminjam / Piutang"},
+  {kode:"E.3.f", ket:"Permintaan Data"},
   {kode:"E.4.a", ket:"Barang habis pakai"},
   {kode:"E.4.b", ket:"Barang Laboratorium"},
   {kode:"E.4.c", ket:"Peralatan kantor / Komputer / Mebelair"},
@@ -4118,7 +4280,26 @@ const AGENDA_KODE = [
   {kode:"E.5.b", ket:"Undangan"},
   {kode:"E.5.c", ket:"Surat Perjanjian Kerjasama"},
   {kode:"E.5.d", ket:"Praktek Kerja Industri / Penelitian"},
-  {kode:"E.5.e", ket:"Kunjungan / Studi banding"}
+  {kode:"E.5.e", ket:"Kunjungan / Studi banding"},
+  {kode:"E.6.a", ket:"NIMAN, NIM, NILUN, NIRD & NIP, Re-NIM, NIDN, NIDK"},
+  {kode:"E.6.b", ket:"Perpindahan Mahasiswa Antar PT, Cuti, Aktif Kembali"},
+  {kode:"E.6.c", ket:"Registrasi Mahasiswa"},
+  {kode:"E.6.d", ket:"Ijazah & Transkrip, Ralat Ijazah, Pengganti Ijazah Asli"},
+  {kode:"E.6.e", ket:"Jadwal Perkuliahan dan Kalender Akademik"},
+  {kode:"E.6.f", ket:"Kurikulum, Buku Ajar dan Panduan Akademik"},
+  {kode:"E.6.g", ket:"UTS, UAS, Ujian Skripsi, Thesis, Yudisium"},
+  {kode:"E.6.h", ket:"Data Informasi dan Statistik, Data Dosen, Data Mahasiswa"},
+  {kode:"E.6.i", ket:"Status Perguruan Tinggi dan Akreditasi"},
+  {kode:"E.6.j", ket:"Akreditasi dan Penilaian, Ijin Progam Studi"},
+  {kode:"E.6.k", ket:"Permohonon Dosen, Guru Besar, Bantuan Dosen Penguji, Ka Prodi"},
+  {kode:"E.6.l", ket:"Surat Keputusan (SK)"},
+  {kode:"E.6.m", ket:"Rekomendasi/Persetujuan, Studi S2/S3, Kursus"},
+  {kode:"E.6.n", ket:"Laporan/Berita Acara"},
+  {kode:"E.6.o", ket:"Pengumuman, Pemberitahuan, Edaran, dan Keterangan"},
+  {kode:"E.6.p", ket:"Pengajuan Dana"},
+  {kode:"E.6.q", ket:"Surat Pernyataan / Surat Keterangan"},
+  {kode:"E.6.t", ket:"Surat Keterangan Alumni"},
+  {kode:"E.6.u", ket:"SPTJM"}
 ];
 const AGENDA_KODE_MAP = Object.fromEntries(AGENDA_KODE.map(k=>[k.kode,k.ket]));
 const ROMAN_MONTHS = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];

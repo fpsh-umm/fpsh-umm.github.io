@@ -713,7 +713,7 @@ const CLIENT_CACHE_TTL = {
   getAppConfig: 60000
 };
 const CLIENT_READ_ONLY = ['login','lookupIdentityByNimNip','getActiveRoomUsage','getActiveBarangUsage',
-  'getAllUsers','getAgendaSurat','getAgendaMasuk','getAgendaMasukFile','getDashboardStats',
+  'getAllUsers','getAgendaSurat','getAgendaMasuk','getAgendaMasukFile','unduhPdfSurat','getDashboardStats',
   'getDashboardChartData','getDosenPembimbingOptions'];
 const CLIENT_CACHE = new Map();
 function cloneResult_(v){
@@ -1202,6 +1202,9 @@ const DemoBackend = (function(){
       delete this._masukFiles[id]; save(db);
       return {success:true, message:'Surat masuk berhasil dihapus.'};
     },
+    unduhPdfSurat(){
+      throw new Error('Pratinjau: cetak PDF surat hanya tersedia pada aplikasi Apps Script yang sudah di-deploy.');
+    },
     getAgendaMasukFile(id, actorEmail){
       this._agendaGuard(actorEmail);
       const f = this._masukFiles[id];
@@ -1593,6 +1596,11 @@ function isProdiScopedRole(){ return CURRENT_USER && PRODI_SCOPED_ROLES.includes
 // & Barang/Inv." saja (di luar "Manajemen Pengguna" yang khusus Super Admin).
 const MANAGER_ROLES = ['Tendik Fak.', 'Tendik Prodi', 'Admin'];
 function isManager(){ return CURRENT_USER && MANAGER_ROLES.includes(CURRENT_USER.Role); }
+// Ikon Printer (cetak PDF surat Selesai, tanpa QR): operasional + Dekan, Wakil Dekan I/II,
+// dan Ketua Prodi. Terpisah dari MANAGER_ROLES agar tidak membuka hak kelola lain.
+// Cermin dari PDF_CETAK_ROLES di Kode.gs (yang menegakkan akses di server).
+const PDF_CETAK_ROLES = MANAGER_ROLES.concat(['Dekan','Wakil Dekan I','Wakil Dekan II','Ketua Prodi']);
+function canPrintPdf(){ return CURRENT_USER && PDF_CETAK_ROLES.includes(CURRENT_USER.Role); }
 // Agenda Surat: role 'Tendik Fak.' + akun Super Admin (admin@fpsh.ac.id).
 // Tendik Prodi, Pimpinan, dan Admin lain tidak boleh. Pembatasan yang sama
 // juga ditegakkan di server (assertAgendaSuratRole_ di Kode.gs).
@@ -3773,9 +3781,52 @@ async function loadAdminReqTable(){
         <td>${esc(akademikVal(r,'SemesterAkademik')||'-')}</td>
         <td>${fmtDateWithDay(r.TanggalPengajuan)}</td>
         <td><span class="pill ${esc(r.Status)}">${esc(r.Status)}</span></td>
-        <td><button class="btn btn-ghost btn-sm" onclick='openReqModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Kelola</button></td>
+        <td>${reqActionButton(r)}</td>
       </tr>`).join('')}</tbody>
   </table></div>`;
+}
+
+// Surat yang punya PDF otomatis (cermin dari adaPdfSuratOtomatis_ di Kode.gs).
+function suratPunyaPdf(r){
+  if(r._jenis==='SURAT_KET_IJIN') return /Aktif Organisasi|Kelakuan Baik|Penelitian Tugas Akhir|Belum Pernah Menerima Beasiswa/.test(String(r.JenisSurat||''));
+  if(r._jenis==='SURAT_TUGAS') return /Rekomendasi\s*-\s*Beasiswa/i.test(String(r.Jenis||''));
+  return false;
+}
+// Tombol aksi baris "Semua Pengajuan": surat Selesai yang punya PDF -> ikon Printer
+// (cetak/unduh PDF TANPA QR untuk tanda tangan pejabat langsung; tersedia bagi
+// Tendik/Admin, Dekan, Wakil Dekan, dan Ketua Prodi) menggantikan "Kelola";
+// selain itu tetap tombol Kelola.
+function reqActionButton(r){
+  if(r.Status==='Selesai' && canPrintPdf() && suratPunyaPdf(r)){
+    return `<button class="btn btn-ghost btn-sm" title="Cetak / unduh PDF surat tanpa QR (untuk tanda tangan langsung)" aria-label="Cetak PDF surat" onclick="cetakPdfSurat('${esc(r._jenis)}','${esc(r.ID)}',this)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>`;
+  }
+  return `<button class="btn btn-ghost btn-sm" onclick='openReqModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Kelola</button>`;
+}
+async function cetakPdfSurat(sheetKey, id, btn){
+  // Buka tab kosong SEKARANG (di dalam klik pengguna) agar tidak diblokir pop-up.
+  const w = window.open('', '_blank');
+  const old = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="loader"></span>'; }
+  try{
+    const res = await callServer('unduhPdfSurat', sheetKey, id, CURRENT_USER.Email);
+    if(!res || !res.success) throw new Error((res && res.message) || 'PDF gagal dibuat.');
+    const bin = atob(res.base64); const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], {type:'application/pdf'}));
+    if(w){ w.location = url; }
+    else{
+      const a = document.createElement('a'); a.href = url; a.download = res.filename || 'surat.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    toast('PDF surat siap dicetak (tanpa QR Code).', 'success');
+    setTimeout(()=> URL.revokeObjectURL(url), 300000);
+  }catch(err){
+    if(w) w.close();
+    toast('Gagal mencetak PDF: '+(err && err.message ? err.message : err), 'error');
+  }finally{
+    if(btn){ btn.disabled = false; btn.innerHTML = old; }
+  }
 }
 
 // Modal "Edit" untuk tab Peminjaman Barang/Ruang — meniru openMasterModal()

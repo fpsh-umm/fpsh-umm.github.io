@@ -3780,7 +3780,8 @@ async function loadSvcHistory(key){
       </div>
       ${(r.NamaRuang||r.NamaBarang) ? `<div style="font-size:13px;font-weight:600;margin-top:5px;">${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang)}</div>` : ''}
       <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${fmtDateWithDay(r.TanggalPengajuan)}${akademikVal(r,'TahunAkademik') ? ' &middot; TA '+esc(akademikVal(r,'TahunAkademik'))+(akademikVal(r,'SemesterAkademik') ? ' '+esc(akademikVal(r,'SemesterAkademik')) : '') : ''}</div>
-      ${r.DosenPembimbingDitetapkan ? `<div style="font-size:12.5px;margin-top:6px;"><b>Dosen Pembimbing:</b> ${esc(r.DosenPembimbingDitetapkan)}</div>` : ''}
+      ${r.DosenPembimbingDitetapkan ? `<div style="font-size:12.5px;margin-top:6px;"><b>Dosen Pembimbing I:</b> ${esc(r.DosenPembimbingDitetapkan)}</div>` : ''}
+      ${r.DosenPembimbing2Ditetapkan ? `<div style="font-size:12.5px;margin-top:3px;"><b>Dosen Pembimbing II:</b> ${esc(r.DosenPembimbing2Ditetapkan)}</div>` : ''}
       ${r.CatatanAdmin ? `<div style="font-size:12px;margin-top:6px;background:var(--paper);padding:8px 10px;border-radius:7px;">${esc(r.CatatanAdmin)}</div>` : ''}
     </div>
   `).join('');
@@ -4067,10 +4068,13 @@ function openReqModal(row){
         <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Email Aktif</div><div style="font-size:13px;">${esc(row.EmailAktif||'-')}</div></div>
         ${detailRows}
         ${row._jenis==='TUGAS_AKHIR' ? (CURRENT_USER.Role==='Ketua Prodi'
-          ? `<div class="field"><label>Plotting Dosen Pembimbing (Ketua Prodi)</label>
-              <input type="text" id="modalPlotting" list="modalPlottingList" value="${esc(row.DosenPembimbingDitetapkan||'')}" placeholder="Pilih / ketik nama dosen pembimbing" autocomplete="off">
-              <datalist id="modalPlottingList"></datalist></div>`
-          : `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Dosen Pembimbing (Plotting oleh Ketua Prodi)</div><div style="font-size:13px;">${esc(row.DosenPembimbingDitetapkan||'Belum diplot')}</div></div>`) : ''}
+          ? `<div class="field"><label>Plotting Dosen Pembimbing I</label>
+              <input type="text" id="modalPlotting" list="modalPlottingList" value="${esc(row.DosenPembimbingDitetapkan||'')}" placeholder="Pilih / ketik nama dosen pembimbing I" autocomplete="off">
+              <datalist id="modalPlottingList"></datalist></div>
+            <div class="field"><label>Plotting Dosen Pembimbing II</label>
+              <input type="text" id="modalPlotting2" list="modalPlottingList" value="${esc(row.DosenPembimbing2Ditetapkan||'')}" placeholder="Pilih / ketik nama dosen pembimbing II" autocomplete="off"></div>`
+          : `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Dosen Pembimbing I (Plotting oleh Ketua Prodi)</div><div style="font-size:13px;">${esc(row.DosenPembimbingDitetapkan||'Belum diplot')}</div></div>
+            <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Dosen Pembimbing II (Plotting oleh Ketua Prodi)</div><div style="font-size:13px;">${esc(row.DosenPembimbing2Ditetapkan||'Belum diplot')}</div></div>`) : ''}
         <div class="field"><label>Status</label>
           <select id="modalStatus">${modalStatusOptions(row).map(s=>`<option ${s===row.Status?'selected':''}>${s}</option>`).join('')}</select>
           ${(SERVICE_META.suratFlow && SERVICE_META.suratFlow.services.indexOf(row._jenis)>-1 && modalStatusOptions(row).length<2) ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Pada tahap "${esc(row.Status||'Dimohonkan')}", peran Anda tidak memiliki tindakan perubahan status.</div>` : ''}
@@ -4105,7 +4109,14 @@ function openReqModal(row){
     const nomorEl = overlay.querySelector('#modalNomorSurat');
     if(nomorEl) updates.NomorSurat = nomorEl.value;
     const plotEl = overlay.querySelector('#modalPlotting');
+    const plot2El = overlay.querySelector('#modalPlotting2');
     if(plotEl) updates.DosenPembimbingDitetapkan = plotEl.value.trim();
+    if(plot2El) updates.DosenPembimbing2Ditetapkan = plot2El.value.trim();
+    if(plotEl && plot2El){
+      const a = plotEl.value.trim().toLowerCase(), b = plot2El.value.trim().toLowerCase();
+      if(b && !a){ toast('Isi Dosen Pembimbing I terlebih dahulu sebelum Dosen Pembimbing II.', 'error'); btn.disabled = false; btn.textContent = 'Simpan'; return; }
+      if(b && a === b){ toast('Dosen Pembimbing II tidak boleh sama dengan Dosen Pembimbing I.', 'error'); btn.disabled = false; btn.textContent = 'Simpan'; return; }
+    }
     try{
       const res = await callServer('updateRequestStatus', row._jenis, row.ID, updates, CURRENT_USER.Email, CURRENT_USER.Role, CURRENT_USER.ProdiUnit);
       toast(res.message, res.success?'success':'error');

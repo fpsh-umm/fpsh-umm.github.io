@@ -3780,6 +3780,7 @@ async function loadSvcHistory(key){
       </div>
       ${(r.NamaRuang||r.NamaBarang) ? `<div style="font-size:13px;font-weight:600;margin-top:5px;">${esc(r.ObjekDipinjamDetail||r.NamaRuang||r.NamaBarang)}</div>` : ''}
       <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">${fmtDateWithDay(r.TanggalPengajuan)}${akademikVal(r,'TahunAkademik') ? ' &middot; TA '+esc(akademikVal(r,'TahunAkademik'))+(akademikVal(r,'SemesterAkademik') ? ' '+esc(akademikVal(r,'SemesterAkademik')) : '') : ''}</div>
+      ${r.JudulDisetujui ? `<div style="font-size:12.5px;margin-top:6px;"><b>Judul disetujui:</b> ${esc(r.JudulDisetujui)}</div>` : ''}
       ${r.DosenPembimbingDitetapkan ? `<div style="font-size:12.5px;margin-top:6px;"><b>Dosen Pembimbing I:</b> ${esc(r.DosenPembimbingDitetapkan)}</div>` : ''}
       ${r.DosenPembimbing2Ditetapkan ? `<div style="font-size:12.5px;margin-top:3px;"><b>Dosen Pembimbing II:</b> ${esc(r.DosenPembimbing2Ditetapkan)}</div>` : ''}
       ${r.CatatanAdmin ? `<div style="font-size:12px;margin-top:6px;background:var(--paper);padding:8px 10px;border-radius:7px;">${esc(r.CatatanAdmin)}</div>` : ''}
@@ -3848,9 +3849,17 @@ function renderAkun(){
    9. ADMIN — SEMUA PENGAJUAN
    ============================================================ */
 let adminReqTab = 'PEMINJAMAN';
+// Tab Peminjaman Ruang & Barang/Inv. TIDAK ditampilkan di "Semua Pengajuan" untuk Ketua Prodi,
+// Wakil Dekan I/II, dan Dekan. Role lain (Tendik, Admin, dst.) tetap melihat semua tab.
+const PIMPINAN_TANPA_TAB_PEMINJAMAN = ['Ketua Prodi','Wakil Dekan I','Wakil Dekan II','Dekan'];
+function tabAdminDisembunyikan(key){
+  return (key==='PEMINJAMAN' || key==='PEMINJAMAN_RUANG') && !!CURRENT_USER && PIMPINAN_TANPA_TAB_PEMINJAMAN.includes(CURRENT_USER.Role);
+}
 async function renderAdminRequests(){
   const content = document.getElementById('content');
-  const tabs = Object.keys(SERVICE_FORM_CONFIG).map(key=>
+  const tabKeys = Object.keys(SERVICE_FORM_CONFIG).filter(k=> !tabAdminDisembunyikan(k));
+  if(!tabKeys.includes(adminReqTab)) adminReqTab = tabKeys[0];   // tab awal ikut berpindah bila disembunyikan
+  const tabs = tabKeys.map(key=>
     `<button class="tab ${key===adminReqTab?'active':''}" data-tab="${key}">${esc(SERVICE_FORM_CONFIG[key].title)}</button>`
   ).join('');
   content.innerHTML = `
@@ -3952,6 +3961,8 @@ async function loadAdminReqTable(){
 function suratPunyaPdf(r){
   if(r._jenis==='SURAT_KET_IJIN') return /Aktif Organisasi|Kelakuan Baik|Penelitian Tugas Akhir|Belum Pernah Menerima Beasiswa/.test(String(r.JenisSurat||''));
   if(r._jenis==='SURAT_TUGAS') return /Rekomendasi\s*-\s*Beasiswa/i.test(String(r.Jenis||''));
+  // Judul & Pembimbing TA: Surat Tugas Pembimbing hanya terbit bila pimpinan MENYETUJUI (cermin isSuratTugasPembimbingTA_ di Kode.gs).
+  if(r._jenis==='TUGAS_AKHIR') return String(r.KeputusanPimpinan||'').trim()==='Disetujui';
   return false;
 }
 // Tombol aksi baris "Semua Pengajuan": surat Selesai yang punya PDF -> ikon Printer
@@ -4040,6 +4051,9 @@ async function removeRequestItem(sheetKey, id){
 
 // Frontend: daftar status yang boleh dipilih role aktif pada modal Kelola.
 // Server tetap menjadi penentu akhir (updateRequestStatus di Code.gs).
+// Layanan bersurat: 'Nomor Surat' WAJIB terisi sebelum status boleh 'Selesai' (cermin
+// NOMOR_SURAT_WAJIB_SERVICES di Kode.gs; server tetap menjadi penentu akhir).
+const NOMOR_SURAT_WAJIB = ['SURAT_KET_IJIN','SURAT_TUGAS','TUGAS_AKHIR','LEGALISASI','SKL'];
 function modalStatusOptions(row){
   const all = SERVICE_META.statusListByService[row._jenis] || SERVICE_META.statusList;
   const flow = SERVICE_META.suratFlow;
@@ -4053,9 +4067,58 @@ function modalStatusOptions(row){
   return out;
 }
 
+// Judul & Pembimbing TA — pemilihan (Acc) judul oleh Ketua Prodi. Ketua Prodi memilih SATU dari
+// Judul Usulan 1–3 lewat tombol radio (di atas pilihan Dosen Pembimbing); WAJIB sebelum status
+// 'Diproses'. Peran lain hanya melihat judul yang sudah di-Acc.
+// Wakil Dekan I/II & Dekan hanya menilai judul yang SUDAH di-Acc Ketua Prodi (status 'Diproses'),
+// bukan ketiga Judul Usulan mentah. Nomor Surat pun bukan urusan Ketua Prodi/Wakil Dekan/Dekan.
+const PIMPINAN_PUTUS_ROLES = ['Wakil Dekan I','Wakil Dekan II','Dekan'];
+// Tendik hanya melihat Judul Usulan bila sudah di-Acc Ketua Prodi DAN disetujui Wakil Dekan/Dekan.
+// 'Selesai' bisa berasal dari Disetujui maupun Ditolak, jadi dibedakan lewat kolom KeputusanPimpinan
+// (diisi server). Pengajuan lama (belum punya judul Acc) yang sudah Disetujui/Selesai tetap
+// menampilkan semua usulan agar tidak kosong.
+const TENDIK_ROLES_UI = ['Tendik Fak.','Tendik Prodi'];
+function modeJudulTendik(row){
+  const acc = String(row.JudulDisetujui||'').trim();
+  const setuju = row.Status === 'Disetujui' || (row.Status === 'Selesai' && row.KeputusanPimpinan === 'Disetujui');
+  if(acc) return setuju ? 'acc' : 'sembunyi';
+  return (row.Status === 'Disetujui' || (row.Status === 'Selesai' && row.KeputusanPimpinan !== 'Ditolak')) ? 'semua' : 'sembunyi';
+}
+const NOMOR_SURAT_HIDDEN_ROLES = ['Ketua Prodi','Wakil Dekan I','Wakil Dekan II','Dekan'];
+function judulUsulanList(row){
+  return [1,2,3].map(n=>({n, teks:String(row['JudulUsulan'+n]||'').trim()})).filter(x=>x.teks);
+}
+function judulAccTerkunci(row){ return ['Disetujui','Ditolak','Selesai'].indexOf(row.Status) > -1; }   // sudah diputuskan Dekan/WD
+function judulAccHtml(row){
+  const acc = String(row.JudulDisetujui||'').trim();
+  if(CURRENT_USER.Role !== 'Ketua Prodi'){
+    if(PIMPINAN_PUTUS_ROLES.indexOf(CURRENT_USER.Role) > -1 && acc) return '';   // sudah tampil sebagai "Judul Usulan" di atas
+    if(TENDIK_ROLES_UI.indexOf(CURRENT_USER.Role) > -1) return '';               // Tendik: hanya lewat baris "Judul Usulan" di atas
+    return `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Judul yang Disetujui (Acc Ketua Prodi)</div><div style="font-size:13px;">${esc(acc||'Belum ditentukan')}</div></div>`;
+  }
+  const list = judulUsulanList(row);
+  if(!list.length) return '';
+  const kunci = judulAccTerkunci(row);
+  return `<div class="field"><label>Judul yang Disetujui (Acc Ketua Prodi) <span style="color:#dc2626;">*</span></label>
+    <div id="modalJudulAcc" style="display:flex;flex-direction:column;gap:6px;">
+      ${list.map(x=>`<label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;font-weight:400;cursor:${kunci?'default':'pointer'};padding:8px 10px;border:1px solid var(--line);border-radius:8px;${x.teks===acc?'background:var(--indigo-bg);border-color:var(--indigo);':''}">
+        <input type="radio" name="modalJudulAcc" value="${esc(x.teks)}" ${x.teks===acc?'checked':''} ${kunci?'disabled':''} style="margin-top:3px;flex:0 0 auto;width:auto;">
+        <span><b>Usulan ${x.n}:</b> ${esc(x.teks)}</span></label>`).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;">${kunci ? 'Pengajuan sudah diputuskan — pilihan judul tidak dapat diubah.' : 'Pilih satu judul yang di-Acc sebelum status diubah menjadi "Diproses".'}</div></div>`;
+}
+
 function openReqModal(row){
   const cfg = SERVICE_FORM_CONFIG[row._jenis];
-  const detailRows = cfg.fields.map(f=>`<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">${esc(f.label)}</div><div style="font-size:13px;">${esc(akademikVal(row, f.key)||'-')}</div></div>`).join('');
+  const modeTendik = (row._jenis === 'TUGAS_AKHIR' && TENDIK_ROLES_UI.indexOf(CURRENT_USER.Role) > -1) ? modeJudulTendik(row) : 'semua';
+  const lihatHanyaJudulAcc = (row._jenis === 'TUGAS_AKHIR' && PIMPINAN_PUTUS_ROLES.indexOf(CURRENT_USER.Role) > -1 && String(row.JudulDisetujui||'').trim()) || modeTendik === 'acc';
+  const sembunyiJudul = modeTendik === 'sembunyi';
+  const detailRows = cfg.fields.filter(f=> !((lihatHanyaJudulAcc || sembunyiJudul) && /^JudulUsulan[23]$/.test(f.key))).map(f=>
+    (sembunyiJudul && f.key === 'JudulUsulan1')
+      ? `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Judul Usulan</div><div style="font-size:13px;color:var(--muted);">Belum ditampilkan — muncul setelah di-Acc Ketua Prodi dan disetujui Wakil Dekan/Dekan.</div></div>`
+    : (lihatHanyaJudulAcc && f.key === 'JudulUsulan1')
+      ? `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Judul Usulan (disetujui Ketua Prodi${modeTendik === 'acc' ? ' & Wakil Dekan/Dekan' : ''})</div><div style="font-size:13px;">${esc(row.JudulDisetujui)}</div></div>`
+      : `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">${esc(f.label)}</div><div style="font-size:13px;">${esc(akademikVal(row, f.key)||'-')}</div></div>`).join('');
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.innerHTML = `
@@ -4067,6 +4130,7 @@ function openReqModal(row){
         <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Program Studi / Unit</div><div style="font-size:13px;">${esc(row.ProdiUnit||row.Prodi||'-')}</div></div>
         <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);">Email Aktif</div><div style="font-size:13px;">${esc(row.EmailAktif||'-')}</div></div>
         ${detailRows}
+        ${row._jenis==='TUGAS_AKHIR' ? judulAccHtml(row) : ''}
         ${row._jenis==='TUGAS_AKHIR' ? (CURRENT_USER.Role==='Ketua Prodi'
           ? `<div class="field"><label>Plotting Dosen Pembimbing I</label>
               <input type="text" id="modalPlotting" list="modalPlottingList" value="${esc(row.DosenPembimbingDitetapkan||'')}" placeholder="Pilih / ketik nama dosen pembimbing I" autocomplete="off">
@@ -4079,7 +4143,7 @@ function openReqModal(row){
           <select id="modalStatus">${modalStatusOptions(row).map(s=>`<option ${s===row.Status?'selected':''}>${s}</option>`).join('')}</select>
           ${(SERVICE_META.suratFlow && SERVICE_META.suratFlow.services.indexOf(row._jenis)>-1 && modalStatusOptions(row).length<2) ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Pada tahap "${esc(row.Status||'Dimohonkan')}", peran Anda tidak memiliki tindakan perubahan status.</div>` : ''}
         </div>
-        ${cfg.fields.some(f=>f.key==='NomorSurat') || SERVICE_FORM_CONFIG[row._jenis] && 'NomorSurat' in row ? `<div class="field"><label>Nomor Surat</label><input type="text" id="modalNomorSurat" value="${esc(row.NomorSurat||'')}"></div>` : ''}
+        ${NOMOR_SURAT_HIDDEN_ROLES.indexOf(CURRENT_USER.Role) > -1 ? '' : (NOMOR_SURAT_WAJIB.indexOf(row._jenis) > -1 || cfg.fields.some(f=>f.key==='NomorSurat') || SERVICE_FORM_CONFIG[row._jenis] && 'NomorSurat' in row) ? `<div class="field"><label>Nomor Surat <span id="modalNomorReq" style="color:#b91c1c;${NOMOR_SURAT_WAJIB.indexOf(row._jenis) > -1 ? '' : 'display:none;'}">*</span></label><input type="text" id="modalNomorSurat" value="${esc(row.NomorSurat||'')}" placeholder="mis. E.6.m./123/FPSH-UMM/X/2026" autocomplete="off">${NOMOR_SURAT_WAJIB.indexOf(row._jenis) > -1 ? '<div style="font-size:11.5px;color:var(--muted);margin-top:4px;">Wajib diisi sebelum status diubah menjadi <b>Selesai</b>.</div>' : ''}</div>` : ''}
         <div class="field"><label>Catatan Admin</label><textarea id="modalCatatan" rows="3">${esc(row.CatatanAdmin||'')}</textarea></div>
       </div>
       <div class="modal-foot">
@@ -4094,6 +4158,8 @@ function openReqModal(row){
       plotList.innerHTML = (list||[]).map(n=>`<option value="${esc(n)}">`).join('');
     }).catch(()=>{});
   }
+  const nomorInp = overlay.querySelector('#modalNomorSurat');
+  if(nomorInp) nomorInp.addEventListener('input', ()=>{ nomorInp.style.borderColor = ''; });
   const close = ()=> overlay.remove();
   overlay.querySelector('.modal-close').addEventListener('click', close);
   overlay.querySelector('.modal-close-btn').addEventListener('click', close);
@@ -4107,7 +4173,26 @@ function openReqModal(row){
       CatatanAdmin: overlay.querySelector('#modalCatatan').value
     };
     const nomorEl = overlay.querySelector('#modalNomorSurat');
-    if(nomorEl) updates.NomorSurat = nomorEl.value;
+    if(nomorEl) updates.NomorSurat = nomorEl.value.trim();
+    if(NOMOR_SURAT_WAJIB.indexOf(row._jenis) > -1 && updates.Status === 'Selesai' && row.Status !== 'Selesai' && !(nomorEl && nomorEl.value.trim())){
+      toast('Nomor Surat wajib diisi sebelum status diubah menjadi Selesai.', 'error');
+      if(nomorEl){ nomorEl.style.borderColor = '#dc2626'; nomorEl.focus(); }
+      btn.disabled = false; btn.textContent = 'Simpan';
+      return;
+    }
+    // Judul yang di-Acc (hanya Ketua Prodi; radio ada bila belum terkunci)
+    const accEls = overlay.querySelectorAll('input[name="modalJudulAcc"]');
+    if(accEls.length){
+      const dipilih = overlay.querySelector('input[name="modalJudulAcc"]:checked');
+      if(dipilih && !dipilih.disabled) updates.JudulDisetujui = dipilih.value;
+      const acc = dipilih ? dipilih.value : String(row.JudulDisetujui||'').trim();
+      if(updates.Status === 'Diproses' && row.Status !== 'Diproses' && !acc){
+        toast('Pilih (Acc) salah satu Judul yang diusulkan pemohon sebelum status diubah menjadi Diproses.', 'error');
+        const box = overlay.querySelector('#modalJudulAcc'); if(box){ box.style.outline = '2px solid #dc2626'; box.scrollIntoView({block:'center'}); }
+        btn.disabled = false; btn.textContent = 'Simpan';
+        return;
+      }
+    }
     const plotEl = overlay.querySelector('#modalPlotting');
     const plot2El = overlay.querySelector('#modalPlotting2');
     if(plotEl) updates.DosenPembimbingDitetapkan = plotEl.value.trim();
@@ -4258,7 +4343,7 @@ async function removeMasterItem(id, nama){
    9c. TENDIK FAK. — AGENDA SURAT
    Kolom: Kode/Indeks, Nomor, Tujuan, Perihal (+ tanggal dicatat otomatis).
    ============================================================ */
-// Daftar Kode/Indeks surat — bersumber dari "Daftar_Kode_Dokumen_Lengkap.xlsx" (50 kode).
+// Daftar Kode/Indeks surat — bersumber dari "Daftar_Kode_Dokumen_Lengkap.xlsx" (50 kode + E.2.k Surat Tugas Pembimbing = 51 kode).
 // (Daftar yang sama dipakai server di Kode.gs: AGENDA_SURAT_KODE.)
 const AGENDA_KODE = [
   {kode:"E.1.a", ket:"Instansi Pemerintahan / Lembaga"},
@@ -4274,6 +4359,7 @@ const AGENDA_KODE = [
   {kode:"E.2.f", ket:"Haji"},
   {kode:"E.2.g", ket:"Surat keterangan / Surat Kuasa"},
   {kode:"E.2.h", ket:"Dosen Kontrak/ Karyawan kontrak"},
+  {kode:"E.2.k", ket:"Surat Tugas Pembimbing"},
   {kode:"E.3.a", ket:"Bantuan Dana, Permohonan Dana"},
   {kode:"E.3.b", ket:"Transfer Uang"},
   {kode:"E.3.c", ket:"Pengumuman tentang biaya studi / bea siswa"},

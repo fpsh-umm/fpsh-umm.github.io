@@ -324,7 +324,7 @@ function renderAkun() {
   $("sayaWrap").hidden = !u || pengawasMode();
   if (!u || pengawasMode()) $("saya").checked = false;
   document.body.classList.toggle("pw", pengawasMode());
-  $("tugas").hidden = !pengawasMode(); $("tugas").textContent = "🛡️ Mode Pengawas: hanya jadwal tugas pengawasan Anda (kapan, di mana, dan mata kuliah) yang ditampilkan.";
+  $("tugas").hidden = !pengawasMode(); $("tugas").textContent = "🛡️ tugas pengawasan saya.";
 }
 function dlg(x, c) { $("dlg").className = c || ""; $("dlg").innerHTML = x; if (!$("dlg").open) $("dlg").showModal(); }
 function tutup() { $("dlg").close(); }

@@ -694,7 +694,7 @@ function buildExamPdf(J, rows, w) {
   doc.autoTable({
     startY: y + 2,
     margin: { left: mx, right: mx, top: contTop, bottom: bottomMargin },
-    head: [pw ? ["No.", "Mata Kuliah", "Hari/Tanggal/Jam/Ruang"] : ["No.", "Mata Kuliah", "Hari/Tanggal/Jam/Ruang", "Program Studi", "Smt/Kls", "Dosen", "Pengawas"]],
+    head: [pw ? ["No.", "Mata Kuliah", "Hari/Tanggal\nJam/Ruang"] : ["No.", "Mata Kuliah", "Hari/Tanggal\nJam/Ruang", "Program Studi", "Smt/Kls", "Dosen", "Pengawas"]],
     body: body, theme: "grid",
     styles: { font: "helvetica", fontSize: 8, cellPadding: 2, valign: "middle", overflow: "linebreak" },
     headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" }, // biru #2C368B (tema aplikasi)

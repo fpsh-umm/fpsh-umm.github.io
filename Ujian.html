@@ -141,6 +141,7 @@ input,select{font-size:16px}.card,.b h3,.m,.t{overflow-wrap:anywhere}
 @media(max-width:360px){.cd .hr{font-size:1.7rem}.cd .jm{font-size:1.7rem;padding:8px 10px}.cd .jm span{font-size:1.1rem}.seg button{font-size:.82rem}}
 @media print{.chips,.top,.bar,.hero,.tools,.banner,footer,.cat{display:none}body{background:#fff}.card{break-inside:avoid}.card.selesai{opacity:1}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.ut th{padding:6px 4px;border-bottom:2px solid var(--line);font-size:.78rem;color:var(--mut);text-align:center}.pw .btn.sm{margin-right:4px}
 </style>
 </head>
 <body>
@@ -280,7 +281,7 @@ function gambar() {
     g[k].forEach(function (r) {
       var st = status(r, now), i = S.data.indexOf(r);
       if (pengawasMode()) { // tampilan Pengawas: hanya kapan, di mana, dan mata kuliah
-        h += '<article class="card s-' + st + (st === "Selesai" ? " selesai" : "") + '"><div class="t"><span class="num">' + esc(r.mulai) + "</span><small>s.d. " + esc(r.selesai) + '</small></div><div class="b"><div class="m"><span class="tag j">Tugas Pengawas</span><span class="tag st st-' + st + '">' + st + "</span></div><h3>" + esc(r.matkul) + '</h3><div class="m"><span>📍 ' + esc(r.ruang) + '</span></div></div></article>';
+        h += '<article class="card s-' + st + (st === "Selesai" ? " selesai" : "") + '"><div class="t"><span class="num">' + esc(r.mulai) + "</span><small>s.d. " + esc(r.selesai) + '</small></div><div class="b"><div class="m"><span class="tag j">Tugas Pengawas</span><span class="tag st st-' + st + '">' + st + "</span></div><h3>" + esc(r.matkul) + '</h3><div class="m"><span>📍 ' + esc(r.ruang) + '</span></div><div class="m"><button class="btn sm" onclick="dlgHadir(' + i + ')">📋 Daftar Hadir</button><button class="btn sm" onclick="dlgBA(' + i + ')">📝 Berita Acara</button></div></div></article>';
         return;
       }
       h += '<article class="card ' + esc(r.jenis) + (st === "Selesai" ? " selesai" : "") + " s-" + st + '"><div class="t"><span class="num">' + esc(r.mulai) + "</span><small>s.d. " + esc(r.selesai) + '</small></div><div class="b">' +
@@ -335,7 +336,7 @@ function pengawasMode() { return !!AUTH.user && AUTH.user.peran === "Pengawas"; 
 function boleh(p) { return AUTH.user && p.indexOf(AUTH.user.peran) >= 0; }
 function renderAkun() {
   var u = AUTH.user;
-  $("akun").innerHTML = u ? (boleh(["Administrator", "Panitia", "Dosen"]) ? '<button class="btn" onclick="dlgPengaturan()">⚙ Pengaturan</button>' : "") + '<button class="btn" onclick="keluar()" title="Keluar">' + esc(u.nama.split(",")[0]) + ' <span class="tag">' + esc(u.peran) + "</span> ⎋</button>" : '<button class="btn" onclick="dlgLogin()">👤 Masuk</button>';
+  $("akun").innerHTML = u ? ((u.peran === "Mahasiswa") ? '<button class="btn" onclick="dlgAbsen()">📷 Absen</button><button class="btn" onclick="dlgSoal()">📄 Soal</button>' : "") + (boleh(["Administrator", "Panitia", "Dosen"]) ? '<button class="btn" onclick="dlgPengaturan()">⚙ Pengaturan</button>' : "") + '<button class="btn" onclick="keluar()" title="Keluar">' + esc(u.nama.split(",")[0]) + ' <span class="tag">' + esc(u.peran) + "</span> ⎋</button>" : '<button class="btn" onclick="dlgLogin()">👤 Masuk</button>';
   $("sayaWrap").hidden = !u || pengawasMode();
   if (!u || pengawasMode()) $("saya").checked = false;
   document.body.classList.toggle("modepw", pengawasMode());
@@ -407,7 +408,7 @@ async function doLogin(e) {
   try {
     var j = await post({ aksi: "login", username: $("lu").value.trim(), password: pw, kelompok: LG.tab });
     AUTH = { token: j.token, user: j.user }; try { localStorage.setItem("ujianAuth", JSON.stringify(AUTH)); } catch (x) {}
-    $("saya").checked = !boleh(["Administrator", "Panitia", "Pengawas"]); renderAkun(); tutup(); if (pengawasMode()) muat(); else gambar();
+    $("saya").checked = !boleh(["Administrator", "Panitia", "Pengawas"]); renderAkun(); tutup(); if (pengawasMode()) muat(); else gambar(); if (PENDING_H && AUTH.user.peran === "Mahasiswa") { var kh = PENDING_H; PENDING_H = null; kirimHadir(kh); }
   } catch (x) { $("le").textContent = x.message; }
   return false;
 }
@@ -609,6 +610,257 @@ window.addEventListener("scroll", function () {
 $("top").onclick = function () { scrollTo({ top: 0, behavior: "smooth" }); };
 $("ftoggle").onclick = function () { var o = document.querySelector(".fil").classList.toggle("open"); this.setAttribute("aria-expanded", o); };
 muat(); hitung(); setInterval(hitung, 1000); setInterval(muat, CONFIG.AUTO_REFRESH_MINUTES * 6e4); setInterval(gambar, 6e4);
+
+/* ---------- Daftar Hadir (QR), Berita Acara (Pengawas) & Absen/Soal (Mahasiswa) ---------- */
+var PENDING_H = null, HD = { r: null, d: null, t: null, qt: null }, SC = { stream: null, raf: 0 };
+try { var _h = new URLSearchParams(location.search).get("h"); if (_h) { PENDING_H = _h; history.replaceState(null, "", location.pathname); } } catch (e) {}
+function stopScan() { cancelAnimationFrame(SC.raf); SC.raf = 0; if (SC.stream) { SC.stream.getTracks().forEach(function (t) { t.stop(); }); SC.stream = null; } }
+function stopHd() { clearInterval(HD.t); clearInterval(HD.qt); HD.t = HD.qt = null; stopScan(); }
+$("dlg").addEventListener("close", stopHd);
+var hariTgl = function (k) { return HARI[new Date(k + "T00:00:00").getDay()] + ", " + fmtT(k); };
+function ringkas(d) { var n = { Hadir: 0, Izin: 0, Sakit: 0 }; d.peserta.forEach(function (p) { if (n[p.status] !== undefined) n[p.status]++; }); n.Tidak = d.peserta.length - n.Hadir - n.Izin - n.Sakit; return n; }
+function infoBlok(i) { return '<div class="hint" style="margin:0 0 10px"><b>' + esc(i.matkul) + "</b> · Kelas " + esc(i.kelas) + " · " + esc(i.prodi) + "<br>" + hariTgl(i.tanggal) + " · " + esc(i.mulai) + "–" + esc(i.selesai) + " · " + esc(i.ruang) + " · Dosen: " + esc(i.dosen) + "</div>"; }
+
+// ----- Pengawas: Daftar Hadir -----
+function dlgHadir(i) {
+  var r = S.data[i]; if (!r || !r.baris) return alert("Muat ulang halaman terlebih dahulu.");
+  stopHd(); HD.r = r;
+  dlg('<h3>Daftar Hadir</h3><div id="hdx">Memuat…</div>', "wide");
+  muatHadir();
+  HD.t = setInterval(function () { if (!$("hdb")) return stopHd(); if (document.activeElement && document.activeElement.tagName === "SELECT") return; muatHadir(); }, 15000);
+}
+async function muatHadir() {
+  try { HD.d = await post({ aksi: "daftarHadir", baris: HD.r.baris, id: HD.r.id }); }
+  catch (x) { if ($("hdx")) $("hdx").innerHTML = '<div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>'; return; }
+  gambarHadir();
+}
+function gambarHadir() {
+  if (!$("hdx")) return;
+  var d = HD.d, n = ringkas(d), i = S.data.indexOf(HD.r);
+  if (!$("hdb")) $("hdx").innerHTML = '<div id="hdi"></div><div class="row" style="margin:10px 0"><button class="btn pri" onclick="tampilQr()">📱 Tampilkan QR Absen</button><button class="btn" onclick="dlgBA(' + i + ')">📝 Berita Acara</button><button class="btn" onclick="cetakHadir()">🖨 Cetak Daftar Hadir</button><button class="btn" onclick="tutup()">Tutup</button></div><div id="qrWrap" hidden></div><div id="hdb"></div>';
+  $("hdi").innerHTML = infoBlok(d.info) + '<div class="m" style="display:flex;gap:6px 16px;flex-wrap:wrap;font-size:.9rem"><span>Peserta: <b>' + d.peserta.length + "</b></span><span>Hadir: <b>" + n.Hadir + "</b></span><span>Izin: <b>" + n.Izin + "</b></span><span>Sakit: <b>" + n.Sakit + "</b></span><span>Belum/tidak hadir: <b>" + n.Tidak + "</b></span></div>";
+  var opt = function (v, l, cur) { return '<option value="' + v + '"' + (cur === v ? " selected" : "") + ">" + l + "</option>"; };
+  $("hdb").innerHTML = '<table class="ut"><tr><th>No</th><th style="text-align:left">NIM</th><th style="text-align:left">Nama</th><th>Status</th><th>Waktu</th></tr>' +
+    (d.peserta.length ? d.peserta.map(function (p, k) {
+      return "<tr><td>" + (k + 1) + "</td><td>" + esc(p.nim) + "</td><td>" + esc(p.nama) + '</td><td><select class="f" style="min-width:120px;flex:none;width:auto;height:36px;padding:0 34px 0 10px" onchange="setHadir(\'' + esc(p.nim) + '\',this.value)">' +
+        opt("", "Tidak hadir", p.status) + opt("Hadir", "Hadir", p.status) + opt("Izin", "Izin", p.status) + opt("Sakit", "Sakit", p.status) + "</select></td><td>" + esc(p.waktu ? p.waktu.slice(11, 16) + (p.via === "QR" ? " · QR" : "") : "") + "</td></tr>";
+    }).join("") : '<tr><td colspan="5">Belum ada peserta pada sheet Peserta_Mk untuk mata kuliah dan kelas ini.</td></tr>') + "</table>";
+}
+async function setHadir(nim, st) {
+  try { HD.d = await post({ aksi: "setHadir", baris: HD.r.baris, id: HD.r.id, nim: nim, status: st }); gambarHadir(); } catch (x) { alert(x.message); muatHadir(); }
+}
+function qrSvg(t) {
+  var q = qrcode(0, "M"); q.addData(t); q.make();
+  var n = q.getModuleCount(), m = 4, p = "", r, c;
+  for (r = 0; r < n; r++) for (c = 0; c < n; c++) if (q.isDark(r, c)) p += "M" + (c + m) + " " + (r + m) + "h1v1h-1z";
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (n + 2 * m) + " " + (n + 2 * m) + '" shape-rendering="crispEdges" style="width:100%;max-width:380px;display:block;margin:0 auto"><rect width="100%" height="100%" fill="#fff"/><path d="' + p + '" fill="#000"/></svg>';
+}
+function hideQr() { clearInterval(HD.qt); if ($("qrWrap")) $("qrWrap").hidden = true; }
+async function tampilQr() {
+  var w = $("qrWrap"); w.hidden = false;
+  w.innerHTML = '<div class="pw" style="text-align:center"><div id="qrBox">Memuat QR…</div><div class="hint" style="margin:10px 0 6px">Mahasiswa menyorot QR ini lewat menu <b>📷 Absen</b> di portal atau kamera ponsel. QR berganti otomatis; peserta harus login dan terdaftar di mata kuliah ini.</div><div class="err" id="qrErr"></div><button class="btn sm" onclick="hideQr()">Sembunyikan QR</button></div>';
+  clearInterval(HD.qt); await segarQr();
+  HD.qt = setInterval(function () { if (!$("qrBox")) return clearInterval(HD.qt); segarQr(); }, 40000);
+}
+async function segarQr() {
+  try {
+    var j = await post({ aksi: "qrHadir", baris: HD.r.baris, id: HD.r.id });
+    if (!window.qrcode) await loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+    if (!$("qrBox")) return;
+    $("qrBox").innerHTML = qrSvg(location.href.split("#")[0].split("?")[0] + "?h=" + j.kode); $("qrErr").textContent = "";
+  } catch (x) { if ($("qrErr")) { $("qrErr").textContent = x.message; $("qrBox").innerHTML = ""; clearInterval(HD.qt); } }
+}
+
+// ----- Pengawas: Berita Acara -----
+async function dlgBA(i) {
+  var r = S.data[i]; if (!r || !r.baris) return alert("Muat ulang halaman terlebih dahulu.");
+  stopHd();
+  if (HD.r !== r || !HD.d) {
+    HD.r = r; HD.d = null; dlg("<h3>Berita Acara Ujian</h3><div>Memuat…</div>", "wide");
+    try { HD.d = await post({ aksi: "daftarHadir", baris: r.baris, id: r.id }); }
+    catch (x) { dlg('<h3>Berita Acara Ujian</h3><div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>', "wide"); return; }
+  }
+  var d = HD.d, n = ringkas(d), b = d.ba || {};
+  dlg("<h3>Berita Acara Ujian</h3>" + infoBlok(d.info) +
+    '<div class="pw"><div class="pt">Rekap kehadiran <span>(otomatis dari Daftar Hadir)</span></div><div style="display:flex;gap:6px 16px;flex-wrap:wrap;font-size:.9rem"><span>Peserta: <b>' + d.peserta.length + "</b></span><span>Hadir: <b>" + n.Hadir + "</b></span><span>Izin: <b>" + n.Izin + "</b></span><span>Sakit: <b>" + n.Sakit + "</b></span><span>Tidak hadir: <b>" + n.Tidak + "</b></span></div></div>" +
+    '<div class="g2"><label class="fld">Waktu mulai ujian<input class="f" id="bam" type="time" value="' + esc(b.mulai || d.info.mulai) + '"></label><label class="fld">Waktu selesai ujian<input class="f" id="bas" type="time" value="' + esc(b.selesai || d.info.selesai) + '"></label></div>' +
+    '<label class="fld">Jumlah lembar jawaban yang dikumpulkan<input class="f" id="bal" type="number" min="0" value="' + esc(b.lembar !== undefined && b.lembar !== "" ? b.lembar : n.Hadir) + '"></label>' +
+    '<label class="fld">Catatan / kejadian selama ujian<textarea class="f" id="bac" rows="4" maxlength="1000" style="height:auto" placeholder="Contoh: Ujian berjalan lancar dan tertib.">' + esc(b.catatan || "") + "</textarea></label>" +
+    (b.dibuat ? '<div class="hint">Terakhir disimpan ' + esc(b.dibuat) + " oleh " + esc(b.oleh) + ".</div>" : "") +
+    '<div class="err" id="bae"></div><button class="btn pri" onclick="simpanBA(false)">Simpan</button> <button class="btn pri" onclick="simpanBA(true)">Simpan &amp; Cetak PDF</button> <button class="btn" onclick="dlgHadir(' + i + ')">← Daftar Hadir</button> <button class="btn" onclick="tutup()">Tutup</button>', "wide");
+}
+async function simpanBA(cetak) {
+  var e = $("bae"), w = cetak ? window.open("", "_blank") : null; e.className = "err"; e.textContent = "Menyimpan…";
+  try {
+    HD.d = await post({ aksi: "simpanBA", baris: HD.r.baris, id: HD.r.id, mulai: $("bam").value, selesai: $("bas").value, lembar: $("bal").value, catatan: $("bac").value.trim() });
+    e.className = "err ok"; e.textContent = "✓ Berita acara tersimpan.";
+    if (cetak) ensureJsPDF().then(function (J) { pdfBA(J, HD.d, w); }).catch(function (x) { console.error(x); if (w) w.close(); e.className = "err"; e.textContent = "Gagal membuat PDF. Periksa koneksi internet."; });
+  } catch (x) { if (w) w.close(); e.className = "err"; e.textContent = x.message; }
+}
+function cetakHadir() {
+  var w = window.open("", "_blank");
+  ensureJsPDF().then(function (J) { pdfHadir(J, HD.d, w); }).catch(function (x) { console.error(x); if (w) w.close(); alert("Gagal membuat PDF. Periksa koneksi internet."); });
+}
+
+// ----- PDF (kop FPSH sama seperti cetak jadwal) -----
+function kopPdf(J) {
+  var doc = new J({ unit: "mm", format: F4_FORMAT }), PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
+  var hH = PW * KOP_HEADER_RATIO, fH = PW * KOP_FOOTER_RATIO, cH = PW * KOP_CONT_FOOTER_RATIO;
+  doc.addImage(KOP_HEADER_DATA_URI, "JPEG", 0, 0, PW, hH); doc.addImage(KOP_FOOTER_DATA_URI, "JPEG", 0, PH - fH, PW, fH);
+  var k = { doc: doc, PW: PW, PH: PH, mx: 12, y: hH + 6, contTop: 14, bottom: Math.max(fH, cH) + 6 };
+  k.lanjut = function () { doc.addImage(KOP_CONT_FOOTER_DATA_URI, "JPEG", 0, PH - cH, PW, cH); };
+  return k;
+}
+function cekHal(k, y, need) { if (y + need > k.PH - k.bottom) { k.doc.addPage(F4_FORMAT, "p"); k.lanjut(); return k.contTop + 6; } return y; }
+function judulPdf(k, teks, d) {
+  var doc = k.doc, s = d.pengaturan || S.set || {}, y = k.y;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text(teks, k.PW / 2, y, { align: "center" }); y += 6;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  var sub = s.tahun_akademik ? (d.info.jenis === "UAS" ? "Ujian Akhir Semester " : "Ujian Tengah Semester ") + (s.semester || "") + " " + s.tahun_akademik : CONFIG.JUDUL_PERIODE;
+  doc.text(sub, k.PW / 2, y, { align: "center" }); return y + 8;
+}
+function kvPdf(k, y, rows) {
+  var doc = k.doc; doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  rows.forEach(function (r) {
+    var l = doc.splitTextToSize(": " + (r[1] === "" || r[1] == null ? "-" : r[1]), k.PW - 2 * k.mx - 52);
+    y = cekHal(k, y, 5 * l.length); doc.text(r[0], k.mx, y); doc.text(l, k.mx + 52, y); y += 5 * l.length;
+  });
+  return y;
+}
+function ttdPdf(k, y, d) {
+  var doc = k.doc, i = d.info; y = cekHal(k, y, 48);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(0);
+  doc.text(TTD.kota + ", " + fmtT(i.tanggal), k.PW - k.mx, y, { align: "right" }); y += 6;
+  var x1 = k.mx + 40, x2 = k.PW - k.mx - 40;
+  doc.text("Pengawas I", x1, y, { align: "center" }); if (i.pengawas2) doc.text("Pengawas II", x2, y, { align: "center" });
+  doc.setFont("helvetica", "bold");
+  doc.text(i.pengawas1 || "(............................)", x1, y + 26, { align: "center" }); if (i.pengawas2) doc.text(i.pengawas2, x2, y + 26, { align: "center" });
+  return y + 30;
+}
+function selesaiPdf(doc, w, nama) { var url = doc.output("bloburl"); if (w) w.location.href = url; else doc.save(nama); }
+function infoRows(i) { return [["Mata Kuliah", i.matkul], ["Kelas / Program Studi", i.kelas + " / " + i.prodi], ["Dosen Pengampu", i.dosen], ["Hari / Tanggal", hariTgl(i.tanggal)], ["Jadwal / Ruang", i.mulai + "–" + i.selesai + " / " + i.ruang]]; }
+
+function pdfHadir(J, d, w) {
+  var k = kopPdf(J), doc = k.doc, i = d.info, n = ringkas(d), y = judulPdf(k, "DAFTAR HADIR UJIAN", d);
+  y = kvPdf(k, y, infoRows(i)) + 3;
+  doc.autoTable({
+    startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+    head: [["No.", "NIM", "Nama", "Status", "Paraf"]],
+    body: d.peserta.map(function (p, j) { return [String(j + 1), p.nim, p.nama, p.status || "", ""]; }),
+    theme: "grid", styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "middle", minCellHeight: 8 },
+    headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" }, alternateRowStyles: { fillColor: [244, 246, 252] },
+    columnStyles: { 0: { cellWidth: 10, halign: "center" }, 1: { cellWidth: 32 }, 2: { cellWidth: "auto" }, 3: { cellWidth: 24, halign: "center" }, 4: { cellWidth: 30 } },
+    didDrawPage: function (data) { if (data.pageNumber > 1) k.lanjut(); }
+  });
+  y = (doc.lastAutoTable ? doc.lastAutoTable.finalY : y) + 6; y = cekHal(k, y, 10);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.text("Jumlah peserta " + d.peserta.length + "  |  Hadir " + n.Hadir + "  |  Izin " + n.Izin + "  |  Sakit " + n.Sakit + "  |  Tidak hadir " + n.Tidak, k.mx, y);
+  ttdPdf(k, y + 10, d); selesaiPdf(doc, w, "Daftar_Hadir_Ujian.pdf");
+}
+
+function pdfBA(J, d, w) {
+  var k = kopPdf(J), doc = k.doc, i = d.info, n = ringkas(d), b = d.ba || {}, s = d.pengaturan || S.set || {};
+  var y = judulPdf(k, "BERITA ACARA PELAKSANAAN UJIAN", d);
+  var jns = i.jenis === "UAS" ? "Ujian Akhir Semester" : "Ujian Tengah Semester";
+  var para = "Pada hari ini, " + hariTgl(i.tanggal) + ", telah dilaksanakan " + jns + (s.semester ? " " + s.semester : "") + (s.tahun_akademik ? " Tahun Akademik " + s.tahun_akademik : "") + " pada Fakultas Pendidikan, Sains, dan Humaniora Universitas Muhammadiyah Malang dengan keterangan sebagai berikut:";
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  var pl = doc.splitTextToSize(para, k.PW - 2 * k.mx); doc.text(pl, k.mx, y, { align: "justify", maxWidth: k.PW - 2 * k.mx }); y += 5 * pl.length + 3;
+  y = kvPdf(k, y, infoRows(i).concat([
+    ["Waktu pelaksanaan", (b.mulai || i.mulai) + " s.d. " + (b.selesai || i.selesai) + " WIB"],
+    ["Jumlah peserta terdaftar", String(d.peserta.length)],
+    ["Peserta hadir", String(n.Hadir)],
+    ["Peserta izin / sakit", n.Izin + " / " + n.Sakit],
+    ["Peserta tidak hadir", String(n.Tidak)],
+    ["Lembar jawaban terkumpul", b.lembar !== undefined && b.lembar !== "" ? b.lembar : String(n.Hadir)]
+  ])) + 2;
+  y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.text("Catatan / kejadian selama ujian:", k.mx, y); y += 5; doc.setFont("helvetica", "normal");
+  var cl = doc.splitTextToSize(b.catatan || "Tidak ada kejadian khusus.", k.PW - 2 * k.mx);
+  cl.forEach(function (ln) { y = cekHal(k, y, 5); doc.text(ln, k.mx, y); y += 5; }); y += 2;
+  var absen = d.peserta.filter(function (p) { return p.status !== "Hadir"; });
+  if (absen.length) {
+    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.text("Peserta yang tidak mengikuti ujian:", k.mx, y); y += 2;
+    doc.autoTable({
+      startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+      head: [["No.", "NIM", "Nama", "Keterangan"]], body: absen.map(function (p, j) { return [String(j + 1), p.nim, p.nama, p.status || "Tanpa keterangan"]; }),
+      theme: "grid", styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" },
+      columnStyles: { 0: { cellWidth: 10, halign: "center" }, 1: { cellWidth: 32 }, 3: { cellWidth: 36 } },
+      didDrawPage: function (data) { if (data.pageNumber > 1) k.lanjut(); }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  }
+  y = cekHal(k, y, 12); doc.setFont("helvetica", "normal");
+  doc.text("Demikian berita acara ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.", k.mx, y);
+  ttdPdf(k, y + 10, d); selesaiPdf(doc, w, "Berita_Acara_Ujian.pdf");
+}
+
+// ----- Mahasiswa: Absen QR & Soal -----
+function ekstrakKode(t) {
+  t = String(t || "").trim();
+  var m = /[?&]h=([0-9a-f]{12}\.[0-9a-f]{10})/i.exec(t) || /^([0-9a-f]{12}\.[0-9a-f]{10})$/i.exec(t);
+  return m ? m[1].toLowerCase() : null;
+}
+function perluMhs() { if (AUTH.user && AUTH.user.peran === "Mahasiswa") return false; LG.tab = "mahasiswa"; dlgLogin(); return true; }
+function dlgAbsen() {
+  if (perluMhs()) return;
+  stopHd();
+  dlg('<h3>Absen Ujian</h3><div class="hint" style="margin:0 0 10px">Sorot QR code yang ditampilkan Pengawas di ruang ujian. Setelah kehadiran tercatat, soal ujian dapat diunduh.</div><div style="border-radius:14px;overflow:hidden;background:#000"><video id="scv" playsinline muted style="width:100%;display:block;max-height:48vh;object-fit:cover"></video></div><div class="err" id="sce" style="margin-top:8px"></div>' +
+    '<label class="fld">Atau tempel tautan/kode QR<input class="f" id="scm" placeholder="https://…?h=…"></label><button class="btn pri" onclick="kirimManual()">Kirim</button> <button class="btn" onclick="dlgSoal()">📄 Soal Ujian</button> <button class="btn" onclick="tutup()">Tutup</button>', "");
+  mulaiScan();
+}
+function kirimManual() { var k = ekstrakKode($("scm").value); if (!k) { $("sce").textContent = "Kode QR tidak valid."; return; } stopScan(); kirimHadir(k); }
+async function mulaiScan() {
+  var v = $("scv"), e = $("sce");
+  try { SC.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false }); v.srcObject = SC.stream; await v.play(); }
+  catch (x) { e.textContent = "Kamera tidak dapat dibuka. Izinkan akses kamera atau tempel tautan QR di bawah."; return; }
+  var det = window.BarcodeDetector ? new BarcodeDetector({ formats: ["qr_code"] }) : null, cv = document.createElement("canvas"), cx = cv.getContext("2d", { willReadFrequently: true });
+  if (!det) { try { await loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"); } catch (x) { e.textContent = "Pemindai tidak termuat. Tempel tautan QR di bawah."; return; } }
+  var tick = 0;
+  async function loop() {
+    if (!SC.stream || !$("scv")) return;
+    try {
+      var kode = null;
+      if (v.readyState >= 2 && (++tick % 3 === 0)) {
+        if (det) { var r = await det.detect(v); if (r.length) kode = r[0].rawValue; }
+        else { cv.width = v.videoWidth; cv.height = v.videoHeight; cx.drawImage(v, 0, 0); var im = cx.getImageData(0, 0, cv.width, cv.height), q = window.jsQR && jsQR(im.data, im.width, im.height); if (q) kode = q.data; }
+      }
+      var k = kode && ekstrakKode(kode);
+      if (k) { stopScan(); return kirimHadir(k); }
+    } catch (x) {}
+    SC.raf = requestAnimationFrame(loop);
+  }
+  loop();
+}
+async function kirimHadir(k) {
+  if (!AUTH.user || AUTH.user.peran !== "Mahasiswa") { PENDING_H = k; LG.tab = "mahasiswa"; return dlgLogin(); }
+  dlg('<h3>Absen Ujian</h3><div>Mencatat kehadiran…</div>', "");
+  try {
+    var j = await post({ aksi: "scanHadir", kode: k });
+    dlg('<h3>✓ Kehadiran Tercatat</h3><div class="pw"><div class="pt"><b>' + esc(j.matkul) + "</b><br><span>Kelas " + esc(j.kelas) + " · " + esc(j.ruang) + "<br>" + esc(j.nama) + " (" + esc(j.nim) + ")<br>" + hariTgl(j.tanggal) + " · " + esc(j.mulai) + "–" + esc(j.selesai) + '</span></div></div><div class="hint">' +
+      (j.soal ? "Soal ujian tersedia" + (j.terbuka ? "." : " dan dapat diunduh mulai pukul " + esc(j.mulai) + ".") : "Soal ujian belum diunggah oleh dosen.") + '</div><button class="btn pri" onclick="dlgSoal()">📄 Buka Soal Ujian</button> <button class="btn" onclick="tutup()">Tutup</button>', "");
+  } catch (x) { dlg('<h3>Absen Gagal</h3><div class="err">' + esc(x.message) + '</div><button class="btn pri" onclick="dlgAbsen()">Coba lagi</button> <button class="btn" onclick="tutup()">Tutup</button>', ""); }
+}
+async function dlgSoal() {
+  if (perluMhs()) return;
+  stopHd(); dlg('<h3>Soal Ujian</h3><div id="sl">Memuat…</div>', "");
+  try {
+    var j = await post({ aksi: "soalSaya" });
+    $("sl").innerHTML = (j.data.length ? j.data.map(function (r) {
+      return '<div class="pw"><div class="pt"><b>' + esc(r.matkul) + "</b> · Kelas " + esc(r.kelas) + "<br><span>" + hariTgl(r.tanggal) + " · " + esc(r.mulai) + "–" + esc(r.selesai) + " · " + esc(r.ruang) + " · hadir " + esc(String(r.hadir).slice(11, 16)) + "</span></div>" +
+        (!r.adaSoal ? '<div class="hint" style="margin:0">Soal belum diunggah oleh dosen.</div>' : !r.terbuka ? '<div class="hint" style="margin:0">Soal dapat diunduh mulai pukul ' + esc(r.mulai) + ".</div>" : '<button class="btn sm pri" onclick="unduhSoal(\'' + esc(r.id) + '\',this)">⬇ Unduh Soal</button> <span class="hint">' + esc(r.namaFile) + "</span>") + "</div>";
+    }).join("") : '<div class="hint">Belum ada kehadiran tercatat. Lakukan absen dengan menyorot QR Pengawas terlebih dahulu.</div>') + '<button class="btn" onclick="dlgAbsen()">📷 Absen</button> <button class="btn" onclick="tutup()">Tutup</button>';
+  } catch (x) { $("sl").innerHTML = '<div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>'; }
+}
+async function unduhSoal(id, b) {
+  var t = b.textContent; b.disabled = true; b.textContent = "Mengunduh…";
+  try {
+    var j = await post({ aksi: "unduhSoal", id: id }), bin = atob(j.data), a = new Uint8Array(bin.length), x;
+    for (x = 0; x < bin.length; x++) a[x] = bin.charCodeAt(x);
+    var l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([a], { type: j.mime })); l.download = j.nama; l.click();
+  } catch (e) { alert(e.message); }
+  b.disabled = false; b.textContent = t;
+}
+if (PENDING_H) setTimeout(function () { if (AUTH.user && AUTH.user.peran === "Mahasiswa") { var k = PENDING_H; PENDING_H = null; kirimHadir(k); } else { LG.tab = "mahasiswa"; dlgLogin(); } }, 400);
 
 /* ---------- Cetak jadwal ke PDF (F4, kop FPSH: halaman 1 = header + footer, halaman 2 dst = footer saja) — cara sama seperti jadkul.html ---------- */
 var PDFLIB = {

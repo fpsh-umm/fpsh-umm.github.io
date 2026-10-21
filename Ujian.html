@@ -141,6 +141,7 @@ input,select{font-size:16px}.card,.b h3,.m,.t{overflow-wrap:anywhere}
 @media(max-width:360px){.cd .hr{font-size:1.7rem}.cd .jm{font-size:1.7rem;padding:8px 10px}.cd .jm span{font-size:1.1rem}.seg button{font-size:.82rem}}
 @media print{.chips,.top,.bar,.hero,.tools,.banner,footer,.cat{display:none}body{background:#fff}.card{break-inside:avoid}.card.selesai{opacity:1}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.dlgujian{}dialog.ujian{width:min(1200px,98vw);height:min(94vh,calc(100dvh - 16px));max-height:none;padding:14px;display:none;flex-direction:column;overflow:hidden}dialog.ujian[open]{display:flex}.ujh{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}.kds{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:8px;background:var(--line);font-family:monospace;font-weight:700}.uji{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 12px;margin-bottom:8px;font-size:.88rem}.uji small{display:block;color:var(--mut);font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}.ujt{font-family:Oswald,sans-serif;font-size:1.7rem;color:var(--ok)}.ujt.hab{color:var(--err)}.ujb{flex:1;min-height:0;display:grid;grid-template-columns:3fr 2fr;gap:12px}.ujs{display:flex;flex-direction:column;min-height:0}.ujs iframe{flex:1;width:100%;min-height:0;border:1px solid var(--line);border-radius:10px;background:#fff}.uja{display:flex;flex-direction:column;min-height:0}.uja textarea{flex:1;resize:none;min-height:120px}@media(max-width:760px){.ujb{grid-template-columns:1fr;grid-template-rows:1fr 1fr}}.pdfv{flex:1;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#e9ebf2;padding:8px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.pdfv canvas{display:block;margin:0 auto 8px;background:#fff;max-width:100%}.ujbtn{display:flex;gap:6px;flex-wrap:wrap;padding-top:8px}@media print{dialog.ujian{display:none!important}}@media(max-width:760px){dialog.ujian{overflow:auto;padding:10px}.ujb{display:block;flex:none}.ujs{height:65dvh;margin-bottom:10px}.uja{display:block}.uja textarea{height:35dvh;min-height:180px;width:100%}.ujbtn{position:sticky;bottom:-10px;background:var(--card);padding:10px 0;border-top:1px solid var(--line);z-index:2}}
 .ut th{padding:6px 4px;border-bottom:2px solid var(--line);font-size:.78rem;color:var(--mut);text-align:center}.pw .btn.sm{margin-right:4px}
 </style>
 </head>
@@ -324,7 +325,7 @@ function terapkanPengaturan() {
 }
 async function post(o) {
   var r = await fetch(CONFIG.SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(Object.assign({ token: AUTH.token }, o)) }), j = await r.json();
-  if (!j.ok) { if (/Sesi berakhir/.test(j.error)) keluar(true); throw new Error(j.error); }
+  if (!j.ok) { if (/Sesi berakhir|dinonaktifkan/.test(j.error)) keluar(true); throw new Error(j.error); }
   return j;
 }
 function milikSaya(r) {
@@ -336,7 +337,7 @@ function pengawasMode() { return !!AUTH.user && AUTH.user.peran === "Pengawas"; 
 function boleh(p) { return AUTH.user && p.indexOf(AUTH.user.peran) >= 0; }
 function renderAkun() {
   var u = AUTH.user;
-  $("akun").innerHTML = u ? ((u.peran === "Mahasiswa") ? '<button class="btn" onclick="dlgAbsen()">📷 Absen</button><button class="btn" onclick="dlgSoal()">📄 Soal</button>' : "") + (boleh(["Administrator", "Panitia", "Dosen"]) ? '<button class="btn" onclick="dlgPengaturan()">⚙ Pengaturan</button>' : "") + '<button class="btn" onclick="keluar()" title="Keluar">' + esc(u.nama.split(",")[0]) + ' <span class="tag">' + esc(u.peran) + "</span> ⎋</button>" : '<button class="btn" onclick="dlgLogin()">👤 Masuk</button>';
+  $("akun").innerHTML = u ? ((u.peran === "Mahasiswa") ? '<button class="btn" onclick="dlgAbsen()">📷 Absen</button><button class="btn" onclick="dlgSoal()">📝 Ujian</button>' : "") + ((u.peran === "Panitia" || u.peran === "Administrator") ? '<button class="btn" onclick="dlgPlgPanitia()">🚫 Pelanggaran</button>' : "") + ((u.peran === "Panitia" || u.peran === "Administrator") ? '<button class="btn" onclick="dlgRekapBA()">📑 Rekap BA</button>' : "") + (u.peran === "Administrator" ? '<button class="btn" onclick="dlgSoalAdmin()">📥 Soal PDF</button>' : "") + (boleh(["Administrator", "Panitia", "Dosen"]) ? '<button class="btn" onclick="dlgPengaturan()">⚙ Pengaturan</button>' : "") + '<button class="btn" onclick="keluar()" title="Keluar">' + esc(u.nama.split(",")[0]) + ' <span class="tag">' + esc(u.peran) + "</span> ⎋</button>" : '<button class="btn" onclick="dlgLogin()">👤 Masuk</button>';
   $("sayaWrap").hidden = !u || pengawasMode();
   if (!u || pengawasMode()) $("saya").checked = false;
   document.body.classList.toggle("modepw", pengawasMode());
@@ -531,11 +532,11 @@ function gambarBerkas() {
   var rows = S.data.filter(function (r) { return r.kunci && milikDosen(r); });
   if (!rows.length) { $("bl").textContent = S.demo ? "Sedang menampilkan data contoh. Sambungkan aplikasi ke spreadsheet terlebih dahulu." : "Belum ada jadwal ujian atas nama Anda. Pastikan nama akun sama dengan nama pada kolom Dosen di jadwal."; return; }
   $("bl").innerHTML = rows.map(function (r) {
-    return '<div class="pw"><div class="pt"><b>' + esc(r.matkul) + "</b> · " + esc(r.jenis) + " · Kelas " + esc(r.kelas) + " · " + esc(r.prodi) + "<br><span>" + fmtT(r.tanggal) + " · " + esc(r.mulai) + "–" + esc(r.selesai) + "</span></div>" +
+    return '<div class="pw"><div class="pt"><b>' + esc(r.matkul) + "</b> · " + esc(r.jenis) + " · Kelas " + esc(r.kelas) + " · " + esc(r.prodi) + "<br><span>" + fmtT(r.tanggal) + " · " + esc(r.mulai) + "–" + esc(r.selesai) + '</span> <button type="button" class="btn sm" onclick="dlgJawaban(' + r.baris + ')">📋 Lihat Jawaban</button></div>' +
       ["soal", "kunci"].map(function (j) {
         var f = BK.filter(function (x) { return x.kunci === r.kunci && x.jenis === j; })[0];
-        return '<div class="bk"><b style="min-width:100px">' + (j === "soal" ? "Soal" : "Kunci / Jawaban") + '</b><span class="st2" id="bs_' + r.baris + j + '">' + (f ? "✓ " + esc(f.namaFile) + " (" + ukr(f.ukuran) + ") · " + esc(f.diunggah) : "Belum diunggah") + "</span>" +
-          '<label class="btn sm">' + (f ? "Ganti" : "Unggah") + '<input type="file" hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.zip" onchange="unggah(this,' + r.baris + ',\'' + j + '\')"></label>' +
+        return '<div class="bk"><b style="min-width:100px">' + (j === "soal" ? "Soal (PDF)" : "Kunci / Jawaban") + '</b><span class="st2" id="bs_' + r.baris + j + '">' + (f ? "✓ " + esc(f.namaFile) + " (" + ukr(f.ukuran) + ") · " + esc(f.diunggah) + (j === "soal" && f.kode ? " · Kode Soal: <b>" + esc(f.kode) + "</b>" : "") : "Belum diunggah") + "</span>" +
+          '<label class="btn sm">' + (f ? "Ganti" : "Unggah") + '<input type="file" hidden accept="' + (j === "soal" ? ".pdf" : ".pdf,.doc,.docx,.xls,.xlsx,.zip") + '" onchange="unggah(this,' + r.baris + ',\'' + j + '\')"></label>' +
           (f ? ' <button type="button" class="btn sm" onclick="hapusBerkas(' + r.baris + ',\'' + j + '\')">Hapus</button>' : "") + "</div>";
       }).join("") + "</div>";
   }).join("");
@@ -544,6 +545,7 @@ async function unggah(inp, b, j) {
   var f = inp.files[0], r = S.data.filter(function (x) { return x.baris === b; })[0], st = $("bs_" + b + j); inp.value = "";
   if (!f || !r || !st) return;
   if (f.size > 7 * 1024 * 1024) { st.className = "st2 err"; st.textContent = "Ukuran berkas maksimal 7 MB."; return; }
+  if (j === "soal" && !/\.pdf$/i.test(f.name)) { st.className = "st2 err"; st.textContent = "Berkas soal harus berformat PDF."; return; }
   if (!/\.(pdf|docx?|xlsx?|zip)$/i.test(f.name)) { st.className = "st2 err"; st.textContent = "Format harus PDF, DOC, DOCX, XLS, XLSX, atau ZIP."; return; }
   st.className = "st2"; st.textContent = "Mengunggah " + f.name + "…";
   try {
@@ -640,11 +642,11 @@ function gambarHadir() {
   if (!$("hdb")) $("hdx").innerHTML = '<div id="hdi"></div><div class="row" style="margin:10px 0"><button class="btn pri" onclick="tampilQr()">📱 Tampilkan QR Absen</button><button class="btn" onclick="dlgBA(' + i + ')">📝 Berita Acara</button><button class="btn" onclick="cetakHadir()">🖨 Cetak Daftar Hadir</button><button class="btn" onclick="tutup()">Tutup</button></div><div id="qrWrap" hidden></div><div id="hdb"></div>';
   $("hdi").innerHTML = infoBlok(d.info) + '<div class="m" style="display:flex;gap:6px 16px;flex-wrap:wrap;font-size:.9rem"><span>Peserta: <b>' + d.peserta.length + "</b></span><span>Hadir: <b>" + n.Hadir + "</b></span><span>Izin: <b>" + n.Izin + "</b></span><span>Sakit: <b>" + n.Sakit + "</b></span><span>Belum/tidak hadir: <b>" + n.Tidak + "</b></span></div>";
   var opt = function (v, l, cur) { return '<option value="' + v + '"' + (cur === v ? " selected" : "") + ">" + l + "</option>"; };
-  $("hdb").innerHTML = '<table class="ut"><tr><th>No</th><th style="text-align:left">NIM</th><th style="text-align:left">Nama</th><th>Status</th><th>Waktu</th></tr>' +
+  $("hdb").innerHTML = '<table class="ut"><tr><th>No</th><th style="text-align:left">NIM</th><th style="text-align:left">Nama</th><th>Status</th><th>Waktu</th><th></th></tr>' +
     (d.peserta.length ? d.peserta.map(function (p, k) {
       return "<tr><td>" + (k + 1) + "</td><td>" + esc(p.nim) + "</td><td>" + esc(p.nama) + '</td><td><select class="f" style="min-width:120px;flex:none;width:auto;height:36px;padding:0 34px 0 10px" onchange="setHadir(\'' + esc(p.nim) + '\',this.value)">' +
-        opt("", "Tidak hadir", p.status) + opt("Hadir", "Hadir", p.status) + opt("Izin", "Izin", p.status) + opt("Sakit", "Sakit", p.status) + "</select></td><td>" + esc(p.waktu ? p.waktu.slice(11, 16) + (p.via === "QR" ? " · QR" : "") : "") + "</td></tr>";
-    }).join("") : '<tr><td colspan="5">Belum ada peserta pada sheet Peserta_Mk untuk mata kuliah dan kelas ini.</td></tr>') + "</table>";
+        opt("", "Tidak hadir", p.status) + opt("Hadir", "Hadir", p.status) + opt("Izin", "Izin", p.status) + opt("Sakit", "Sakit", p.status) + "</select></td><td>" + esc(p.waktu ? p.waktu.slice(11, 16) + (p.via === "QR" ? " · QR" : "") : "") + "</td><td>" + (p.plg ? '<span class="hint" style="margin:0">🚫 Dinonaktifkan</span>' : '<button class="btn sm" onclick="dlgNonaktif(\'' + esc(p.nim) + '\',\'pw\')">🚫 Nonaktifkan</button>') + "</td></tr>";
+    }).join("") : '<tr><td colspan="6">Belum ada peserta pada sheet Peserta_Mk untuk mata kuliah dan kelas ini.</td></tr>') + "</table>";
 }
 async function setHadir(nim, st) {
   try { HD.d = await post({ aksi: "setHadir", baris: HD.r.baris, id: HD.r.id, nim: nim, status: st }); gambarHadir(); } catch (x) { alert(x.message); muatHadir(); }
@@ -671,6 +673,143 @@ async function segarQr() {
   } catch (x) { if ($("qrErr")) { $("qrErr").textContent = x.message; $("qrBox").innerHTML = ""; clearInterval(HD.qt); } }
 }
 
+// ----- Panitia: Rekap Berita Acara -----
+var RB = { d: [] };
+function tglIni() { var t = new Date(); return t.getFullYear() + "-" + ("0" + (t.getMonth() + 1)).slice(-2) + "-" + ("0" + t.getDate()).slice(-2); }
+function dlgRekapBA() {
+  var h = tglIni();
+  dlg('<h3>📑 Rekap Berita Acara</h3><div class="g2"><label class="fld">Dari tanggal<input class="f" type="date" id="rbd" value="' + h + '"></label><label class="fld">Sampai tanggal<input class="f" type="date" id="rbs" value="' + h + '"></label></div>' +
+    '<div class="row" style="margin-bottom:10px"><button class="btn pri" onclick="muatRekapBA()">Tampilkan</button><label style="display:flex;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="rbb" onchange="gambarRekapBA()"> Hanya yang belum ada Berita Acara</label></div><div id="rbx"></div>', "wide");
+  muatRekapBA();
+}
+async function muatRekapBA() {
+  var x = $("rbx"); x.innerHTML = "Memuat…";
+  try { RB.d = (await post({ aksi: "rekapBA", dari: $("rbd").value, sampai: $("rbs").value })).data; gambarRekapBA(); }
+  catch (e) { x.innerHTML = '<div class="err">' + esc(e.message) + "</div>"; }
+}
+function gambarRekapBA() {
+  var d = RB.d, x = $("rbx"); if (!x) return;
+  var belum = $("rbb") && $("rbb").checked, rows = d.filter(function (r) { return !belum || !r.ada; });
+  var nBA = d.filter(function (r) { return r.ada; }).length, nPl = d.reduce(function (a, r) { return a + r.pelanggaran.length; }, 0);
+  x.innerHTML = '<div class="hint" style="margin:0 0 8px">Jadwal: <b>' + d.length + "</b> · Berita Acara terisi: <b>" + nBA + "</b> · Belum: <b>" + (d.length - nBA) + "</b> · Pelanggaran tercatat: <b>" + nPl + "</b></div>" +
+    '<div style="overflow:auto;max-height:50vh"><table class="ut" style="width:100%"><tr><th style="text-align:left">Tanggal / Jam</th><th style="text-align:left">Mata Kuliah</th><th>Kelas</th><th>Ruang</th><th>Hadir</th><th>Lembar</th><th>Pelanggaran</th><th>BA</th><th></th></tr>' +
+    (rows.length ? rows.map(function (r) {
+      var k = d.indexOf(r);
+      return "<tr><td>" + esc(fmtT(r.tanggal)) + "<br>" + esc(r.mulai) + "–" + esc(r.selesai) + "</td><td>" + esc(r.matkul) + '<br><span class="hint" style="margin:0">' + esc(r.prodi) + '</span></td><td style="text-align:center">' + esc(r.kelas) + '</td><td style="text-align:center">' + esc(r.ruang) + '</td><td style="text-align:center">' + (r.ada ? esc(r.hadir) + "/" + esc(r.peserta) : "–") + '</td><td style="text-align:center">' + (r.ada ? esc(r.lembar) : "–") + '</td><td style="text-align:center">' + (r.pelanggaran.length || "–") + '</td><td style="text-align:center">' + (r.ada ? "✓" : "Belum") + '</td><td><button class="btn sm" onclick="detailRekapBA(' + k + ')">Detail</button></td></tr>';
+    }).join("") : '<tr><td colspan="9" class="hint">Tidak ada jadwal pada rentang ini.</td></tr>') + '</table></div><div id="rbdt"></div>' +
+    '<div style="margin-top:10px"><button class="btn pri" onclick="cetakRekapBA()">🖨 Cetak PDF</button> <button class="btn" onclick="unduhRekapBA()">⬇ Unduh CSV</button> <button class="btn" onclick="tutup()">Tutup</button></div>';
+}
+function detailRekapBA(k) {
+  var r = RB.d[k];
+  $("rbdt").innerHTML = '<div class="pw" style="margin-top:10px"><div class="pt"><b>' + esc(r.matkul) + "</b> · Kelas " + esc(r.kelas) + " · " + esc(r.prodi) + "<br><span>" + hariTgl(r.tanggal) + " · " + esc(r.mulai) + "–" + esc(r.selesai) + " · " + esc(r.ruang) + "<br>Dosen: " + esc(r.dosen) + "<br>Pengawas: " + esc(r.pengawas1) + (r.pengawas2 ? " & " + esc(r.pengawas2) : "") + "</span></div>" +
+    (r.ada ? '<div style="font-size:.9rem;margin-bottom:6px">Pelaksanaan aktual: ' + esc(r.mulaiAktual) + "–" + esc(r.selesaiAktual) + " · Peserta " + esc(r.peserta) + " · Hadir " + esc(r.hadir) + " · Izin " + esc(r.izin) + " · Sakit " + esc(r.sakit) + " · Tidak hadir " + esc(r.tidak) + " · Lembar jawaban " + esc(r.lembar) + '</div><div style="white-space:pre-wrap;word-break:break-word;margin-bottom:6px"><b>Catatan:</b> ' + esc(r.catatan || "—") + '</div><div class="hint" style="margin:0">Disimpan ' + esc(r.dibuat) + " oleh " + esc(r.oleh) + "</div>" : '<div class="hint" style="margin:0">Berita Acara belum dibuat oleh Pengawas.</div>') + "</div>" + plgBlok(r.pelanggaran);
+  $("rbdt").scrollIntoView({ block: "nearest" });
+}
+function cetakRekapBA() {
+  var w = window.open("", "_blank");
+  ensureJsPDF().then(function (J) { pdfRekapBA(J, w); }).catch(function (x) { console.error(x); if (w) w.close(); alert("Gagal membuat PDF. Periksa koneksi internet."); });
+}
+function pdfRekapBA(J, w) {
+  var k = kopPdf(J), doc = k.doc, dari = $("rbd").value, sampai = $("rbs").value, belum = $("rbb") && $("rbb").checked, rows = RB.d.filter(function (r) { return !belum || !r.ada; }), s = S.set || {}, y = k.y;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text("REKAPITULASI BERITA ACARA UJIAN", k.PW / 2, y, { align: "center" }); y += 6;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  var sub = (s.tahun_akademik ? (s.jenis_ujian || "Ujian") + " " + (s.semester || "") + " " + s.tahun_akademik + " · " : "") + "Periode " + fmtT(dari) + (dari !== sampai ? " – " + fmtT(sampai) : "") + (belum ? " (belum ada Berita Acara)" : "");
+  doc.text(sub, k.PW / 2, y, { align: "center" }); y += 7;
+  var nBA = RB.d.filter(function (r) { return r.ada; }).length, nPl = RB.d.reduce(function (a, r) { return a + r.pelanggaran.length; }, 0);
+  doc.text("Jumlah jadwal: " + RB.d.length + "  |  Berita Acara terisi: " + nBA + "  |  Belum: " + (RB.d.length - nBA) + "  |  Pelanggaran: " + nPl, k.mx, y); y += 4;
+  doc.autoTable({
+    startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+    head: [["No.", "Tanggal / Jam", "Mata Kuliah / Prodi", "Kelas", "Ruang", "Hadir/ Peserta", "Lembar", "Pelang- garan", "BA"]],
+    body: rows.map(function (r, j) { return [String(j + 1), fmtT(r.tanggal) + "\n" + r.mulai + "–" + r.selesai, r.matkul + "\n" + r.prodi, r.kelas, r.ruang, r.ada ? r.hadir + "/" + r.peserta : "-", r.ada ? r.lembar : "-", String(r.pelanggaran.length || "-"), r.ada ? "Ada" : "Belum"]; }),
+    theme: "grid", styles: { font: "helvetica", fontSize: 8, cellPadding: 1.8, valign: "middle" },
+    headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" }, alternateRowStyles: { fillColor: [244, 246, 252] },
+    columnStyles: { 0: { cellWidth: 9, halign: "center" }, 1: { cellWidth: 30 }, 2: { cellWidth: "auto" }, 3: { cellWidth: 11, halign: "center" }, 4: { cellWidth: 22 }, 5: { cellWidth: 16, halign: "center" }, 6: { cellWidth: 14, halign: "center" }, 7: { cellWidth: 15, halign: "center" }, 8: { cellWidth: 13, halign: "center" } },
+    didDrawPage: function (data) { if (data.pageNumber > 1) k.lanjut(); }
+  });
+  y = doc.lastAutoTable.finalY + 6;
+  var pr = rows.filter(function (r) { return r.pelanggaran.length; });
+  if (pr.length) {
+    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Rincian pelanggaran tata tertib / kecurangan ujian:", k.mx, y); y += 2;
+    var body = []; pr.forEach(function (r) { r.pelanggaran.forEach(function (p) { body.push([String(body.length + 1), p.nim + "\n" + p.nama, r.matkul + " (" + r.kelas + ")\n" + fmtT(r.tanggal), p.jenis + ": " + p.ket]); }); });
+    doc.autoTable({
+      startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+      head: [["No.", "NIM / Nama", "Mata Kuliah / Tanggal", "Jenis / Keterangan"]], body: body,
+      theme: "grid", styles: { font: "helvetica", fontSize: 8, cellPadding: 1.8, valign: "middle" },
+      headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" },
+      columnStyles: { 0: { cellWidth: 9, halign: "center" }, 1: { cellWidth: 45 }, 2: { cellWidth: 50 } },
+      didDrawPage: function (data) { if (data.pageNumber > 1) k.lanjut(); }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  }
+  y = cekHal(k, y, 45); doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(0);
+  var x = k.PW - k.mx - 40;
+  doc.text(TTD.kota + ", " + fmtT(tglIni()), x, y, { align: "center" }); y += 5;
+  doc.text(TTD.an, x, y, { align: "center" }); y += 5; doc.text(TTD.jabatan, x, y, { align: "center" });
+  doc.setFont("helvetica", "bold"); doc.text(TTD.nama, x, y + 24, { align: "center" });
+  selesaiPdf(doc, w, "Rekap_Berita_Acara_" + dari + "_" + sampai + ".pdf");
+}
+function unduhRekapBA() {
+  var q = function (s) { return '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"'; };
+  var l = [["Tanggal", "Mulai", "Selesai", "Mata Kuliah", "Kelas", "Prodi", "Dosen", "Ruang", "Pengawas 1", "Pengawas 2", "BA", "Mulai Aktual", "Selesai Aktual", "Peserta", "Hadir", "Izin", "Sakit", "Tidak Hadir", "Lembar", "Catatan", "Jumlah Pelanggaran", "Pelanggaran"].map(q).join(",")];
+  RB.d.forEach(function (r) {
+    l.push([r.tanggal, r.mulai, r.selesai, r.matkul, r.kelas, r.prodi, r.dosen, r.ruang, r.pengawas1, r.pengawas2, r.ada ? "Ada" : "Belum", r.mulaiAktual, r.selesaiAktual, r.peserta, r.hadir, r.izin, r.sakit, r.tidak, r.lembar, r.catatan, r.pelanggaran.length,
+      r.pelanggaran.map(function (p) { return p.nim + " " + p.nama + " — " + p.jenis + ": " + p.ket; }).join(" | ")].map(q).join(","));
+  });
+  var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + l.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  a.download = "Rekap_Berita_Acara_" + $("rbd").value + "_" + $("rbs").value + ".csv"; a.click();
+}
+
+// ----- Nonaktifkan akun Mahasiswa (Pengawas / Panitia) -----
+var PL = { mode: "pw", r: null, d: null };
+function plgBlok(list) {
+  if (!list || !list.length) return "";
+  return '<div class="pw" style="border-color:var(--err)"><div class="pt"><b>🚫 Pelanggaran tercatat</b> <span>(otomatis masuk Berita Acara)</span></div>' + list.map(function (p, k) {
+    return '<div style="font-size:.88rem;margin-bottom:4px">' + (k + 1) + ". <b>" + esc(p.nama) + "</b> (" + esc(p.nim) + ") — " + esc(p.jenis) + ": " + esc(p.ket) + ' <span class="hint" style="margin:0">' + esc(p.waktu) + " · " + esc(p.oleh) + (p.status !== "Nonaktif" ? " · " + esc(p.status) : "") + "</span></div>";
+  }).join("") + "</div>";
+}
+function plgCtx() { return PL.mode === "pw" ? { baris: HD.r.baris, id: HD.r.id } : { baris: PL.r.baris, kunci: PL.r.kunci }; }
+function dlgNonaktif(nim, mode) {
+  PL.mode = mode; var list = mode === "pw" ? (HD.d ? HD.d.peserta : []) : PL.d.peserta, p = list.filter(function (x) { return x.nim === nim; })[0]; if (!p) return;
+  var jenis = (mode === "pw" ? ["Mencontek / bekerja sama", "Membawa atau menggunakan HP / alat komunikasi", "Membawa catatan atau bahan tidak sah", "Joki / digantikan orang lain", "Mengganggu ketertiban ujian", "Lainnya"] : PL.d.jenis);
+  dlg('<h3>🚫 Nonaktifkan Akun Mahasiswa</h3><div class="pw"><div class="pt"><b>' + esc(p.nama) + "</b> (" + esc(p.nim) + ')</div><div class="hint" style="margin:0">Akun akan langsung tidak bisa login dan sesi yang sedang berjalan diputus. Kejadian dicatat otomatis di Berita Acara. Hanya Panitia/Administrator yang dapat mengaktifkannya kembali.</div></div>' +
+    '<label class="fld">Jenis pelanggaran<select class="f" id="plj">' + jenis.map(function (j) { return "<option>" + esc(j) + "</option>"; }).join("") + '</select></label>' +
+    '<label class="fld">Keterangan kejadian<textarea class="f" id="plk" rows="3" maxlength="300" style="height:auto" placeholder="Uraikan kejadian secara singkat dan jelas"></textarea></label><div class="err" id="ple"></div>' +
+    '<button class="btn pri" id="plb" onclick="kirimNonaktif(\'' + esc(nim) + '\')">Nonaktifkan Akun</button> <button class="btn" onclick="kembaliPl()">Batal</button>', "");
+}
+function kembaliPl() { if (PL.mode === "pw") dlgHadir(S.data.indexOf(HD.r)); else bukaPlgJadwal(S.data.indexOf(PL.r)); }
+async function kirimNonaktif(nim) {
+  var k = $("plk").value.trim(); if (k.length < 5) { $("ple").textContent = "Keterangan kejadian wajib diisi (minimal 5 karakter)."; return; }
+  if (!confirm("Nonaktifkan akun mahasiswa ini sekarang?")) return;
+  $("plb").disabled = true;
+  try { await post(Object.assign({ aksi: "nonaktifMhs", nim: nim, jenis: $("plj").value, ket: k }, plgCtx())); kembaliPl(); }
+  catch (x) { $("ple").textContent = x.message; $("plb").disabled = false; }
+}
+async function aktifkanMhs(nim) {
+  if (!confirm("Aktifkan kembali akun mahasiswa ini?")) return;
+  try { await post(Object.assign({ aksi: "aktifkanMhs", nim: nim }, plgCtx())); bukaPlgJadwal(S.data.indexOf(PL.r)); } catch (x) { alert(x.message); }
+}
+function dlgPlgPanitia() {
+  PL.mode = "pn"; var t = new Date(), hari = t.getFullYear() + "-" + ("0" + (t.getMonth() + 1)).slice(-2) + "-" + ("0" + t.getDate()).slice(-2);
+  dlg('<h3>🚫 Pelanggaran Ujian</h3><div class="hint">Pilih jadwal ujian, lalu nonaktifkan akun mahasiswa yang melakukan kecurangan atau melanggar tata tertib.</div><label class="fld">Tanggal ujian<input class="f" type="date" id="plt" value="' + hari + '" onchange="listPlgJadwal()"></label><div id="pll"></div><button class="btn" onclick="tutup()">Tutup</button>', "wide");
+  listPlgJadwal();
+}
+function listPlgJadwal() {
+  var t = $("plt").value, rows = S.data.filter(function (r) { return r.tanggal === t && r.baris; });
+  $("pll").innerHTML = rows.length ? rows.map(function (r) { var i = S.data.indexOf(r); return '<div class="pw"><div class="pt"><b>' + esc(r.matkul) + "</b> · Kelas " + esc(r.kelas) + " · " + esc(r.prodi) + "<br><span>" + esc(r.mulai) + "–" + esc(r.selesai) + " · " + esc(r.ruang) + '</span></div><button class="btn sm" onclick="bukaPlgJadwal(' + i + ')">Buka</button></div>'; }).join("") : '<div class="hint">Tidak ada jadwal pada tanggal ini.</div>';
+}
+async function bukaPlgJadwal(i) {
+  var r = S.data[i]; if (!r) return; PL.mode = "pn"; PL.r = r;
+  dlg('<h3>🚫 Pelanggaran Ujian</h3><div id="plx">Memuat…</div>', "wide");
+  try {
+    var d = await post({ aksi: "pesertaPlg", baris: r.baris, kunci: r.kunci }); PL.d = d;
+    $("plx").innerHTML = infoBlok(d.info) + plgBlok(d.pelanggaran) + '<div style="overflow:auto;max-height:50vh"><table class="ut"><tr><th>No</th><th style="text-align:left">NIM</th><th style="text-align:left">Nama</th><th>Hadir</th><th>Akun</th><th></th></tr>' +
+      (d.peserta.length ? d.peserta.map(function (p, k) {
+        return "<tr><td>" + (k + 1) + "</td><td>" + esc(p.nim) + "</td><td>" + esc(p.nama) + '</td><td style="text-align:center">' + (p.hadir === "Hadir" ? "✓" : "–") + '</td><td style="text-align:center">' + (p.akun === "TIDAK" ? "Nonaktif" : p.akun === "YA" ? "Aktif" : p.akun === "MENUNGGU" ? "Menunggu" : "–") + "</td><td>" +
+          (p.plg ? '<button class="btn sm" onclick="aktifkanMhs(\'' + esc(p.nim) + '\')">Aktifkan kembali</button>' : '<button class="btn sm" onclick="dlgNonaktif(\'' + esc(p.nim) + '\',\'pn\')">🚫 Nonaktifkan</button>') + "</td></tr>";
+      }).join("") : '<tr><td colspan="6">Belum ada peserta pada sheet Peserta_Mk untuk jadwal ini.</td></tr>') + '</table></div><div style="margin-top:10px"><button class="btn" onclick="dlgPlgPanitia()">← Pilih jadwal</button> <button class="btn" onclick="tutup()">Tutup</button></div>';
+  } catch (x) { $("plx").innerHTML = '<div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>'; }
+}
+
 // ----- Pengawas: Berita Acara -----
 async function dlgBA(i) {
   var r = S.data[i]; if (!r || !r.baris) return alert("Muat ulang halaman terlebih dahulu.");
@@ -684,6 +823,7 @@ async function dlgBA(i) {
   dlg("<h3>Berita Acara Ujian</h3>" + infoBlok(d.info) +
     '<div class="pw"><div class="pt">Rekap kehadiran <span>(otomatis dari Daftar Hadir)</span></div><div style="display:flex;gap:6px 16px;flex-wrap:wrap;font-size:.9rem"><span>Peserta: <b>' + d.peserta.length + "</b></span><span>Hadir: <b>" + n.Hadir + "</b></span><span>Izin: <b>" + n.Izin + "</b></span><span>Sakit: <b>" + n.Sakit + "</b></span><span>Tidak hadir: <b>" + n.Tidak + "</b></span></div></div>" +
     '<div class="g2"><label class="fld">Waktu mulai ujian<input class="f" id="bam" type="time" value="' + esc(b.mulai || d.info.mulai) + '"></label><label class="fld">Waktu selesai ujian<input class="f" id="bas" type="time" value="' + esc(b.selesai || d.info.selesai) + '"></label></div>' +
+    plgBlok(d.pelanggaran) +
     '<label class="fld">Jumlah lembar jawaban yang dikumpulkan<input class="f" id="bal" type="number" min="0" value="' + esc(b.lembar !== undefined && b.lembar !== "" ? b.lembar : n.Hadir) + '"></label>' +
     '<label class="fld">Catatan / kejadian selama ujian<textarea class="f" id="bac" rows="4" maxlength="1000" style="height:auto" placeholder="Contoh: Ujian berjalan lancar dan tertib.">' + esc(b.catatan || "") + "</textarea></label>" +
     (b.dibuat ? '<div class="hint">Terakhir disimpan ' + esc(b.dibuat) + " oleh " + esc(b.oleh) + ".</div>" : "") +
@@ -789,6 +929,18 @@ function pdfBA(J, d, w) {
     });
     y = doc.lastAutoTable.finalY + 6;
   }
+  if (d.pelanggaran && d.pelanggaran.length) {
+    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Pelanggaran tata tertib / kecurangan ujian (akun dinonaktifkan):", k.mx, y); y += 2;
+    doc.autoTable({
+      startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+      head: [["No.", "NIM", "Nama", "Jenis / Keterangan"]], body: d.pelanggaran.map(function (p, j) { return [String(j + 1), p.nim, p.nama, p.jenis + ": " + p.ket + (p.waktu ? " (" + p.waktu.slice(11, 16) + ")" : "")]; }),
+      theme: "grid", styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" },
+      columnStyles: { 0: { cellWidth: 10, halign: "center" }, 1: { cellWidth: 32 }, 2: { cellWidth: 45 } },
+      didDrawPage: function (data) { if (data.pageNumber > 1) k.lanjut(); }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  }
   y = cekHal(k, y, 12); doc.setFont("helvetica", "normal");
   doc.text("Demikian berita acara ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.", k.mx, y);
   ttdPdf(k, y + 10, d); selesaiPdf(doc, w, "Berita_Acara_Ujian.pdf");
@@ -837,28 +989,229 @@ async function kirimHadir(k) {
   try {
     var j = await post({ aksi: "scanHadir", kode: k });
     dlg('<h3>✓ Kehadiran Tercatat</h3><div class="pw"><div class="pt"><b>' + esc(j.matkul) + "</b><br><span>Kelas " + esc(j.kelas) + " · " + esc(j.ruang) + "<br>" + esc(j.nama) + " (" + esc(j.nim) + ")<br>" + hariTgl(j.tanggal) + " · " + esc(j.mulai) + "–" + esc(j.selesai) + '</span></div></div><div class="hint">' +
-      (j.soal ? "Soal ujian tersedia" + (j.terbuka ? "." : " dan dapat diunduh mulai pukul " + esc(j.mulai) + ".") : "Soal ujian belum diunggah oleh dosen.") + '</div><button class="btn pri" onclick="dlgSoal()">📄 Buka Soal Ujian</button> <button class="btn" onclick="tutup()">Tutup</button>', "");
+      (j.soal ? "Soal ujian tersedia" + (j.terbuka ? "." : " dan dapat dibuka mulai pukul " + esc(j.mulai) + ".") : "Soal ujian belum diunggah oleh dosen.") + '</div><button class="btn pri" onclick="dlgSoal()">📝 Buka Soal &amp; Jawab</button> <button class="btn" onclick="tutup()">Tutup</button>', "");
   } catch (x) { dlg('<h3>Absen Gagal</h3><div class="err">' + esc(x.message) + '</div><button class="btn pri" onclick="dlgAbsen()">Coba lagi</button> <button class="btn" onclick="tutup()">Tutup</button>', ""); }
 }
 async function dlgSoal() {
   if (perluMhs()) return;
-  stopHd(); dlg('<h3>Soal Ujian</h3><div id="sl">Memuat…</div>', "");
+  stopHd(); dlg('<h3>Ujian Saya</h3><div id="sl">Memuat…</div>', "");
   try {
     var j = await post({ aksi: "soalSaya" });
     $("sl").innerHTML = (j.data.length ? j.data.map(function (r) {
       return '<div class="pw"><div class="pt"><b>' + esc(r.matkul) + "</b> · Kelas " + esc(r.kelas) + "<br><span>" + hariTgl(r.tanggal) + " · " + esc(r.mulai) + "–" + esc(r.selesai) + " · " + esc(r.ruang) + " · hadir " + esc(String(r.hadir).slice(11, 16)) + "</span></div>" +
-        (!r.adaSoal ? '<div class="hint" style="margin:0">Soal belum diunggah oleh dosen.</div>' : !r.terbuka ? '<div class="hint" style="margin:0">Soal dapat diunduh mulai pukul ' + esc(r.mulai) + ".</div>" : '<button class="btn sm pri" onclick="unduhSoal(\'' + esc(r.id) + '\',this)">⬇ Unduh Soal</button> <span class="hint">' + esc(r.namaFile) + "</span>") + "</div>";
+        (!r.adaSoal ? '<div class="hint" style="margin:0">Soal belum diunggah oleh dosen.</div>' : !r.terbuka ? '<div class="hint" style="margin:0">Ujian dapat dibuka mulai pukul ' + esc(r.mulai) + ".</div>" : '<button class="btn sm pri" onclick="bukaUjian(\'' + esc(r.id) + '\',this)">📝 Buka Soal &amp; Jawab</button>') + "</div>";
     }).join("") : '<div class="hint">Belum ada kehadiran tercatat. Lakukan absen dengan menyorot QR Pengawas terlebih dahulu.</div>') + '<button class="btn" onclick="dlgAbsen()">📷 Absen</button> <button class="btn" onclick="tutup()">Tutup</button>';
   } catch (x) { $("sl").innerHTML = '<div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>'; }
 }
-async function unduhSoal(id, b) {
-  var t = b.textContent; b.disabled = true; b.textContent = "Mengunduh…";
+var SA = [];
+async function dlgSoalAdmin() {
+  dlg('<h3>Soal PDF (Administrator)</h3><div id="sa">Memuat…</div>', "wide");
   try {
-    var j = await post({ aksi: "unduhSoal", id: id }), bin = atob(j.data), a = new Uint8Array(bin.length), x;
+    SA = (await post({ aksi: "daftarSoalAdmin" })).data;
+    $("sa").innerHTML = (SA.length ? '<div style="overflow:auto;max-height:60vh"><table class="ut" style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">Mata Kuliah</th><th>Kelas</th><th style="text-align:left">Dosen</th><th>Tanggal</th><th>Kode</th><th></th></tr></thead><tbody>' +
+      SA.map(function (r, k) { return '<tr style="border-bottom:1px solid var(--line)"><td>' + esc(r.matkul) + '</td><td style="text-align:center">' + esc(r.kelas) + "</td><td>" + esc(r.dosen) + '</td><td style="text-align:center">' + esc(r.tanggal) + " " + esc(r.mulai) + '</td><td style="text-align:center"><b>' + esc(r.kode) + '</b></td><td><button class="btn sm" onclick="unduhSoalAdm(' + k + ',this)">⬇ ' + ukr(r.ukuran) + "</button></td></tr>"; }).join("") + "</tbody></table></div>" : '<div class="hint">Belum ada soal yang diunggah.</div>') +
+      '<div style="margin-top:10px"><button class="btn" onclick="tutup()">Tutup</button></div>';
+  } catch (x) { $("sa").innerHTML = '<div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>'; }
+}
+async function unduhSoalAdm(k, b) {
+  var t = b.textContent; b.disabled = true; b.textContent = "…";
+  try {
+    var j = await post({ aksi: "unduhSoalAdmin", kunci: SA[k].kunci }), bin = atob(j.data), a = new Uint8Array(bin.length), x;
     for (x = 0; x < bin.length; x++) a[x] = bin.charCodeAt(x);
     var l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([a], { type: j.mime })); l.download = j.nama; l.click();
   } catch (e) { alert(e.message); }
   b.disabled = false; b.textContent = t;
+}
+var JD = null;
+async function dlgJawaban(baris) {
+  var r = S.data.filter(function (x) { return x.baris === baris; })[0]; if (!r) return;
+  dlg('<h3>Jawaban Mahasiswa</h3><div id="jdb">Memuat…</div>', "wide");
+  try {
+    JD = await post({ aksi: "jawabanDosen", baris: baris, kunci: r.kunci }); JD.baris = baris; JD.kunci = r.kunci;
+    tampilJD("");
+  } catch (x) { $("jdb").innerHTML = '<div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>'; }
+}
+function tampilJD(cari) {
+  var d = JD.data, c = cari.toLowerCase(), n = function (f) { return d.filter(f).length; };
+  var rows = d.filter(function (p) { return !c || (p.nim + " " + p.nama).toLowerCase().indexOf(c) >= 0; });
+  var fokus = document.activeElement && document.activeElement.id === "jdc";
+  $("jdb").innerHTML = '<div class="pw"><div class="pt"><b>' + esc(JD.matkul) + "</b> · Kelas " + esc(JD.kelas) + " · " + esc(JD.prodi) + "<br><span>" + hariTgl(JD.tanggal) + " · " + esc(JD.mulai) + "–" + esc(JD.selesai) + "</span></div>" +
+    '<div class="hint" style="margin:0">Peserta ' + d.length + " · Hadir " + n(function (p) { return p.hadir === "Hadir"; }) + " · Jawaban terkirim " + n(function (p) { return p.status === "Terkirim"; }) + " · Draft " + n(function (p) { return p.status === "Draft"; }) + " · Belum menjawab " + n(function (p) { return !p.status; }) + " · Sudah dinilai " + n(function (p) { return !!p.nilai; }) + "</div></div>" +
+    '<input class="f" id="jdc" placeholder="Cari NIM / nama…" value="' + esc(cari) + '" oninput="tampilJD(this.value)" style="margin-bottom:8px">' +
+    '<div class="err" id="jde"></div><div style="overflow:auto;max-height:55vh"><table class="ut" style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">NIM</th><th style="text-align:left">Nama</th><th>Hadir</th><th>Jawaban</th><th></th><th>Nilai</th></tr></thead><tbody>' +
+    (rows.length ? rows.map(function (p) {
+      var k = d.indexOf(p);
+      return '<tr style="border-bottom:1px solid var(--line)"><td>' + esc(p.nim) + "</td><td>" + esc(p.nama) + '</td><td style="text-align:center">' + (p.hadir === "Hadir" ? "✓" : "–") + '</td><td style="text-align:center">' + (p.status === "Terkirim" ? "Terkirim" : p.status === "Draft" ? "Draft" : "–") +
+        '</td><td>' + (p.status ? '<button class="btn sm" onclick="lihatJwb(' + k + ')">Baca</button>' : "") + '</td><td><input class="f" style="width:78px;padding:6px" inputmode="decimal" maxlength="5" placeholder="1–100" value="' + esc(String(p.nilai || "").replace(".", ",")) + '" onchange="simpanNilai(' + k + ',this)"></td></tr>';
+    }).join("") : '<tr><td colspan="6" class="hint">Tidak ada data.</td></tr>') + '</tbody></table></div>' +
+    '<div style="margin-top:10px"><button class="btn" onclick="unduhJD()">⬇ Unduh CSV</button> <button class="btn" onclick="tutup()">Tutup</button></div>';
+  if (fokus) { var e = $("jdc"); e.focus(); e.setSelectionRange(cari.length, cari.length); }
+}
+async function simpanNilai(k, inp) {
+  var p = JD.data[k], v = inp.value.trim().replace(",", "."), e = $("jde"); e.textContent = "";
+  if (v !== "" && (!/^\d{1,3}(\.\d)?$/.test(v) || parseFloat(v) < 1 || parseFloat(v) > 100)) { inp.style.borderColor = "var(--err)"; e.textContent = "Nilai harus angka 1 sampai 100 dengan maksimal satu angka di belakang koma."; return; }
+  inp.disabled = true;
+  try {
+    var r = await post({ aksi: "simpanNilai", baris: JD.baris, kunci: JD.kunci, nim: p.nim, nilai: v });
+    p.nilai = r.nilai; inp.value = r.nilai.replace(".", ","); inp.style.borderColor = "var(--ok)";
+  } catch (x) { inp.style.borderColor = "var(--err)"; e.textContent = x.message; }
+  inp.disabled = false;
+}
+function lihatJwb(k) {
+  var p = JD.data[k], s = function (t) { return esc(t); };
+  var html = '<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jawaban ' + s(p.nama) + '</title></head><body style="font-family:system-ui,sans-serif;max-width:820px;margin:24px auto;padding:0 16px;line-height:1.6;color:#1a1d2e">' +
+    "<h2 style='margin:0 0 4px'>" + s(p.nama) + " (" + s(p.nim) + ")</h2><div style='color:#667;margin-bottom:14px'>" + s(JD.matkul) + " · Kelas " + s(JD.kelas) + " · " + s(JD.tanggal) + "<br>Status: " + s(p.status || "-") + (p.dikirim ? " · dikirim " + s(p.dikirim) : p.diubah ? " · diubah " + s(p.diubah) : "") + (p.nilai ? " · Nilai: <b>" + s(String(p.nilai).replace(".", ",")) + "</b>" : "") + "</div>" +
+    "<div style='white-space:pre-wrap;word-break:break-word;border:1px solid #d5d8e5;border-radius:12px;padding:14px'>" + s(p.jawaban) + "</div></body></html>";
+  var url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" })), w = window.open(url, "_blank");
+  if (!w) alert("Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.");
+  setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
+}
+function unduhJD() {
+  var q = function (s) { return '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"'; };
+  var l = [["NIM", "Nama", "Hadir", "Waktu Hadir", "Status Jawaban", "Diubah", "Dikirim", "Nilai", "Jawaban"].map(q).join(",")];
+  JD.data.forEach(function (p) { l.push([p.nim, p.nama, p.hadir, p.waktuHadir, p.status, p.diubah, p.dikirim, String(p.nilai || "").replace(".", ","), p.jawaban].map(q).join(",")); });
+  var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + l.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  a.download = ("Jawaban_" + JD.matkul + "_" + JD.kelas + "_" + JD.tanggal + ".csv").replace(/[^\w.\-]+/g, "_"); a.click();
+}
+var UJ = null;
+function ujSisa() { return UJ ? UJ.tutupAt - (Date.now() + UJ.offset) : 0; }
+function ujBersih() {
+  if (UJ) { clearInterval(UJ.tm); clearInterval(UJ.as); if (UJ.url) URL.revokeObjectURL(UJ.url); }
+  var dl = $("dlg"); if (dl) dl.onkeydown = null;
+  UJ = null;
+}
+var PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+async function ensurePdfJs() {
+  if (!window.pdfjsLib) await loadScriptOnce(PDFJS_URL);
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    var t = await (await fetch(PDFJS_WORKER)).text();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([t], { type: "text/javascript" }));
+  }
+}
+var TPL_BG = null;
+function muatImg(u) { return new Promise(function (res, rej) { var im = new Image(); im.onload = function () { res(im); }; im.onerror = function () { rej(new Error("Gagal memuat kop surat.")); }; im.src = u; }); }
+// kop FPSH yang sama dengan cetak jadwal: halaman 1 = header + footer, halaman 2 dst = footer lanjutan
+function muatBgTpl() { return TPL_BG || (TPL_BG = Promise.all([muatImg(KOP_HEADER_DATA_URI), muatImg(KOP_FOOTER_DATA_URI), muatImg(KOP_CONT_FOOTER_DATA_URI)]).then(function (a) { return { h: a[0], f: a[1], c: a[2] }; })); }
+// Template soal (sesuai Template.docx): kop + footer FPSH sebagai latar F4 215x330 mm, margin kiri 35 / kanan 20 / atas 38 / bawah 25 mm,
+// halaman 1 memuat judul + blok info yang terisi otomatis dari jadwal. Halaman soal dosen ditempatkan di area isi.
+function tulisFit(ctx, s, teks, x, y, maxMm, pt, tebal) {
+  var p = pt; ctx.font = (tebal ? "bold " : "") + (p * 0.3528 * s) + 'px "Times New Roman",Times,serif';
+  while (p > 7 && ctx.measureText(teks).width > maxMm * s) { p -= 0.5; ctx.font = (tebal ? "bold " : "") + (p * 0.3528 * s) + 'px "Times New Roman",Times,serif'; }
+  var t = teks; while (t.length > 3 && ctx.measureText(t).width > maxMm * s) t = t.slice(0, -2);
+  ctx.fillText(t === teks ? t : t.trimEnd() + "…", x * s, y * s);
+}
+var SOAL_L = 16.6, SOAL_R = 191.7; // tepi kiri (logo UMM) dan tepi kanan (ujung tulisan "Fakultas Pendidikan,") pada kop
+function gambarKop(ctx, s, kop, j, first) {
+  var W = 215 * s, hH = 215 * KOP_HEADER_RATIO, fH = 215 * KOP_FOOTER_RATIO, cH = 215 * KOP_CONT_FOOTER_RATIO;
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, 330 * s);
+  if (first) { ctx.drawImage(kop.h, 0, 0, W, hH * s); ctx.drawImage(kop.f, 0, (330 - fH) * s, W, fH * s); }
+  else ctx.drawImage(kop.c, 0, (330 - cH) * s, W, cH * s);
+  if (!j) return;
+  var ty = hH + 9.5; // judul tepat di bawah header kop
+  ctx.fillStyle = "#000"; ctx.textBaseline = "alphabetic"; ctx.textAlign = "center";
+  ctx.font = (12 * 0.3528 * s) + 'px "Times New Roman",Times,serif';
+  ctx.fillText("SOAL " + (j.jenis === "UAS" ? "UJIAN AKHIR SEMESTER" : "UJIAN TENGAH SEMESTER"), (SOAL_L + SOAL_R) / 2 * s, ty * s);
+  ctx.fillText(((j.semester || "") + "  " + (j.tahun ? "Tahun Akademik " + j.tahun : "")).trim(), (SOAL_L + SOAL_R) / 2 * s, (ty + 4.6) * s);
+  ctx.textAlign = "left";
+  var L = [["PROGRAM STUDI", j.prodi], ["MATA KULIAH", j.matkul], ["DOSEN", j.dosen], ["HARI / TANGGAL", hariTgl(j.tanggal)]], R = [["KODE SOAL", j.kodeSoal], ["KELAS", j.kelas], ["SESI / JAM", j.mulai + " – " + j.selesai], ["RUANG", j.ruang]];
+  for (var r = 0; r < 4; r++) {
+    var y = ty + 11 + r * 4.7;
+    ctx.font = (11 * 0.3528 * s) + 'px "Times New Roman",Times,serif';
+    ctx.fillText(L[r][0], SOAL_L * s, y * s); ctx.fillText(":", (SOAL_L + 33) * s, y * s); tulisFit(ctx, s, String(L[r][1] || ""), SOAL_L + 36, y, 56, 11);
+    ctx.font = (11 * 0.3528 * s) + 'px "Times New Roman",Times,serif';
+    ctx.fillText(R[r][0], 112 * s, y * s); ctx.fillText(":", 135 * s, y * s); tulisFit(ctx, s, String(R[r][1] || ""), 138, y, SOAL_R - 138, 11);
+  }
+}
+// area isi soal: halaman 1 mulai tepat di bawah blok info; halaman 2 dst mulai dekat tepi atas (tidak ada header kop)
+function areaSoal(first) { var hH = 215 * KOP_HEADER_RATIO, fH = 215 * KOP_FOOTER_RATIO, cH = 215 * KOP_CONT_FOOTER_RATIO; return first ? { y0: hH + 9.5 + 11 + 3 * 4.7 + 5, y1: 330 - fH - 4 } : { y0: 20, y1: 330 - cH - 4 }; }
+// kotak terkecil yang berisi tulisan (mengabaikan 8 mm teratas & 14 mm terbawah: nomor halaman / ruang kosong)
+function kotakIsi(ctx, w, h, s) {
+  var d = ctx.getImageData(0, 0, w, h).data, ya = Math.round(8 * s), yb = h - Math.round(14 * s), x0 = w, x1 = -1, y0 = -1, y1 = -1, x, y, i;
+  for (y = ya; y < yb; y++) for (x = 0, i = y * w * 4; x < w; x++, i += 4) if (d[i] + d[i + 1] + d[i + 2] < 690) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y0 < 0) y0 = y; y1 = y; }
+  return y0 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+// Soal digambar ke kanvas (bukan PDF viewer bawaan browser) sehingga tidak ada tombol unduh/cetak; berkas tidak pernah tersedia sebagai file.
+async function renderSoal(b64, key, info) {
+  var box = $("ujf"); if (!box) return;
+  try {
+    await ensurePdfJs(); var bg = await muatBgTpl();
+    var bin = atob(b64), kb = atob(key), a = new Uint8Array(bin.length), i, n = kb.length;
+    for (i = 0; i < a.length; i++) a[i] = bin.charCodeAt(i) ^ kb.charCodeAt(i % n);
+    var pdf = await pdfjsLib.getDocument({ data: a }).promise, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    box.innerHTML = "";
+    var cssW = Math.max(260, box.clientWidth - 18), s = cssW * dpr / 215;
+    for (var p = 1; p <= pdf.numPages; p++) {
+      if (!$("ujf")) return;
+      var first = p === 1, ar = areaSoal(first), pg = await pdf.getPage(p), vp = pg.getViewport({ scale: 0.3528 * s }); // 1 pt = 0,3528 mm → ukuran huruf sama seperti di berkas soal
+      var full = document.createElement("canvas"); full.width = Math.ceil(vp.width); full.height = Math.ceil(vp.height);
+      var fx = full.getContext("2d", { willReadFrequently: true }); fx.fillStyle = "#fff"; fx.fillRect(0, 0, full.width, full.height);
+      await pg.render({ canvasContext: fx, viewport: vp }).promise;
+      var c = document.createElement("canvas"); c.width = Math.round(215 * s); c.height = Math.round(330 * s); c.style.width = Math.floor(c.width / dpr) + "px"; c.style.height = Math.floor(c.height / dpr) + "px";
+      var ctx = c.getContext("2d"); gambarKop(ctx, s, bg, first ? info : null, first);
+      var bb = kotakIsi(fx, full.width, full.height, s);
+      if (bb) {
+        var pad = Math.round(1.5 * s), sx = bb.x, sy = Math.max(0, bb.y - pad), sw = bb.w, sh = Math.min(full.height - sy, bb.h + 2 * pad); // tepi kiri/kanan dipangkas rapat pada tulisan
+        var k = Math.min(1.25, (SOAL_R - SOAL_L) * s / sw, (ar.y1 - ar.y0) * s / sh); // lebar isi dipas ke tepi kiri-kanan kop (maks. diperbesar 25%; diperkecil bila tinggi melebihi area)
+        ctx.drawImage(full, sx, sy, sw, sh, SOAL_L * s, ar.y0 * s, sw * k, sh * k);
+      }
+      box.appendChild(c);
+    }
+  } catch (e) { var b2 = $("ujf"); if (b2) b2.innerHTML = '<div class="err">Gagal menampilkan soal: ' + esc(e.message) + "</div>"; }
+}
+async function bukaUjian(id, btn) {
+  var t0 = btn ? btn.textContent : ""; if (btn) { btn.disabled = true; btn.textContent = "Memuat soal…"; }
+  try {
+    var j = await post({ aksi: "bukaUjian", id: id });
+    ujBersih();
+    UJ = { id: id, tutupAt: j.tutupAt, offset: j.sekarang - Date.now(), status: j.status, kotor: false };
+    var kunci = j.status === "Terkirim";
+    dlg('<div class="ujh"><div><b>' + esc(j.matkul) + '</b> <span class="kds">Kode Soal: ' + esc(j.kodeSoal) + '</span><br><span class="hint" style="margin:0">' + esc(j.nama_mhs) + " (" + esc(j.nim) + ')</span></div><div class="ujt" id="ujt">--:--</div></div>' +
+      '<div class="ujb"><div class="ujs"><div id="ujf" class="pdfv" oncontextmenu="return false"><div class="hint">Memuat soal…</div></div></div>' +
+      '<div class="uja"><b>Jawaban</b><textarea class="f" id="ujj" ' + (kunci ? "readonly" : "") + ' maxlength="45000" placeholder="Ketik jawaban Anda di sini…">' + esc(j.jawaban) + '</textarea>' +
+      '<div class="hint" id="ujm" style="margin:4px 0 8px">' + (kunci ? "✓ Jawaban sudah dikirim dan terkunci." : j.diubah ? "Draft tersimpan " + esc(j.diubah) + "." : "Belum ada jawaban tersimpan.") + '</div>' +
+      '<div class="err" id="uje"></div><div class="ujbtn"><button class="btn" id="ujd" onclick="simpanJwb(false)" ' + (kunci ? "hidden" : "") + '>💾 Simpan Draft</button><button class="btn pri" id="ujk" onclick="kirimJwb()" ' + (kunci ? "hidden" : "") + '>✔ Kirim Jawaban</button><button class="btn" onclick="tutupUjian()">Tutup</button></div></div></div>', "ujian");
+    UJ.tm = setInterval(ujTik, 1000); UJ.as = setInterval(function () { if (UJ && UJ.kotor) simpanJwb(false, true); }, 30000);
+    $("ujj").addEventListener("input", function () { if (UJ) UJ.kotor = true; });
+    $("dlg").onkeydown = function (e) { if ((e.ctrlKey || e.metaKey) && /^[sp]$/i.test(e.key)) e.preventDefault(); };
+    $("dlg").addEventListener("close", ujBersih, { once: true });
+    ujTik(); renderSoal(j.data, j.k, j);
+  } catch (e) { alert(e.message); }
+  if (btn) { btn.disabled = false; btn.textContent = t0; }
+}
+function ujTik() {
+  var el = $("ujt"); if (!UJ || !el) { ujBersih(); return; }
+  var s = ujSisa();
+  if (s <= 0) { el.textContent = "Waktu habis"; el.className = "ujt hab"; ujKunci("Waktu ujian telah berakhir. Jawaban terkunci."); return; }
+  var m = Math.floor(s / 60000), d = Math.floor(s % 60000 / 1000), h = Math.floor(m / 60);
+  el.textContent = (h ? h + ":" + ("0" + (m % 60)).slice(-2) : m) + ":" + ("0" + d).slice(-2);
+  el.className = "ujt" + (s < 300000 ? " hab" : "");
+}
+function ujKunci(pesan) {
+  var t = $("ujj"); if (!t || t.readOnly) return;
+  if (UJ && UJ.kotor && UJ.status !== "Terkirim") simpanJwb(false, true);
+  t.readOnly = true; $("ujd").hidden = true; $("ujk").hidden = true; $("ujm").textContent = pesan;
+}
+async function simpanJwb(kirim, diam) {
+  if (!UJ) return; var id = UJ.id, t = $("ujj"), m = $("ujm"), e = $("uje"); if (!t) return;
+  if (UJ.menyimpan) return; UJ.menyimpan = true; var teks = t.value; UJ.kotor = false;
+  if (!diam) { e.textContent = ""; m.textContent = "Menyimpan…"; }
+  try {
+    var j = await post({ aksi: "simpanJawaban", id: id, jawaban: teks, kirim: !!kirim });
+    if (!UJ) return; UJ.status = j.status;
+    if (j.status === "Terkirim") { t.readOnly = true; $("ujd").hidden = true; $("ujk").hidden = true; m.textContent = "✓ Jawaban dikirim " + j.diubah + ". Terkunci."; }
+    else m.textContent = "Draft tersimpan " + j.diubah + ".";
+  } catch (x) { if (UJ) UJ.kotor = true; e.textContent = x.message; if (m) m.textContent = ""; }
+  if (UJ) UJ.menyimpan = false;
+}
+async function kirimJwb() {
+  if (!UJ || !$("ujj")) return;
+  if (!$("ujj").value.trim()) { $("uje").textContent = "Jawaban masih kosong."; return; }
+  if (!confirm("Kirim jawaban sekarang? Setelah dikirim, jawaban tidak dapat diubah.")) return;
+  await simpanJwb(true);
+}
+function tutupUjian() {
+  if (UJ && UJ.kotor && $("ujj") && !$("ujj").readOnly && !confirm("Ada perubahan yang belum tersimpan. Tutup tanpa menyimpan?")) return;
+  tutup();
 }
 if (PENDING_H) setTimeout(function () { if (AUTH.user && AUTH.user.peran === "Mahasiswa") { var k = PENDING_H; PENDING_H = null; kirimHadir(k); } else { LG.tab = "mahasiswa"; dlgLogin(); } }, 400);
 

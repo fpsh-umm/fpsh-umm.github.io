@@ -711,14 +711,14 @@ function cetakRekapBA() {
 }
 function pdfRekapBA(J, w) {
   var k = kopPdf(J), doc = k.doc, dari = $("rbd").value, sampai = $("rbs").value, belum = $("rbb") && $("rbb").checked, rows = RB.d.filter(function (r) { return !belum || !r.ada; }), s = S.set || {}, y = k.y;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text("REKAPITULASI BERITA ACARA UJIAN", k.PW / 2, y, { align: "center" }); y += 6;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text("REKAPITULASI BERITA ACARA UJIAN", k.C, y, { align: "center" }); y += 6;
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   var sub = (s.tahun_akademik ? (s.jenis_ujian || "Ujian") + " " + (s.semester || "") + " " + s.tahun_akademik + " · " : "") + "Periode " + fmtT(dari) + (dari !== sampai ? " – " + fmtT(sampai) : "") + (belum ? " (belum ada Berita Acara)" : "");
-  doc.text(sub, k.PW / 2, y, { align: "center" }); y += 7;
+  doc.text(sub, k.C, y, { align: "center" }); y += 7;
   var nBA = RB.d.filter(function (r) { return r.ada; }).length, nPl = RB.d.reduce(function (a, r) { return a + r.pelanggaran.length; }, 0);
-  doc.text("Jumlah jadwal: " + RB.d.length + "  |  Berita Acara terisi: " + nBA + "  |  Belum: " + (RB.d.length - nBA) + "  |  Pelanggaran: " + nPl, k.mx, y); y += 4;
+  doc.text("Jumlah jadwal: " + RB.d.length + "  |  Berita Acara terisi: " + nBA + "  |  Belum: " + (RB.d.length - nBA) + "  |  Pelanggaran: " + nPl, k.mL, y); y += 4;
   doc.autoTable({
-    startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+    startY: y, margin: { left: k.mL, right: k.mR, top: k.contTop, bottom: k.bottom },
     head: [["No.", "Tanggal / Jam", "Mata Kuliah / Prodi", "Kelas", "Ruang", "Hadir/ Peserta", "Lembar", "Pelang- garan", "BA"]],
     body: rows.map(function (r, j) { return [String(j + 1), fmtT(r.tanggal) + "\n" + r.mulai + "–" + r.selesai, r.matkul + "\n" + r.prodi, r.kelas, r.ruang, r.ada ? r.hadir + "/" + r.peserta : "-", r.ada ? r.lembar : "-", String(r.pelanggaran.length || "-"), r.ada ? "Ada" : "Belum"]; }),
     theme: "grid", styles: { font: "helvetica", fontSize: 8, cellPadding: 1.8, valign: "middle" },
@@ -729,10 +729,10 @@ function pdfRekapBA(J, w) {
   y = doc.lastAutoTable.finalY + 6;
   var pr = rows.filter(function (r) { return r.pelanggaran.length; });
   if (pr.length) {
-    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Rincian pelanggaran tata tertib / kecurangan ujian:", k.mx, y); y += 2;
+    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Rincian pelanggaran tata tertib / kecurangan ujian:", k.mL, y); y += 2;
     var body = []; pr.forEach(function (r) { r.pelanggaran.forEach(function (p) { body.push([String(body.length + 1), p.nim + "\n" + p.nama, r.matkul + " (" + r.kelas + ")\n" + fmtT(r.tanggal), p.jenis + ": " + p.ket]); }); });
     doc.autoTable({
-      startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+      startY: y, margin: { left: k.mL, right: k.mR, top: k.contTop, bottom: k.bottom },
       head: [["No.", "NIM / Nama", "Mata Kuliah / Tanggal", "Jenis / Keterangan"]], body: body,
       theme: "grid", styles: { font: "helvetica", fontSize: 8, cellPadding: 1.8, valign: "middle" },
       headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" },
@@ -742,7 +742,7 @@ function pdfRekapBA(J, w) {
     y = doc.lastAutoTable.finalY + 6;
   }
   y = cekHal(k, y, 45); doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(0);
-  var x = k.PW - k.mx - 40;
+  var x = k.R - 40;
   doc.text(TTD.kota + ", " + fmtT(tglIni()), x, y, { align: "center" }); y += 5;
   doc.text(TTD.an, x, y, { align: "center" }); y += 5; doc.text(TTD.jabatan, x, y, { align: "center" });
   doc.setFont("helvetica", "bold"); doc.text(TTD.nama, x, y + 24, { align: "center" });
@@ -847,31 +847,32 @@ function kopPdf(J) {
   var doc = new J({ unit: "mm", format: F4_FORMAT }), PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
   var hH = PW * KOP_HEADER_RATIO, fH = PW * KOP_FOOTER_RATIO, cH = PW * KOP_CONT_FOOTER_RATIO;
   doc.addImage(KOP_HEADER_DATA_URI, "JPEG", 0, 0, PW, hH); doc.addImage(KOP_FOOTER_DATA_URI, "JPEG", 0, PH - fH, PW, fH);
-  var k = { doc: doc, PW: PW, PH: PH, mx: 12, y: hH + 6, contTop: 14, bottom: Math.max(fH, cH) + 6 };
+  // tepi kiri/kanan isi mengikuti tulisan kop FPSH: kiri = logo UMM, kanan = ujung tulisan "Fakultas Pendidikan,"
+  var k = { doc: doc, PW: PW, PH: PH, mL: SOAL_L, R: SOAL_R, mR: PW - SOAL_R, W: SOAL_R - SOAL_L, C: (SOAL_L + SOAL_R) / 2, y: hH + 6, contTop: 14, bottom: Math.max(fH, cH) + 6 };
   k.lanjut = function () { doc.addImage(KOP_CONT_FOOTER_DATA_URI, "JPEG", 0, PH - cH, PW, cH); };
   return k;
 }
 function cekHal(k, y, need) { if (y + need > k.PH - k.bottom) { k.doc.addPage(F4_FORMAT, "p"); k.lanjut(); return k.contTop + 6; } return y; }
 function judulPdf(k, teks, d) {
   var doc = k.doc, s = d.pengaturan || S.set || {}, y = k.y;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text(teks, k.PW / 2, y, { align: "center" }); y += 6;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text(teks, k.C, y, { align: "center" }); y += 6;
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   var sub = s.tahun_akademik ? (d.info.jenis === "UAS" ? "Ujian Akhir Semester " : "Ujian Tengah Semester ") + (s.semester || "") + " " + s.tahun_akademik : CONFIG.JUDUL_PERIODE;
-  doc.text(sub, k.PW / 2, y, { align: "center" }); return y + 8;
+  doc.text(sub, k.C, y, { align: "center" }); return y + 8;
 }
 function kvPdf(k, y, rows) {
   var doc = k.doc; doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   rows.forEach(function (r) {
-    var l = doc.splitTextToSize(": " + (r[1] === "" || r[1] == null ? "-" : r[1]), k.PW - 2 * k.mx - 52);
-    y = cekHal(k, y, 5 * l.length); doc.text(r[0], k.mx, y); doc.text(l, k.mx + 52, y); y += 5 * l.length;
+    var l = doc.splitTextToSize(": " + (r[1] === "" || r[1] == null ? "-" : r[1]), k.W - 52);
+    y = cekHal(k, y, 5 * l.length); doc.text(r[0], k.mL, y); doc.text(l, k.mL + 52, y); y += 5 * l.length;
   });
   return y;
 }
 function ttdPdf(k, y, d) {
   var doc = k.doc, i = d.info; y = cekHal(k, y, 48);
   doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(0);
-  doc.text(TTD.kota + ", " + fmtT(i.tanggal), k.PW - k.mx, y, { align: "right" }); y += 6;
-  var x1 = k.mx + 40, x2 = k.PW - k.mx - 40;
+  doc.text(TTD.kota + ", " + fmtT(i.tanggal), k.R, y, { align: "right" }); y += 6;
+  var x1 = k.mL + 40, x2 = k.R - 40;
   doc.text("Pengawas I", x1, y, { align: "center" }); if (i.pengawas2) doc.text("Pengawas II", x2, y, { align: "center" });
   doc.setFont("helvetica", "bold");
   doc.text(i.pengawas1 || "(............................)", x1, y + 26, { align: "center" }); if (i.pengawas2) doc.text(i.pengawas2, x2, y + 26, { align: "center" });
@@ -884,7 +885,7 @@ function pdfHadir(J, d, w) {
   var k = kopPdf(J), doc = k.doc, i = d.info, n = ringkas(d), y = judulPdf(k, "DAFTAR HADIR UJIAN", d);
   y = kvPdf(k, y, infoRows(i)) + 3;
   doc.autoTable({
-    startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+    startY: y, margin: { left: k.mL, right: k.mR, top: k.contTop, bottom: k.bottom },
     head: [["No.", "NIM", "Nama", "Status", "Paraf"]],
     body: d.peserta.map(function (p, j) { return [String(j + 1), p.nim, p.nama, p.status || "", ""]; }),
     theme: "grid", styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "middle", minCellHeight: 8 },
@@ -894,7 +895,7 @@ function pdfHadir(J, d, w) {
   });
   y = (doc.lastAutoTable ? doc.lastAutoTable.finalY : y) + 6; y = cekHal(k, y, 10);
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-  doc.text("Jumlah peserta " + d.peserta.length + "  |  Hadir " + n.Hadir + "  |  Izin " + n.Izin + "  |  Sakit " + n.Sakit + "  |  Tidak hadir " + n.Tidak, k.mx, y);
+  doc.text("Jumlah peserta " + d.peserta.length + "  |  Hadir " + n.Hadir + "  |  Izin " + n.Izin + "  |  Sakit " + n.Sakit + "  |  Tidak hadir " + n.Tidak, k.mL, y);
   ttdPdf(k, y + 10, d); selesaiPdf(doc, w, "Daftar_Hadir_Ujian.pdf");
 }
 
@@ -904,7 +905,7 @@ function pdfBA(J, d, w) {
   var jns = i.jenis === "UAS" ? "Ujian Akhir Semester" : "Ujian Tengah Semester";
   var para = "Pada hari ini, " + hariTgl(i.tanggal) + ", telah dilaksanakan " + jns + (s.semester ? " " + s.semester : "") + (s.tahun_akademik ? " Tahun Akademik " + s.tahun_akademik : "") + " pada Fakultas Pendidikan, Sains, dan Humaniora Universitas Muhammadiyah Malang dengan keterangan sebagai berikut:";
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-  var pl = doc.splitTextToSize(para, k.PW - 2 * k.mx); doc.text(pl, k.mx, y, { align: "justify", maxWidth: k.PW - 2 * k.mx }); y += 5 * pl.length + 3;
+  var pl = doc.splitTextToSize(para, k.W); doc.text(pl, k.mL, y, { align: "justify", maxWidth: k.W }); y += 5 * pl.length + 3;
   y = kvPdf(k, y, infoRows(i).concat([
     ["Waktu pelaksanaan", (b.mulai || i.mulai) + " s.d. " + (b.selesai || i.selesai) + " WIB"],
     ["Jumlah peserta terdaftar", String(d.peserta.length)],
@@ -913,14 +914,14 @@ function pdfBA(J, d, w) {
     ["Peserta tidak hadir", String(n.Tidak)],
     ["Lembar jawaban terkumpul", b.lembar !== undefined && b.lembar !== "" ? b.lembar : String(n.Hadir)]
   ])) + 2;
-  y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.text("Catatan / kejadian selama ujian:", k.mx, y); y += 5; doc.setFont("helvetica", "normal");
-  var cl = doc.splitTextToSize(b.catatan || "Tidak ada kejadian khusus.", k.PW - 2 * k.mx);
-  cl.forEach(function (ln) { y = cekHal(k, y, 5); doc.text(ln, k.mx, y); y += 5; }); y += 2;
+  y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.text("Catatan / kejadian selama ujian:", k.mL, y); y += 5; doc.setFont("helvetica", "normal");
+  var cl = doc.splitTextToSize(b.catatan || "Tidak ada kejadian khusus.", k.W);
+  cl.forEach(function (ln) { y = cekHal(k, y, 5); doc.text(ln, k.mL, y); y += 5; }); y += 2;
   var absen = d.peserta.filter(function (p) { return p.status !== "Hadir"; });
   if (absen.length) {
-    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.text("Peserta yang tidak mengikuti ujian:", k.mx, y); y += 2;
+    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.text("Peserta yang tidak mengikuti ujian:", k.mL, y); y += 2;
     doc.autoTable({
-      startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+      startY: y, margin: { left: k.mL, right: k.mR, top: k.contTop, bottom: k.bottom },
       head: [["No.", "NIM", "Nama", "Keterangan"]], body: absen.map(function (p, j) { return [String(j + 1), p.nim, p.nama, p.status || "Tanpa keterangan"]; }),
       theme: "grid", styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
       headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" },
@@ -930,9 +931,9 @@ function pdfBA(J, d, w) {
     y = doc.lastAutoTable.finalY + 6;
   }
   if (d.pelanggaran && d.pelanggaran.length) {
-    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Pelanggaran tata tertib / kecurangan ujian (akun dinonaktifkan):", k.mx, y); y += 2;
+    y = cekHal(k, y, 20); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Pelanggaran tata tertib / kecurangan ujian (akun dinonaktifkan):", k.mL, y); y += 2;
     doc.autoTable({
-      startY: y, margin: { left: k.mx, right: k.mx, top: k.contTop, bottom: k.bottom },
+      startY: y, margin: { left: k.mL, right: k.mR, top: k.contTop, bottom: k.bottom },
       head: [["No.", "NIM", "Nama", "Jenis / Keterangan"]], body: d.pelanggaran.map(function (p, j) { return [String(j + 1), p.nim, p.nama, p.jenis + ": " + p.ket + (p.waktu ? " (" + p.waktu.slice(11, 16) + ")" : "")]; }),
       theme: "grid", styles: { font: "helvetica", fontSize: 9, cellPadding: 2 },
       headStyles: { fillColor: [44, 54, 139], textColor: 255, fontStyle: "bold", halign: "center" },
@@ -942,7 +943,7 @@ function pdfBA(J, d, w) {
     y = doc.lastAutoTable.finalY + 6;
   }
   y = cekHal(k, y, 12); doc.setFont("helvetica", "normal");
-  doc.text("Demikian berita acara ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.", k.mx, y);
+  doc.text("Demikian berita acara ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.", k.mL, y);
   ttdPdf(k, y + 10, d); selesaiPdf(doc, w, "Berita_Acara_Ujian.pdf");
 }
 

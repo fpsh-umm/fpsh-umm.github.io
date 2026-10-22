@@ -714,9 +714,9 @@ function pdfRekapBA(J, w) {
   doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.text("REKAPITULASI BERITA ACARA UJIAN", k.C, y, { align: "center" }); y += 6;
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   var sub = (s.tahun_akademik ? (s.jenis_ujian || "Ujian") + " " + (s.semester || "") + " " + s.tahun_akademik + " · " : "") + "Periode " + fmtT(dari) + (dari !== sampai ? " – " + fmtT(sampai) : "") + (belum ? " (belum ada Berita Acara)" : "");
-  doc.text(sub, k.C, y, { align: "center" }); y += 7;
+  var sl = doc.splitTextToSize(sub, k.W); doc.text(sl, k.C, y, { align: "center" }); y += 4.5 * sl.length + 2.5;
   var nBA = RB.d.filter(function (r) { return r.ada; }).length, nPl = RB.d.reduce(function (a, r) { return a + r.pelanggaran.length; }, 0);
-  doc.text("Jumlah jadwal: " + RB.d.length + "  |  Berita Acara terisi: " + nBA + "  |  Belum: " + (RB.d.length - nBA) + "  |  Pelanggaran: " + nPl, k.mL, y); y += 4;
+  var rk = doc.splitTextToSize("Jumlah jadwal: " + RB.d.length + "  |  Berita Acara terisi: " + nBA + "  |  Belum: " + (RB.d.length - nBA) + "  |  Pelanggaran: " + nPl, k.W); doc.text(rk, k.mL, y); y += 4 * rk.length;
   doc.autoTable({
     startY: y, margin: { left: k.mL, right: k.mR, top: k.contTop, bottom: k.bottom },
     head: [["No.", "Tanggal / Jam", "Mata Kuliah / Prodi", "Kelas", "Ruang", "Hadir/ Peserta", "Lembar", "Pelang- garan", "BA"]],
@@ -742,10 +742,10 @@ function pdfRekapBA(J, w) {
     y = doc.lastAutoTable.finalY + 6;
   }
   y = cekHal(k, y, 45); doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(0);
-  var x = k.R - 40;
-  doc.text(TTD.kota + ", " + fmtT(tglIni()), x, y, { align: "center" }); y += 5;
-  doc.text(TTD.an, x, y, { align: "center" }); y += 5; doc.text(TTD.jabatan, x, y, { align: "center" });
-  doc.setFont("helvetica", "bold"); doc.text(TTD.nama, x, y + 24, { align: "center" });
+  var x = k.R; // tanda tangan rata kanan, sejajar ujung kanan tulisan kop
+  doc.text(TTD.kota + ", " + fmtT(tglIni()), x, y, { align: "right" }); y += 5;
+  doc.text(TTD.an, x, y, { align: "right" }); y += 5; doc.text(TTD.jabatan, x, y, { align: "right" });
+  doc.setFont("helvetica", "bold"); doc.text(TTD.nama, x, y + 24, { align: "right" });
   selesaiPdf(doc, w, "Rekap_Berita_Acara_" + dari + "_" + sampai + ".pdf");
 }
 function unduhRekapBA() {

@@ -42,7 +42,7 @@ input,select,textarea{border:1px solid var(--line);background:var(--card);border
 .empty{text-align:center;color:var(--mut);padding:40px 10px}
 .scroll{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 table{border-collapse:collapse;width:100%;min-width:860px}th,td{border:1px solid var(--line);padding:0;text-align:center;font-size:12px;height:46px}
-th{background:var(--bg);padding:6px;font-weight:700;position:sticky;top:0}td.rn,th.rn{text-align:left;padding:6px 10px;min-width:130px;position:sticky;left:0;background:var(--card);font-weight:600;z-index:1}th.rn{background:var(--bg)}
+th{background:var(--bg);padding:6px;font-weight:700;position:sticky;top:0}td.rn,th.rn{text-align:left;padding:6px 10px;min-width:130px;position:sticky;left:0;background:var(--card);font-weight:600;z-index:1}th.rn{background:var(--bg)}th.sj{min-width:84px;white-space:nowrap;line-height:1.3}th.sj small{font-weight:600;color:var(--mut);font-size:10px}
 td.f{background:var(--brand);color:#fff;font-weight:600;padding:2px 4px;cursor:pointer;overflow:hidden;max-width:90px;text-overflow:ellipsis;white-space:nowrap}
 .modal{position:fixed;inset:0;background:rgba(10,16,32,.55);display:grid;place-items:center;padding:16px;z-index:50}
 .sheet{background:var(--card);border-radius:18px;width:min(720px,100%);max-height:92vh;overflow:auto;padding:22px}
@@ -213,6 +213,7 @@ var FAS_DEF={super_admin:["tambah","ubah","hapus"],admin:["tambah","ubah","hapus
 function lvLabel(l){return LV_LABEL[l]||l}
 function terkunci(){return !!(S.user&&LV_PRODI.indexOf(S.user.level)>-1&&S.user.prodi)}
 function can(f){if(!S.user)return false;if(S.user.level==="super_admin")return true;if(LV_BACA.indexOf(S.user.level)>-1)return false;var fas=S.user.fas||FAS_DEF[S.user.level]||[];return fas.indexOf(f)>-1}
+function adminTambah(){return !!S.user&&(S.user.level==="admin"||S.user.level==="super_admin")&&can("tambah")} /* tombol + Tambah jadwal: hanya admin & super_admin */
 function bisaEdit(r,f){return can(f||"ubah")&&!(terkunci()&&r&&r.prodi!==S.user.prodi)}
 
 /* ---------- render ---------- */
@@ -250,7 +251,7 @@ function rowHtml(r){
 function vJadwal(){
   var opt=function(a,v,all,lab){return '<option value="">'+all+'</option>'+a.map(function(x){return '<option value="'+esc(x)+'" '+(x===v?"selected":"")+'>'+esc(lab?lab(x):x)+'</option>'}).join("")};
   var l=daftar(), h='<div class="tool"><select onchange="S.prodi=this.value;vJadwal()">'+opt(S.d.prodiList,S.prodi,"Semua program studi",pLabel)+'</select><select onchange="S.hari=this.value;vJadwal()">'+opt(S.d.hari,S.hari,"Semua hari")+'</select>'+
-   '<input class="grow" id="q" placeholder="Cari mata kuliah, dosen, ruang…" value="'+esc(S.q)+'" oninput="S.q=this.value;cari()">'+(can("tambah")?'<button class="btn p" onclick="bukaForm()">+ Tambah jadwal</button>':"")+'</div><div id="list"></div>';
+   '<input class="grow" id="q" placeholder="Cari mata kuliah, dosen, ruang…" value="'+esc(S.q)+'" oninput="S.q=this.value;cari()">'+(adminTambah()?'<button class="btn p" onclick="bukaForm()">Penjadwalan Manual</button>':"")+'</div><div id="list"></div>';
   $("v-jadwal").innerHTML=h; cari();
 }
 function cari(){
@@ -263,7 +264,7 @@ function cari(){
 function vRuang(){
   var js=S.d.jam, rs=S.d.ruang, l=S.d.jadwal.filter(function(r){return aktif(r)&&r.hari===S.rhari});
   var head='<div class="tool"><select onchange="S.rhari=this.value;vRuang()">'+S.d.hari.map(function(h){return '<option '+(h===S.rhari?"selected":"")+'>'+esc(h)+'</option>'}).join("")+'</select></div>';
-  var t='<div class="scroll"><table><tr><th class="rn">Ruang</th>'+js.map(function(j){return '<th>'+j.ke+'<br><small>'+esc(j.waktu.split(" - ")[0])+'</small></th>'}).join("")+'</tr>';
+  var t='<div class="scroll"><table><tr><th class="rn">Ruang</th>'+js.map(function(j){return '<th class="sj" title="Sesi '+j.ke+' · '+esc(j.waktu)+'">Sesi '+j.ke+'<br><small>'+esc(j.waktu)+'</small></th>'}).join("")+'</tr>';
   rs.forEach(function(r){
     t+='<tr><td class="rn">'+esc(r.gedung+" "+r.ruang)+'<br><small style="color:var(--mut)">kap. '+r.kap+'</small></td>';
     js.forEach(function(j){var x=l.filter(function(s){return s.ruang===r.ruang&&j.ke>=s.mulai&&j.ke<=s.selesai})[0];
@@ -292,33 +293,90 @@ function tutup(){$("modal").innerHTML=""}
 
 /* ---------- form tambah/ubah ---------- */
 function bukaForm(id){
-  var r=id?S.d.jadwal.filter(function(x){return x.id===id})[0]:{ta:S.ta,sem:S.sem,prodi:(terkunci()&&S.user.prodi)||S.prodi||S.d.prodiList[0],hari:S.d.hari[0],mulai:1,selesai:2,dosen:[]};
-  var sel=function(i,a,v){return '<select id="'+i+'">'+a.map(function(x){var val=x.v!==undefined?x.v:x,lb=x.l||x;return '<option value="'+esc(val)+'" '+(String(val)===String(v)?"selected":"")+'>'+esc(lb)+'</option>'}).join("")+'</select>'};
-  var prodiOpt=(terkunci()?[S.user.prodi]:S.d.prodiList).map(function(p){return{v:p,l:pLabel(p)}});
-  $("modal").innerHTML='<div class="modal"><div class="sheet"><h2>'+(id?"Ubah":"Tambah")+' jadwal</h2><div class="f2">'+
-   '<div><label>Program studi</label>'+sel("fp",prodiOpt,r.prodi)+'</div><div><label>Hari</label>'+sel("fh",S.d.hari,r.hari)+'</div>'+
-   '<div class="w"><label>Mata kuliah</label><input id="fm" list="dlm" value="'+esc(r.mk||"")+'" placeholder="Ketik atau pilih…"><datalist id="dlm"></datalist></div>'+
-   '<div><label>Jam mulai</label>'+sel("fa",S.d.jam.map(function(j){return{v:j.ke,l:j.ke+" · "+j.waktu.split(" - ")[0]}}),r.mulai)+'</div>'+
-   '<div><label>Jam selesai</label>'+sel("fb",S.d.jam.map(function(j){return{v:j.ke,l:j.ke+" · "+j.waktu.split(" - ")[1]}}),r.selesai)+'</div>'+
-   '<div><label>Ruang</label>'+sel("fr",S.d.ruang.map(function(x){return{v:x.ruang,l:x.gedung+" "+x.ruang+" (kap. "+x.kap+")"}}),r.ruang)+'</div>'+
-   '<div><label>Kelas</label><input id="fk" value="'+esc(r.kelas||"")+'" placeholder="mis. A"></div>'+
-   '<div><label>Jumlah peserta</label><input id="fn" type="number" min="0" value="'+(r.peserta||"")+'"></div><div><label>Keterangan</label><input id="ft" value="'+esc(r.ket||"")+'"></div>'+
-   ["Dosen koordinator","Anggota 1","Anggota 2","Anggota 3"].map(function(n,i){return '<div class="w" style="grid-column:'+(i%2?2:1)+'/span 1"><label>'+n+'</label><input class="fd" list="dld" value="'+esc(r.dosen[i]||"")+'"></div>'}).join("")+
-   '<datalist id="dld">'+S.d.dosen.map(function(d){return '<option value="'+esc(d)+'">'}).join("")+'</datalist></div><div id="fe"></div>'+
-   '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="tutup()">Batal</button><button class="btn p" id="sv">Simpan</button></div></div></div>';
-  var isi=function(){$("dlm").innerHTML=S.d.mk.filter(function(m){return m.prodi===$("fp").value}).map(function(m){return '<option value="'+esc(m.nama)+'">'}).join("")};
-  isi(); $("fp").onchange=isi;
-  $("fm").onchange=function(){var m=S.d.mk.filter(function(x){return x.prodi===$("fp").value&&x.nama===$("fm").value})[0];
-    if(m&&m.js){var a=+$("fa").value;$("fb").value=Math.min(a+m.js-1,S.d.jam.length)}};
+  var r=id?S.d.jadwal.filter(function(x){return x.id===id})[0]:{ta:S.ta,sem:S.sem,prodi:(terkunci()&&S.user.prodi)||S.prodi||S.d.prodiList[0],hari:"",mulai:0,selesai:0,ruang:"",mk:"",dosen:[]};
+  var prodiOpt=(terkunci()?[S.user.prodi]:S.d.prodiList).map(function(p){return '<option value="'+esc(p)+'" '+(p===r.prodi?"selected":"")+'>'+esc(pLabel(p))+'</option>'}).join("");
+  var NAMA=["Dosen koordinator","Anggota 1","Anggota 2","Anggota 3"];
+  $("modal").innerHTML='<div class="modal"><div class="sheet"><h2>'+(id?"Ubah jadwal":"Penjadwalan Manual")+'</h2>'+
+  (id?"":'<p style="color:var(--mut);font-size:13px;margin-bottom:10px">Pilihan hanya memuat mata kuliah yang belum dijadwalkan lewat Sebar Jadwal (Otomatis), serta hari, jam, ruang, dan dosen yang masih kosong.</p>')+
+  '<div class="f2"><div><label>Program studi</label><select id="fp">'+prodiOpt+'</select></div><div><label>Hari</label><select id="fh"></select></div>'+
+  '<div class="w"><label>Mata kuliah</label><select id="fm"></select></div>'+
+  '<div><label>Jam mulai</label><select id="fa"></select></div><div><label>Jam selesai</label><select id="fb"></select></div>'+
+  '<div><label>Ruang</label><select id="fr"></select></div>'+
+  '<div><label>Kelas</label><input id="fk" value="'+esc(r.kelas||"")+'" placeholder="mis. A"></div>'+
+  '<div><label>Jumlah peserta</label><input id="fn" type="number" min="0" value="'+(r.peserta||"")+'"></div><div><label>Keterangan</label><input id="ft" value="'+esc(r.ket||"")+'"></div>'+
+  NAMA.map(function(n,i){return '<div class="w" style="grid-column:'+(i%2?2:1)+'/span 1"><label>'+n+'</label><select class="fd" id="fd'+i+'"></select></div>'}).join("")+
+  '</div><div id="fe"></div>'+
+  '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="tutup()">Batal</button><button class="btn p" id="sv">Simpan</button></div></div></div>';
+  // ---- data terplotting (kecuali baris yang sedang diubah) ----
+  var bR={}, bD={}, pb={}, jam=S.d.jam.slice().sort(function(a,b){return a.ke-b.ke}), jm={};
+  jam.forEach(function(j){jm[j.ke]=j});
+  S.d.jadwal.filter(function(x){return aktif(x)&&x.id!==id}).forEach(function(x){for(var k=x.mulai;k<=x.selesai;k++){
+    if(x.ruang&&x.ruang!=="Mitra"&&x.ruang!=="MBKM") bR[x.hari+"|"+k+"|"+x.ruang]=1;
+    (x.dosen||[]).forEach(function(d){bD[x.hari+"|"+k+"|"+d]=1})}});
+  (S.d.proteksi||[]).forEach(function(p){String(p.sesi).split(",").forEach(function(s){if(s!=="")pb[p.hari+"|"+(p.prodi==="SEMUA_PRODI"?"*":p.prodi)+"|"+Number(s)]=1})});
+  // ---- isi ulang <select>: pertahankan pilihan bila masih valid ----
+  function setO(i,a,pref,kosong,keep){
+    var s=$(i), cur=s.value; a=a.slice();
+    if(keep!=null&&keep!==""&&!a.some(function(x){return String(x.v)===String(keep)})) a.push({v:keep,l:keep});
+    var ok=function(v){return a.some(function(x){return String(x.v)===String(v)})};
+    s.innerHTML=(a.length?"":'<option value="">— '+kosong+' —</option>')+a.map(function(x){return '<option value="'+esc(x.v)+'">'+esc(x.l)+'</option>'}).join("");
+    var v=(cur!==""&&ok(cur))?cur:(pref!=null&&ok(pref)?pref:(a.length?a[0].v:""));
+    s.value=String(v);
+  }
+  function ini(i,v){if(v==null||v==="")return;$(i).innerHTML='<option value="'+esc(v)+'">'+esc(v)+'</option>';$(i).value=String(v)}
+  // mata kuliah: hanya yang BELUM/TIDAK masuk lewat Sebar Jadwal (Otomatis) untuk prodi terpilih
+  function isiMK(){
+    var prodi=$("fp").value, auto={}, seen={}, out=[];
+    S.d.jadwal.filter(function(x){return aktif(x)&&x.prodi===prodi&&String(x.ket||"").indexOf("Auto-sebar")===0}).forEach(function(x){auto[String(x.mk).trim().toLowerCase()]=1});
+    S.d.mk.forEach(function(m){var k=String(m.nama).trim().toLowerCase(); if(m.prodi!==prodi||seen[k]||auto[k])return; seen[k]=1; out.push({v:m.nama,l:m.nama+(m.js?" · "+m.js+" JS":"")})});
+    setO("fm",[{v:"",l:"— pilih mata kuliah —"}].concat(out),null,null,(id&&prodi===r.prodi)?r.mk:null);
+  }
+  function hitung(opt){
+    opt=opt||{};
+    var prodi=$("fp").value, mk=$("fm").value.trim(), pes=+$("fn").value||0, mo=S.d.mk.filter(function(m){return m.prodi===prodi&&m.nama===mk})[0];
+    var ds=[].map.call(document.querySelectorAll(".fd"),function(x){return x.value}).filter(Boolean);
+    var rooms=S.d.ruang.filter(function(x){
+      if(pes>0&&x.kap<pes)return false;
+      if(String(x.tipe).toUpperCase()==="K"){var kh=String(x.khusus||"").split(",").map(function(s){return s.trim().toLowerCase()}).filter(String); if(kh.length&&kh.indexOf(mk.toLowerCase())<0)return false}
+      return true});
+    var sb=function(h,k){return !pb[h+"|*|"+k]&&!pb[h+"|"+prodi+"|"+k]};
+    var db=function(h,s,e,L){for(var k=s;k<=e;k++)for(var q=0;q<L.length;q++)if(bD[h+"|"+k+"|"+L[q]])return false;return true};
+    var rb=function(h,s,e,g){for(var k=s;k<=e;k++)if(bR[h+"|"+k+"|"+g])return false;return true};
+    var layak=function(h,s,e){for(var k=s;k<=e;k++)if(!sb(h,k))return false;return db(h,s,e,ds)&&rooms.some(function(x){return rb(h,s,e,x.ruang)})};
+    setO("fh",S.d.hari.filter(function(h){return jam.some(function(j){return layak(h,j.ke,j.ke)})}).map(function(h){return{v:h,l:h}}),null,"tidak ada hari kosong",id?r.hari:null);
+    var h=$("fh").value;
+    setO("fa",jam.filter(function(j){return layak(h,j.ke,j.ke)}).map(function(j){return{v:j.ke,l:j.ke+" · "+j.waktu.split(" - ")[0]}}),null,"tidak ada sesi kosong",id?r.mulai:null);
+    var s=+$("fa").value||0, ea=[], want=s+((mo&&mo.js)||1)-1, pv=null;
+    if(s)for(var e=s;jm[e]&&layak(h,s,e);e++){ea.push({v:e,l:e+" · "+jm[e].waktu.split(" - ")[1]}); if(e<=want)pv=e}
+    setO("fb",ea,pv,"tidak ada sesi kosong",id?r.selesai:null);
+    if(opt.def&&pv!=null)$("fb").value=String(pv);
+    var e2=+$("fb").value||0;
+    setO("fr",(s&&e2)?rooms.filter(function(x){return rb(h,s,e2,x.ruang)}).map(function(x){return{v:x.ruang,l:x.gedung+" "+x.ruang+" (kap. "+x.kap+")"}}):[],null,"tidak ada ruang kosong",id?r.ruang:null);
+    var pick=[].map.call(document.querySelectorAll(".fd"),function(x){return x.value});
+    for(var i=0;i<4;i++){
+      var oth=pick.filter(function(v,j){return j!==i&&v}), L=S.d.dosen.filter(function(d){return oth.indexOf(d)<0&&(!(s&&e2)||db(h,s,e2,[d]))});
+      setO("fd"+i,[{v:"",l:"— tidak ada —"}].concat(L.map(function(d){return{v:d,l:d}})),null,null,id?(r.dosen[i]||null):null);
+    }
+  }
+  if(id){ini("fh",r.hari);ini("fa",r.mulai);ini("fb",r.selesai);ini("fr",r.ruang);for(var q=0;q<4;q++)ini("fd"+q,r.dosen[q])}
+  isiMK(); hitung({def:!id});
+  $("fp").onchange=function(){isiMK();hitung({def:true})};
+  $("fm").onchange=function(){hitung({def:true})};
+  $("fh").onchange=function(){hitung({def:true})};
+  $("fa").onchange=function(){hitung({def:true})};
+  $("fb").onchange=function(){hitung()};
+  $("fn").oninput=function(){hitung()};
+  [].forEach.call(document.querySelectorAll(".fd"),function(x){x.onchange=function(){hitung()}});
   var kirim=function(){
     var o={id:id||"",ta:S.ta,sem:S.sem,prodi:$("fp").value,hari:$("fh").value,mulai:+$("fa").value,selesai:+$("fb").value,ruang:$("fr").value,mk:$("fm").value.trim(),kelas:$("fk").value.trim(),
-      peserta:+$("fn").value||0,ket:$("ft").value,dosen:Array.prototype.map.call(document.querySelectorAll(".fd"),function(i){return i.value.trim()}).filter(Boolean)};
+    peserta:+$("fn").value||0,ket:$("ft").value,dosen:[].map.call(document.querySelectorAll(".fd"),function(i){return i.value.trim()}).filter(Boolean)};
+    if(!o.mk||!o.hari||!o.mulai||!o.selesai||!o.ruang){$("fe").innerHTML='<div class="err">Lengkapi mata kuliah, hari, jam mulai, jam selesai, dan ruang terlebih dahulu.</div>';return}
     $("sv").disabled=true;
     post({action:"save",row:o}).then(function(res){
-      if(res.ok){tutup();toast("Jadwal tersimpan");muat();return}
-      $("sv").disabled=false;
-      if(res.expired){S.user=S.token=null;tutup();render();}
-      $("fe").innerHTML='<div class="err">'+esc(res.error)+(res.bentrok?"<ul>"+res.bentrok.map(function(b){return "<li>"+esc(b)+"</li>"}).join("")+'</ul>':"")+"</div>";
+    if(res.ok){tutup();toast("Jadwal tersimpan");muat();return}
+    $("sv").disabled=false;
+    if(res.expired){S.user=S.token=null;tutup();render();}
+    $("fe").innerHTML='<div class="err">'+esc(res.error)+(res.bentrok?"<ul>"+res.bentrok.map(function(b){return "<li>"+esc(b)+"</li>"}).join("")+'</ul>':"")+"</div>";
     }).catch(function(){$("sv").disabled=false;$("fe").innerHTML='<div class="err">Gagal terhubung ke server.</div>'});
   };
   $("sv").onclick=function(){kirim()};
@@ -328,7 +386,7 @@ function hapus(id){if(!confirm("Hapus jadwal ini?"))return;post({action:"delete"
 /* ---------- Konfigurasi Data (khusus super_admin) ---------- */
 var K = { sub:"pengguna", w:null, u:[] };
 var KSUB = [["pengguna","Pengguna & Hak Akses"],["ta","Tahun Akademik & Semester"],["prodi","Program Studi"],["dosen","Dosen"],["hari","Hari Kuliah"],["jam","Sesi / Jam Kuliah"],["ruang","Ruang Kuliah"],["proteksi","Proteksi"]];
-var FAS = [["tambah","Tambah jadwal"],["ubah","Ubah jadwal"],["hapus","Hapus jadwal"]];
+var FAS = [["tambah","Penjadwalan Manual (tambah jadwal)"],["ubah","Ubah jadwal"],["hapus","Hapus jadwal"]];
 function kSalin(){
   var c=S.d.config||{}, lst=Array.from(new Set((c.ta_list||[]).concat(c.ta_aktif||[]))), g=c.semester||{};
   K.w={ hari:S.d.hari.map(function(x){return{h:x}}), jam:S.d.jam.map(function(x){return{ke:x.ke,waktu:x.waktu}}),
@@ -529,7 +587,7 @@ function pjTampil(){
    '<button class="btn" onclick="PJ.rk=null;pjKuliah(true)">Muat ulang status</button>'+
    (nJ?'<button class="btn" onclick="pjUnduhHasil()">Unduh jadwal (.xlsx)</button>':"")+
    '<span style="color:var(--mut)">'+jml+' dari '+pl.length+' prodi sudah mengunggah'+(lengkap?"":" — tombol sebar aktif setelah semua prodi mengunggah")+'</span></div>'+
-   '<p style="color:var(--mut);font-size:12px;margin-top:12px">Aturan sebar: menghormati sheet Proteksi Jadwal, ruang khusus (K) hanya untuk mata kuliah yang tercantum, kapasitas ruang, serta bentrok ruang/dosen/kelas · semester rendah diproses lebih dulu sehingga mendapat sesi pagi lebih awal · tiap semester (per prodi &amp; kelas) maksimal 2 mata kuliah per hari, toleransi sampai 3 bila terpaksa · mata kuliah multi-JS tidak terpotong waktu istirahat · JS ≥ 4 yang tidak muat sebagai satu blok boleh dipecah menjadi dua bagian bulat di hari berbeda (mis. JS 5 = 3+2 atau 4+1, tidak ada pecahan desimal) · hasil otomatis ditandai Ket = "Auto-sebar" dan akan diganti bila sebar dijalankan ulang (jadwal manual tidak diubah).</p></div>'+
+   '<p style="color:var(--mut);font-size:12px;margin-top:12px">Aturan sebar: menghormati sheet Proteksi Jadwal, ruang khusus (K) hanya untuk mata kuliah yang tercantum, kapasitas ruang, serta bentrok ruang/dosen/kelas · semester rendah diproses lebih dulu sehingga mendapat sesi pagi lebih awal · tiap semester (per prodi &amp; kelas) maksimal 2 mata kuliah per hari, toleransi sampai 3 bila terpaksa · mata kuliah multi-JS tidak terpotong waktu istirahat · pemecahan JS hanya dilakukan bila diisi pada kolom "Pecah JS" di file .xlsx (mis. 3+2: dua pertemuan di hari berbeda, hanya untuk JS ≥ 4); tanpa isian, mata kuliah dijadwalkan sebagai satu blok · hasil otomatis ditandai Ket = "Auto-sebar" dan akan diganti bila sebar dijalankan ulang (jadwal manual tidak diubah).</p></div>'+
    pjHasilHtml();
 }
 function pjPulihkan(i,apa){
@@ -570,14 +628,15 @@ function pjUnduh(i){
 }
 function pjBuatXlsx(p){
   var m=pjMK().filter(function(x){return x.prodi===p}).sort(function(a,b){return (a.smt-b.smt)||String(a.nama).localeCompare(b.nama)});
-  var head=["Program Studi","Semester Ke-","Mata Kuliah","SKS","JS","Kelas","Peserta","Dosen Koordinator","Anggota 1","Anggota 2","Anggota 3"];
-  var ws=XLSX.utils.aoa_to_sheet([head].concat(m.map(function(x){return [p,x.smt,x.nama,x.sks,x.js,"","","","","",""]})));
-  ws["!cols"]=[{wch:34},{wch:12},{wch:44},{wch:6},{wch:6},{wch:8},{wch:9},{wch:38},{wch:38},{wch:38},{wch:38}];
+  var head=["Program Studi","Semester Ke-","Mata Kuliah","SKS","JS","Pecah JS","Kelas","Peserta","Dosen Koordinator","Anggota 1","Anggota 2","Anggota 3"];
+  var ws=XLSX.utils.aoa_to_sheet([head].concat(m.map(function(x){return [p,x.smt,x.nama,x.sks,x.js,"","","","","","",""]})));
+  ws["!cols"]=[{wch:34},{wch:12},{wch:44},{wch:6},{wch:6},{wch:10},{wch:8},{wch:9},{wch:38},{wch:38},{wch:38},{wch:38}];
   var pt=XLSX.utils.aoa_to_sheet([["PETUNJUK PENGISIAN — "+p+" · "+S.ta+" · "+S.sem],[""],
     ["1. Isi kolom Kelas (mis. A), Peserta (angka), dan Dosen Koordinator pada sheet pertama. Anggota 1–3 bila ada tim pengampu."],
     ["2. Nama dosen harus SAMA PERSIS dengan sheet \"Daftar Dosen\" (salin-tempel)."],
     ["3. Satu mata kuliah dibuka untuk beberapa kelas: salin barisnya, lalu isi Kelas/Peserta/Dosen masing-masing."],
     ["4. Mata kuliah yang tidak dibuka semester ini: hapus barisnya."],
+ ["    Kolom Pecah JS (opsional): kosongkan bila mata kuliah dijadwalkan sebagai satu blok. Isi mis. 3+2 untuk memecahnya menjadi dua pertemuan di hari berbeda. Hanya untuk JS minimal 4, jumlah bagian harus sama dengan JS (JS 5 = 3+2 atau 4+1), bilangan bulat, maksimal 2 bagian."],
     ["5. Jangan mengubah judul kolom, nama mata kuliah, dan jangan memindahkan sheet pertama. Simpan sebagai .xlsx lalu unggah lewat tombol Unggah Mata Kuliah (atau kirim ke Admin)."]]);
   pt["!cols"]=[{wch:120}];
   var dd=XLSX.utils.aoa_to_sheet([["Daftar Dosen"]].concat((S.d.dosen||[]).slice().sort().map(function(n){return [n]}))); dd["!cols"]=[{wch:60}];
@@ -592,7 +651,7 @@ function pjParse(buf,prodi){
   var out=[],salah={};
   a.forEach(function(o){var mk=nk(o,"mata kuliah"); if(!mk)return;
     var ps=nk(o,"program studi"); if(ps&&ps!==prodi)salah[ps]=1;
-    out.push({mk:mk,kelas:nk(o,"kelas"),peserta:nk(o,"peserta"),dosen:[nk(o,"dosen koordinator"),nk(o,"anggota 1"),nk(o,"anggota 2"),nk(o,"anggota 3")].filter(Boolean)})});
+    out.push({mk:mk,kelas:nk(o,"kelas"),peserta:nk(o,"peserta"),pecah:nk(o,"pecah js"),dosen:[nk(o,"dosen koordinator"),nk(o,"anggota 1"),nk(o,"anggota 2"),nk(o,"anggota 3")].filter(Boolean)})});
   if(Object.keys(salah).length)throw new Error("File ini berisi prodi lain ("+Object.keys(salah).join(", ")+"), padahal Anda mengunggah untuk "+prodi+".");
   return out;
 }
@@ -629,7 +688,7 @@ function pjUnduhHasil(){
 
 /* ---------- demo (tanpa server) ---------- */
 function demoData(){
-  var js=["07:00 - 07:50","07:50 - 08:40","08:40 - 09:30","09:30 - 10:20","10:20 - 11:10","11:10 - 12:00","13:00 - 13:50","13:50 - 14:40","15:30 - 16:20","16:20 - 17:10","17:10 - 18:00"];
+  var js=["07:00 - 07:50","07:50 - 08:40","08:40 - 09:30","09:30 - 10:20","10:20 - 11:10","11:10 - 12:00","13:00 - 13:50","13:50 - 14:40","15:30 - 16:20","16:20 - 17:10","17:10 - 18:00","18:15 - 19:05","19:05 - 19:55","19:55 - 20:45"];
   var P=["Pendidikan Matematika","Pendidikan Biologi","Pendidikan Bahasa Indonesia"];
   var mk=[["Pendidikan Matematika","Logika Dasar",3],["Pendidikan Matematika","Kalkulus I",3],["Pendidikan Biologi","Biologi Sel",3],["Pendidikan Biologi","Ekologi",2],["Pendidikan Bahasa Indonesia","Menulis Sastra",2],["Pendidikan Bahasa Indonesia","Linguistik Umum",3]];
   var ds=["Dr. Ratna Sari, M.Pd.","Sri Handayani, M.Si.","Prof. Dr. Baiduri, M.Si.","Dwi Lestari, M.Pd."];

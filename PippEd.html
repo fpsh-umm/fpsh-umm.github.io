@@ -43,7 +43,18 @@ input,select,textarea{border:1px solid var(--line);background:var(--card);border
 .scroll{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 table{border-collapse:collapse;width:100%;min-width:860px}th,td{border:1px solid var(--line);padding:0;text-align:center;font-size:12px;height:46px}
 th{background:var(--bg);padding:6px;font-weight:700;position:sticky;top:0}td.rn,th.rn{text-align:left;padding:6px 10px;min-width:130px;position:sticky;left:0;background:var(--card);font-weight:600;z-index:1}th.rn{background:var(--bg)}th.sj{min-width:84px;white-space:nowrap;line-height:1.3}th.sj small{font-weight:600;color:var(--mut);font-size:10px}
-td.f{background:var(--brand);color:#fff;font-weight:600;padding:2px 4px;cursor:pointer;overflow:hidden;max-width:90px;text-overflow:ellipsis;white-space:nowrap}
+td.f{background:var(--brand);color:#fff;font-weight:600;padding:0;cursor:pointer}
+td.f .fc{padding:3px 5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;font-size:11px;text-align:center;max-height:44px;word-break:break-word}
+td.f.dim{opacity:.2}td.f:hover{filter:brightness(1.12);box-shadow:inset 0 0 0 2px rgba(255,255,255,.7)}
+.leg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:3px 10px;font-size:12px;cursor:pointer;max-width:290px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chip.on{outline:2px solid var(--brand)}
+.chip i,.tip .td i{width:11px;height:11px;border-radius:3px;flex:none;display:inline-block}
+.tip{position:fixed;z-index:80;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(16,24,40,.3);padding:11px 13px;max-width:350px;font-size:12px;pointer-events:none}
+.tip .tt{font-weight:800;font-size:13px;margin-bottom:7px;line-height:1.3}
+.tip .tg{display:grid;grid-template-columns:auto 1fr;gap:2px 14px}.tip .tg span{color:var(--mut)}.tip .tg b{font-weight:700}
+.tip .tl{margin-top:7px;color:var(--mut);font-weight:700}.tip .td{display:flex;gap:6px;align-items:center}
+.card.prio{border-left:5px solid var(--yel)}.btn[disabled]{opacity:.55;cursor:not-allowed}
+@media print{.tip{display:none!important}}
 .modal{position:fixed;inset:0;background:rgba(10,16,32,.55);display:grid;place-items:center;padding:16px;z-index:50}
 .sheet{background:var(--card);border-radius:18px;width:min(720px,100%);max-height:92vh;overflow:auto;padding:22px}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.f2 .w{grid-column:1/-1}@media(max-width:560px){.f2{grid-template-columns:1fr}}
@@ -109,6 +120,7 @@ footer{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}footer 
   <footer><span id="upd"></span> · <a onclick="muat(true)">Segarkan data</a><div class="copy">© 2026. Pusat Inovasi &amp; Praktik Pembelajaran - Education FPSH UMM</div></footer>
 </main>
 <div id="modal"></div>
+<div id="tip" class="tip hide" role="tooltip"></div>
 
 <script>
 /* ===== KONFIGURASI — tempel URL Web App Apps Script di sini ===== */
@@ -168,7 +180,7 @@ function proses(on){
   if(PROSES.n>0&&!PROSES.el){var t=document.createElement("div");t.className="toast proses";t.setAttribute("role","status");t.textContent="Tunggu... memproses database";document.body.appendChild(t);PROSES.el=t}
   if(PROSES.n===0&&PROSES.el){PROSES.el.remove();PROSES.el=null}
 }
-var AKSI_UBAH=/^(save|delete|cfgSave|cfgUserSave|cfgUserDelete|rkUpload|rkSebar|rkUnduh|rkPulihkan)$/;
+var AKSI_UBAH=/^(save|delete|cfgSave|cfgUserSave|cfgUserDelete|rkUpload|rkSebar|rkUnduh|rkPulihkan|rkPulihkanSebar)$/;
 function post(body){
   body.token = S.token;
   var ubah = AKSI_UBAH.test(body.action); if(ubah) proses(true);
@@ -181,7 +193,7 @@ function muat(manual){
     : fetch(CONFIG.SCRIPT_URL+"?action=data").then(function(r){return r.json()});
   return p.then(function(res){
     if(!res.ok) throw new Error(res.error);
-    S.d = res.data; S.d.prodiList = urutProdi(S.d.mk.map(function(m){return m.prodi}).concat(S.d.jadwal.map(function(r){return r.prodi})));
+    S.d = res.data; S.d.warna=null; S.d._mm=null; S.d.prioritas=S.d.prioritas||[]; S.d.prodiList = urutProdi(S.d.mk.map(function(m){return m.prodi}).concat(S.d.jadwal.map(function(r){return r.prodi})));
     var tas = S.d.config.ta_aktif || S.d.config.ta_list || ["—"];
     if(!S.ta) { S.ta = tas[0]; var g=S.d.config.semester||{}; S.sem = g.genap?"Genap":"Ganjil"; }
     $("selTA").innerHTML = tas.map(function(t){return "<option "+(t===S.ta?"selected":"")+">"+esc(t)+"</option>"}).join("");
@@ -234,8 +246,8 @@ function vRingkasan(){
   var mx=Math.max(1,Math.max.apply(null,hari.map(function(h){return per[h]||0})));
   var pr={}; j.forEach(function(r){pr[r.prodi]=(pr[r.prodi]||0)+1});
   var top=Object.keys(load).sort(function(a,b){return load[b]-load[a]}).slice(0,6);
-  var live=j.filter(berlangsung);
-  $("v-ringkasan").innerHTML='<div class="grid stats">'+
+  var live=j.filter(berlangsung), pn=adminTambah()?prioAktif().length:0;
+  $("v-ringkasan").innerHTML=(pn?'<div class="banner"><b>'+pn+' mata kuliah belum terjadwal</b> karena tidak bisa disebar otomatis. <a style="cursor:pointer;font-weight:700;text-decoration:underline" onclick="S.tab=\'jadwal\';render()">Jadwalkan secara manual (prioritas)</a></div>':"")+'<div class="grid stats">'+
    [["Sesi terjadwal",j.length],["Program studi",Object.keys(pr).length],["Dosen mengajar",Object.keys(load).length],["Ruang terpakai",new Set(j.map(function(r){return r.ruang})).size]]
    .map(function(s){return '<div class="card stat"><small>'+s[0]+'</small><strong>'+s[1]+'</strong></div>'}).join("")+'</div>'+
    (live.length?'<div class="card" style="margin-bottom:14px"><h2><span class="tag ok">Sedang berlangsung</span></h2>'+live.map(rowHtml).join("")+'</div>':"")+
@@ -251,8 +263,8 @@ function rowHtml(r){
 function vJadwal(){
   var opt=function(a,v,all,lab){return '<option value="">'+all+'</option>'+a.map(function(x){return '<option value="'+esc(x)+'" '+(x===v?"selected":"")+'>'+esc(lab?lab(x):x)+'</option>'}).join("")};
   var l=daftar(), h='<div class="tool"><select onchange="S.prodi=this.value;vJadwal()">'+opt(S.d.prodiList,S.prodi,"Semua program studi",pLabel)+'</select><select onchange="S.hari=this.value;vJadwal()">'+opt(S.d.hari,S.hari,"Semua hari")+'</select>'+
-   '<input class="grow" id="q" placeholder="Cari mata kuliah, dosen, ruang…" value="'+esc(S.q)+'" oninput="S.q=this.value;cari()">'+(adminTambah()?'<button class="btn p" onclick="bukaForm()">Penjadwalan Manual</button>':"")+'</div><div id="list"></div>';
-  $("v-jadwal").innerHTML=h; cari();
+   '<input class="grow" id="q" placeholder="Cari mata kuliah, dosen, ruang…" value="'+esc(S.q)+'" oninput="S.q=this.value;cari()">'+(adminTambah()?'<button class="btn p" onclick="bukaForm()">Penjadwalan Manual'+(prioAktif().length?' ('+prioAktif().length+' prioritas)':"")+'</button>':"")+'</div><div id="list"></div>';
+  $("v-jadwal").innerHTML=prioCard()+h; cari();
 }
 function cari(){
   var l=daftar(), el=$("list"); if(!el) return;
@@ -261,17 +273,86 @@ function cari(){
     var g=l.filter(function(r){return r.hari===h}).sort(function(a,b){return a.mulai-b.mulai}); if(!g.length) return "";
     return '<div class="day"><h3>'+esc(h)+' <em>'+g.length+" sesi</em></h3>"+g.map(rowHtml).join("")+"</div>"}).join("");
 }
+/* ---------- Prioritas Penjadwalan Manual (mata kuliah yang tidak dapat disebar otomatis) ---------- */
+var PRG=[];
+function prioAktif(){return (S.d.prioritas||[]).filter(function(p){return p.ta===S.ta&&p.sem===S.sem&&(!terkunci()||p.prodi===S.user.prodi)})}
+function prioCard(){
+  PRG=[]; if(!adminTambah())return "";
+  var P=prioAktif(); if(!P.length)return ""; PRG=P;
+  return '<div class="card prio" style="margin-bottom:16px"><h2>Prioritas Penjadwalan Manual <span class="tag" style="background:var(--warnb);color:var(--warn)">'+P.length+' mata kuliah belum terjadwal</span></h2>'+
+   '<p style="color:var(--mut);margin-bottom:10px">Mata kuliah berikut tidak dapat ditempatkan oleh Sebar Jadwal (Otomatis). Jadwalkan lebih dulu secara manual; urutan teratas paling sulit ditempatkan dan paling cepat kehabisan slot.</p>'+
+   '<div class="scroll"><table class="kt"><tr><th>#</th><th>Program studi</th><th>Smt</th><th>Mata kuliah</th><th>Kelas</th><th>JS</th><th>Dosen</th><th>Kendala &amp; saran</th><th></th></tr>'+
+   P.map(function(p,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(p.prodi)+'</td><td>'+(p.smt||"")+'</td><td><b>'+esc(p.mk)+'</b></td><td>'+esc(p.kelas)+'</td><td>'+p.sisa+(p.sisa!==p.js?' / '+p.js:"")+(p.pecah?'<br><small style="color:var(--mut)">pecah '+esc(p.pecah)+'</small>':"")+'</td><td>'+esc(p.dosen.join(", "))+'</td>'+
+     '<td style="min-width:280px"><small>'+esc(p.alasan||"")+'</small>'+(p.saran?'<br><small style="color:var(--brand);font-weight:600">'+esc(p.saran)+'</small>':"")+'</td><td><button class="btn p" onclick="bukaForm(\'\','+i+')">Jadwalkan</button></td></tr>'}).join("")+'</table></div></div>';
+}
+function lenPrio(p){return (p.pecah&&p.sisa===p.js)?(+p.pecah.split("+")[0]||p.sisa):p.sisa}
+
+/* ---------- Pemakaian Ruang: warna per dosen + info saat kursor di atas kotak ---------- */
+var RU={map:{},leg:[],sorot:""};
+function hsl2rgb(h,s,l){s/=100;l/=100;var k=function(n){return (n+h/30)%12},a=s*Math.min(l,1-l),f=function(n){return l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)))};return [f(0)*255,f(8)*255,f(4)*255]}
+function warnaIdx(i){ // sudut warna loncat 137,5° (golden angle) + 3 variasi terang/jenuh agar dosen bersebelahan tetap mudah dibedakan
+  var h=Math.round((i*137.508)%360), L=[38,46,31][i%3], Sa=[64,74,56][Math.floor(i/3)%3], c=hsl2rgb(h,Sa,L), lum=(0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255;
+  return {bg:"hsl("+h+","+Sa+"%,"+L+"%)",fg:lum>0.5?"#10222a":"#fff"};
+}
+function buatWarna(daftar){var m={};Array.from(new Set((daftar||[]).filter(Boolean))).sort(function(a,b){return String(a).localeCompare(String(b))}).forEach(function(n,i){m[n]=warnaIdx(i)});return m}
+function wDosen(n){
+  var m=S.d.warna||(S.d.warna=buatWarna(S.d.dosen));
+  if(n&&!m[n]){var h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%360;m[n]={bg:"hsl("+h+",55%,36%)",fg:"#fff"}}
+  return m[n]||{bg:"#5b6b72",fg:"#fff"};
+}
+function infoMK(x){
+  var mm=S.d._mm; if(!mm){mm=S.d._mm={};S.d.mk.forEach(function(m){var k=m.prodi+"|"+String(m.nama).trim().toLowerCase(); if(!mm[k]||String(m.sem).toLowerCase()===String(S.sem).toLowerCase())mm[k]=m})}
+  return mm[x.prodi+"|"+String(x.mk).trim().toLowerCase()]||{};
+}
+function ruTip(x){
+  var m=infoMK(x), w=waktu(x), n=x.selesai-x.mulai+1, smt=x.smt||m.smt||"—", ada=function(v){return v!=null&&v!==""};
+  var row=function(k,v){return '<span>'+k+'</span><b>'+v+'</b>'};
+  var ds=x.dosen.length?x.dosen.map(function(d,i){var c=wDosen(d);return '<div class="td"><i style="background:'+c.bg+'"></i><span>'+esc(d)+(i===0&&x.dosen.length>1?' <small style="color:var(--mut)">(koordinator)</small>':"")+'</span></div>'}).join(""):'<i style="color:var(--mut)">Belum ditentukan</i>';
+  return '<div class="tt">'+esc(x.mk)+'</div><div class="tg">'+
+    row("SKS",ada(m.sks)?esc(m.sks):"—")+
+    row("JS",(ada(m.js)?esc(m.js):"—")+(ada(m.js)&&n!==+m.js?' <small style="font-weight:500;color:var(--mut)">(sesi ini '+n+' JS)</small>':""))+
+    row("Semester",esc(smt))+row("Kelas",esc(x.kelas||"—"))+row("Prodi",esc(x.prodi))+
+    row("Waktu",esc(x.hari)+", "+esc(w[0])+" – "+esc(w[1])+' <small style="font-weight:500;color:var(--mut)">(jam ke-'+x.mulai+(x.selesai>x.mulai?"–"+x.selesai:"")+')</small>')+
+    row("Ruang",esc(x.ruang)+(x.peserta?" · "+x.peserta+" peserta":""))+'</div><div class="tl">Dosen</div>'+ds;
+}
+function ruSorot(i){var n=RU.leg[i];RU.sorot=(RU.sorot===n)?"":n;vRuang()}
 function vRuang(){
-  var js=S.d.jam, rs=S.d.ruang, l=S.d.jadwal.filter(function(r){return aktif(r)&&r.hari===S.rhari});
-  var head='<div class="tool"><select onchange="S.rhari=this.value;vRuang()">'+S.d.hari.map(function(h){return '<option '+(h===S.rhari?"selected":"")+'>'+esc(h)+'</option>'}).join("")+'</select></div>';
-  var t='<div class="scroll"><table><tr><th class="rn">Ruang</th>'+js.map(function(j){return '<th class="sj" title="Sesi '+j.ke+' · '+esc(j.waktu)+'">Sesi '+j.ke+'<br><small>'+esc(j.waktu)+'</small></th>'}).join("")+'</tr>';
+  var js=S.d.jam.slice().sort(function(a,b){return a.ke-b.ke}), rs=S.d.ruang, l=S.d.jadwal.filter(function(r){return aktif(r)&&r.hari===S.rhari});
+  RU.map={}; var dh={}; l.forEach(function(x){RU.map[x.id]=x; if(x.dosen[0])dh[x.dosen[0]]=1});
+  RU.leg=Object.keys(dh).sort(function(a,b){return a.localeCompare(b)});
+  var head='<div class="tool"><select onchange="S.rhari=this.value;RU.sorot=\'\';vRuang()">'+S.d.hari.map(function(h){return '<option '+(h===S.rhari?"selected":"")+'>'+esc(h)+'</option>'}).join("")+'</select>'+
+    '<span style="color:var(--mut);align-self:center;font-size:12px;flex:3 1 300px">Arahkan kursor ke kotak untuk melihat SKS, JS, semester, dan kelas · warna kotak = dosen koordinator · klik nama dosen di bawah untuk menyorot</span></div>'+
+    (RU.leg.length?'<div class="leg">'+RU.leg.map(function(n,i){var w=wDosen(n);return '<button type="button" class="chip'+(RU.sorot===n?" on":"")+'" onclick="ruSorot('+i+')" title="'+esc(n)+'"><i style="background:'+w.bg+'"></i>'+esc(n)+'</button>'}).join("")+'</div>':"");
+  var t='<div class="scroll"><table><tr><th class="rn">Ruang</th>'+js.map(function(j){return '<th class="sj">Sesi '+j.ke+'<br><small>'+esc(j.waktu)+'</small></th>'}).join("")+'</tr>';
   rs.forEach(function(r){
     t+='<tr><td class="rn">'+esc(r.gedung+" "+r.ruang)+'<br><small style="color:var(--mut)">kap. '+r.kap+'</small></td>';
-    js.forEach(function(j){var x=l.filter(function(s){return s.ruang===r.ruang&&j.ke>=s.mulai&&j.ke<=s.selesai})[0];
-      t+=x?'<td class="f" style="background:'+col(x.prodi)+'" title="'+esc(x.mk+" · "+x.prodi+" · "+x.dosen.join(", "))+'">'+esc(x.mk)+'</td>':"<td></td>"});
+    var i=0;
+    while(i<js.length){
+      var x=l.filter(function(s){return s.ruang===r.ruang&&js[i].ke>=s.mulai&&js[i].ke<=s.selesai})[0];
+      if(!x){t+="<td></td>";i++;continue}
+      var n=1; while(i+n<js.length&&js[i+n].ke<=x.selesai)n++;   // sesi berurutan dari mata kuliah yang sama digabung jadi satu kotak
+      var w=wDosen(x.dosen[0]||""), dim=RU.sorot&&x.dosen.indexOf(RU.sorot)<0;
+      t+='<td class="f'+(dim?" dim":"")+'" colspan="'+n+'" data-id="'+esc(x.id)+'" style="background:'+w.bg+';color:'+w.fg+'"><div class="fc" style="max-width:'+(86*n)+'px">'+esc(x.mk)+'</div></td>';
+      i+=n;
+    }
     t+="</tr>"});
   $("v-ruang").innerHTML=head+t+"</table></div>";
 }
+(function(){ // tooltip mengikuti kursor (klik/ketuk untuk layar sentuh)
+  var tip=$("tip"), el=$("v-ruang");
+  function sembunyi(){tip.classList.add("hide");tip.dataset.id=""}
+  function tampil(e){
+    var td=e.target.closest&&e.target.closest("td.f"), x=td&&RU.map[td.getAttribute("data-id")];
+    if(!x){sembunyi();return}
+    if(tip.dataset.id!==String(x.id)){tip.innerHTML=ruTip(x);tip.dataset.id=String(x.id)}
+    tip.classList.remove("hide");
+    var w=tip.offsetWidth,h=tip.offsetHeight,X=e.clientX+16,Y=e.clientY+16;
+    if(X+w>innerWidth-8)X=e.clientX-w-16; if(Y+h>innerHeight-8)Y=e.clientY-h-16;
+    tip.style.left=Math.max(8,X)+"px"; tip.style.top=Math.max(8,Y)+"px";
+  }
+  el.addEventListener("mousemove",tampil); el.addEventListener("click",tampil); el.addEventListener("mouseleave",sembunyi);
+  window.addEventListener("scroll",sembunyi,true);
+})();
 
 /* ---------- login ---------- */
 $("btnLogin").onclick=function(){
@@ -292,13 +373,14 @@ $("btnLogin").onclick=function(){
 function tutup(){$("modal").innerHTML=""}
 
 /* ---------- form tambah/ubah ---------- */
-function bukaForm(id){
+function bukaForm(id,pidx){
+  var PRL=id?[]:prioAktif(), PRI=null, pk=(pidx!=null&&PRG[pidx])?PRG[pidx]:null;
   var r=id?S.d.jadwal.filter(function(x){return x.id===id})[0]:{ta:S.ta,sem:S.sem,prodi:(terkunci()&&S.user.prodi)||S.prodi||S.d.prodiList[0],hari:"",mulai:0,selesai:0,ruang:"",mk:"",dosen:[]};
   var prodiOpt=(terkunci()?[S.user.prodi]:S.d.prodiList).map(function(p){return '<option value="'+esc(p)+'" '+(p===r.prodi?"selected":"")+'>'+esc(pLabel(p))+'</option>'}).join("");
   var NAMA=["Dosen koordinator","Anggota 1","Anggota 2","Anggota 3"];
   $("modal").innerHTML='<div class="modal"><div class="sheet"><h2>'+(id?"Ubah jadwal":"Penjadwalan Manual")+'</h2>'+
-  (id?"":'<p style="color:var(--mut);font-size:13px;margin-bottom:10px">Pilihan hanya memuat mata kuliah yang belum dijadwalkan lewat Sebar Jadwal (Otomatis), serta hari, jam, ruang, dan dosen yang masih kosong.</p>')+
-  '<div class="f2"><div><label>Program studi</label><select id="fp">'+prodiOpt+'</select></div><div><label>Hari</label><select id="fh"></select></div>'+
+  (id?"":'<p style="color:var(--mut);font-size:13px;margin-bottom:10px">Pilihan memuat mata kuliah yang belum dijadwalkan lewat Sebar Jadwal (Otomatis) — yang berstatus prioritas ada di daftar paling atas — serta hari, jam, ruang, dan dosen yang masih kosong.</p>')+
+  '<div class="f2">'+(PRL.length?'<div class="w"><label>Prioritas: belum bisa disebar otomatis ('+PRL.length+')</label><select id="fpr"><option value="">— pilih untuk mengisi otomatis —</option>'+PRL.map(function(p,i){return '<option value="'+i+'">'+esc(p.prodi)+' · Smt '+(p.smt||"-")+' · '+esc(p.mk)+' · Kelas '+esc(p.kelas)+' · '+p.sisa+' JS</option>'}).join("")+'</select><div id="fi"></div></div>':"")+'<div><label>Program studi</label><select id="fp">'+prodiOpt+'</select></div><div><label>Hari</label><select id="fh"></select></div>'+
   '<div class="w"><label>Mata kuliah</label><select id="fm"></select></div>'+
   '<div><label>Jam mulai</label><select id="fa"></select></div><div><label>Jam selesai</label><select id="fb"></select></div>'+
   '<div><label>Ruang</label><select id="fr"></select></div>'+
@@ -328,6 +410,7 @@ function bukaForm(id){
   function isiMK(){
     var prodi=$("fp").value, auto={}, seen={}, out=[];
     S.d.jadwal.filter(function(x){return aktif(x)&&x.prodi===prodi&&String(x.ket||"").indexOf("Auto-sebar")===0}).forEach(function(x){auto[String(x.mk).trim().toLowerCase()]=1});
+    PRL.forEach(function(p){if(p.prodi===prodi)delete auto[String(p.mk).trim().toLowerCase()]});   // MK yang masih berstatus prioritas (kelas/pecahan belum tertempatkan) tetap bisa dipilih
     S.d.mk.forEach(function(m){var k=String(m.nama).trim().toLowerCase(); if(m.prodi!==prodi||seen[k]||auto[k])return; seen[k]=1; out.push({v:m.nama,l:m.nama+(m.js?" · "+m.js+" JS":"")})});
     setO("fm",[{v:"",l:"— pilih mata kuliah —"}].concat(out),null,null,(id&&prodi===r.prodi)?r.mk:null);
   }
@@ -346,7 +429,7 @@ function bukaForm(id){
     setO("fh",S.d.hari.filter(function(h){return jam.some(function(j){return layak(h,j.ke,j.ke)})}).map(function(h){return{v:h,l:h}}),null,"tidak ada hari kosong",id?r.hari:null);
     var h=$("fh").value;
     setO("fa",jam.filter(function(j){return layak(h,j.ke,j.ke)}).map(function(j){return{v:j.ke,l:j.ke+" · "+j.waktu.split(" - ")[0]}}),null,"tidak ada sesi kosong",id?r.mulai:null);
-    var s=+$("fa").value||0, ea=[], want=s+((mo&&mo.js)||1)-1, pv=null;
+    var s=+$("fa").value||0, ea=[], want=s+(PRI?lenPrio(PRI):((mo&&mo.js)||1))-1, pv=null;
     if(s)for(var e=s;jm[e]&&layak(h,s,e);e++){ea.push({v:e,l:e+" · "+jm[e].waktu.split(" - ")[1]}); if(e<=want)pv=e}
     setO("fb",ea,pv,"tidak ada sesi kosong",id?r.selesai:null);
     if(opt.def&&pv!=null)$("fb").value=String(pv);
@@ -355,18 +438,28 @@ function bukaForm(id){
     var pick=[].map.call(document.querySelectorAll(".fd"),function(x){return x.value});
     for(var i=0;i<4;i++){
       var oth=pick.filter(function(v,j){return j!==i&&v}), L=S.d.dosen.filter(function(d){return oth.indexOf(d)<0&&(!(s&&e2)||db(h,s,e2,[d]))});
-      setO("fd"+i,[{v:"",l:"— tidak ada —"}].concat(L.map(function(d){return{v:d,l:d}})),null,null,id?(r.dosen[i]||null):null);
+      setO("fd"+i,[{v:"",l:"— tidak ada —"}].concat(L.map(function(d){return{v:d,l:d}})),null,null,id?(r.dosen[i]||null):(PRI?(PRI.dosen[i]||null):null));
     }
   }
   if(id){ini("fh",r.hari);ini("fa",r.mulai);ini("fb",r.selesai);ini("fr",r.ruang);for(var q=0;q<4;q++)ini("fd"+q,r.dosen[q])}
   isiMK(); hitung({def:!id});
-  $("fp").onchange=function(){isiMK();hitung({def:true})};
-  $("fm").onchange=function(){hitung({def:true})};
+  function terapPrio(i){   // isi otomatis form dari satu mata kuliah prioritas
+    var p=PRL[i]; PRI=p||null;
+    if(!p){$("fi").innerHTML="";hitung({def:true});return}
+    $("fp").value=p.prodi; isiMK(); $("fm").value=p.mk; $("fk").value=p.kelas; $("fn").value=p.peserta||"";
+    for(var q=0;q<4;q++){var sd=$("fd"+q),nm=p.dosen[q]||"";sd.innerHTML='<option value="">— tidak ada —</option>'+(nm?'<option value="'+esc(nm)+'">'+esc(nm)+'</option>':"");sd.value=nm}
+    $("fi").innerHTML='<div class="banner" style="margin:8px 0 0"><b>Kendala sebar otomatis:</b> '+esc(p.alasan||"-")+(p.saran?'<br><b>Saran:</b> '+esc(p.saran):"")+(p.pecah?'<br>Pecah JS pada file: '+esc(p.pecah)+' (jadwalkan per bagian, di hari berbeda).':"")+(p.sisa!==p.js?'<br>Tersisa '+p.sisa+' dari '+p.js+' JS.':"")+'</div>';
+    hitung({def:true});
+  }
+  if($("fpr"))$("fpr").onchange=function(){terapPrio(this.value===""?-1:+this.value)};
+  $("fp").onchange=function(){PRI=null;if($("fpr"))$("fpr").value="";if($("fi"))$("fi").innerHTML="";isiMK();hitung({def:true})};
+  $("fm").onchange=function(){if(PRI&&PRI.mk!==$("fm").value){PRI=null;if($("fpr"))$("fpr").value="";$("fi").innerHTML=""}hitung({def:true})};
   $("fh").onchange=function(){hitung({def:true})};
   $("fa").onchange=function(){hitung({def:true})};
   $("fb").onchange=function(){hitung()};
   $("fn").oninput=function(){hitung()};
   [].forEach.call(document.querySelectorAll(".fd"),function(x){x.onchange=function(){hitung()}});
+  if(pk){var ix=PRL.findIndex(function(p){return p.prodi===pk.prodi&&p.mk===pk.mk&&p.kelas===pk.kelas});if(ix>-1){$("fpr").value=String(ix);terapPrio(ix)}}
   var kirim=function(){
     var o={id:id||"",ta:S.ta,sem:S.sem,prodi:$("fp").value,hari:$("fh").value,mulai:+$("fa").value,selesai:+$("fb").value,ruang:$("fr").value,mk:$("fm").value.trim(),kelas:$("fk").value.trim(),
     peserta:+$("fn").value||0,ket:$("ft").value,dosen:[].map.call(document.querySelectorAll(".fd"),function(i){return i.value.trim()}).filter(Boolean)};
@@ -531,7 +624,7 @@ function kuHapus(em){if(!confirm("Hapus pengguna "+em+"?"))return;
 /* ---------- Penjadwalan (Kuliah, Ujian) — khusus super_admin & admin ---------- */
 function isTP(){return !!(S.user&&S.user.level==="tendik_prodi"&&S.user.prodi)}
 function bisaPenjadwalan(){return !!(S.user&&(S.user.level==="super_admin"||(S.user.level==="admin"&&!S.user.prodi)))}
-var PJ={sub:"kuliah",rk:null,st:{},key:"",pl:[],hasil:null,err:null};
+var PJ={sub:"kuliah",rk:null,st:{},sebar:{},key:"",pl:[],hasil:null,err:null};
 var PJ_SUB=[["kuliah","Penjadwalan Kuliah"],["ujian","Penjadwalan Ujian"]];
 function vPenjadwalan(){
   if(isTP())PJ.sub="kuliah";
@@ -547,7 +640,7 @@ function pjKuliah(force){
     post({action:"rkList",ta:S.ta,sem:S.sem}).then(function(r){
       if(r.expired){S.user=S.token=null;render();return}
       if(!r.ok){$("pjbody").innerHTML='<div class="err">'+esc(r.error)+'</div>';return}
-      PJ.rk=r.data;PJ.st=r.status||{};PJ.key=key;pjTampil()}).catch(function(){$("pjbody").innerHTML='<div class="err">Gagal terhubung ke server.</div>'});
+      PJ.rk=r.data;PJ.st=r.status||{};PJ.sebar=r.sebar||{};PJ.key=key;pjTampil()}).catch(function(){$("pjbody").innerHTML='<div class="err">Gagal terhubung ke server.</div>'});
     return;
   }
   pjTampil();
@@ -558,6 +651,7 @@ function pjTampil(){
   var up={}; PJ.rk.forEach(function(r){var o=up[r.prodi]=up[r.prodi]||{n:0,oleh:r.oleh,pada:r.pada};o.n++});
   var st=PJ.st||{}, jml=pl.filter(function(p){return up[p]}).length, lengkap=pl.length>0&&jml===pl.length;
   var nJ=S.d.jadwal.filter(aktif).length;
+  var sb=PJ.sebar||{}, sa=!!S.user&&S.user.level==="super_admin", kunci=!!sb.dikunci&&!sa, bolehSebar=lengkap&&!kunci;
   var tb=pl.map(function(p,i){
     var js=per[p].reduce(function(a,m){return a+(+m.js||0)},0), u=up[p], s=st[p]||{};
     var stat=(u?'<span class="tag ok">Sudah diunggah · '+u.n+' kelas</span><br><small style="color:var(--mut)">'+esc(u.oleh||"")+" · "+esc(u.pada||"")+'</small>':'<span class="tag" style="background:var(--warnb);color:var(--warn)">Belum diunggah</span>')+
@@ -583,11 +677,15 @@ function pjTampil(){
    '<div class="card"><h2>Penjadwalan Kuliah · '+esc(S.ta)+' · '+esc(S.sem)+'</h2>'+
    '<p style="color:var(--mut);margin-bottom:12px"><b>Langkah:</b> (1) Tendik Prodi mengunduh Mata Kuliah prodinya (atau Anda unduh lalu kirimkan) · (2) Tendik Prodi mengisi <i>Kelas, Peserta, Dosen</i> · (3) File diunggah (oleh Tendik Prodi atau Anda) · (4) Setelah semua prodi terunggah, tekan <b>Sebar Jadwal (Otomatis)</b>. Hanya mata kuliah dengan keterangan <b>R</b> dan JS lebih dari 0 pada semester '+esc(S.sem)+' yang diambil dari sheet Mata_Kuliah. Tombol Unduh/Unggah milik Tendik Prodi hilang setelah dipakai sekali; gunakan <b>Pulihkan</b> untuk memunculkannya kembali.</p>'+
    tabel+'<div id="pjerr">'+pjErrHtml()+'</div>'+
-   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px"><button class="btn p" id="pjgo" '+(lengkap?"":"disabled")+' onclick="pjSebar()">Sebar Jadwal (Otomatis)</button>'+
+   (kunci?'<div class="banner" style="margin-top:14px"><b>Sebar Jadwal (Otomatis) sudah dijalankan</b> oleh '+esc(sb.oleh||"Admin")+(sb.pada?' pada '+esc(sb.pada):"")+'. Tombol hanya dapat dipakai satu kali oleh Admin dan hanya Super Admin yang dapat memulihkannya.</div>':
+     (sa&&sb.dikunci?'<div class="banner" style="margin-top:14px">Admin sudah menjalankan sebar ('+esc(sb.oleh||"")+(sb.pada?' · '+esc(sb.pada):"")+') dan tombolnya terkunci bagi Admin. Gunakan <b>Pulihkan Tombol Sebar (Admin)</b> bila Admin perlu menjalankannya lagi.</div>':
+     (!sa?'<div class="banner" style="margin-top:14px"><b>Perhatian:</b> tombol Sebar Jadwal (Otomatis) hanya dapat dipakai <b>satu kali</b> oleh Admin. Setelah dipakai, hanya Super Admin yang dapat memulihkannya.</div>':"")))+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px"><button class="btn p" id="pjgo" '+(bolehSebar?"":"disabled")+' onclick="pjSebar()">Sebar Jadwal (Otomatis)</button>'+
+   (sa&&sb.dikunci?'<button class="btn d" onclick="pjPulihSebar()">Pulihkan Tombol Sebar (Admin)</button>':"")+
    '<button class="btn" onclick="PJ.rk=null;pjKuliah(true)">Muat ulang status</button>'+
    (nJ?'<button class="btn" onclick="pjUnduhHasil()">Unduh jadwal (.xlsx)</button>':"")+
-   '<span style="color:var(--mut)">'+jml+' dari '+pl.length+' prodi sudah mengunggah'+(lengkap?"":" — tombol sebar aktif setelah semua prodi mengunggah")+'</span></div>'+
-   '<p style="color:var(--mut);font-size:12px;margin-top:12px">Aturan sebar: menghormati sheet Proteksi Jadwal, ruang khusus (K) hanya untuk mata kuliah yang tercantum, kapasitas ruang, serta bentrok ruang/dosen/kelas · semester rendah diproses lebih dulu sehingga mendapat sesi pagi lebih awal · tiap semester (per prodi &amp; kelas) maksimal 2 mata kuliah per hari, toleransi sampai 3 bila terpaksa · mata kuliah multi-JS tidak terpotong waktu istirahat · pemecahan JS hanya dilakukan bila diisi pada kolom "Pecah JS" di file .xlsx (mis. 3+2: dua pertemuan di hari berbeda, hanya untuk JS ≥ 4); tanpa isian, mata kuliah dijadwalkan sebagai satu blok · hasil otomatis ditandai Ket = "Auto-sebar" dan akan diganti bila sebar dijalankan ulang (jadwal manual tidak diubah).</p></div>'+
+   '<span style="color:var(--mut)">'+jml+' dari '+pl.length+' prodi sudah mengunggah'+(kunci?" — tombol sebar terkunci":(lengkap?"":" — tombol sebar aktif setelah semua prodi mengunggah"))+'</span></div>'+
+   '<p style="color:var(--mut);font-size:12px;margin-top:12px">Aturan sebar: menghormati sheet Proteksi Jadwal, ruang khusus (K) hanya untuk mata kuliah yang tercantum, kapasitas ruang, serta bentrok ruang/dosen/kelas · semester rendah diproses lebih dulu sehingga mendapat sesi pagi lebih awal · tiap semester (per prodi &amp; kelas) maksimal 2 mata kuliah per hari, toleransi sampai 3 bila terpaksa · mata kuliah multi-JS tidak terpotong waktu istirahat · pemecahan JS hanya dilakukan bila diisi pada kolom "Pecah JS" di file .xlsx (mis. 3+2: dua pertemuan di hari berbeda, hanya untuk JS ≥ 4); tanpa isian, mata kuliah dijadwalkan sebagai satu blok · sistem mencoba beberapa susunan (mata kuliah tersulit lebih dulu) dan menggeser mata kuliah penghalang sebelum menyerah · mata kuliah yang tetap tidak bisa ditempatkan dicatat beserta kendala dan sarannya, lalu muncul sebagai <b>prioritas</b> di Penjadwalan Manual · hasil otomatis ditandai Ket = "Auto-sebar" dan akan diganti bila sebar dijalankan ulang (jadwal manual tidak diubah).</p></div>'+
    pjHasilHtml();
 }
 function pjPulihkan(i,apa){
@@ -600,19 +698,32 @@ function pjPulihkan(i,apa){
 function pjErrHtml(){var e=PJ.err;if(!e)return"";return '<div class="err">'+esc(e.msg)+(e.list&&e.list.length?'<ul>'+e.list.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>':"")+'</div>'}
 function pjErr(msg,list){PJ.err={msg:msg,list:list||[]};var el=$("pjerr");if(el)el.innerHTML=pjErrHtml()}
 function pjHasilHtml(){
-  var h=PJ.hasil; if(!h)return "";
-  return '<div class="card" style="margin-top:14px"><h2>Hasil sebar jadwal</h2><p>Berhasil ditempatkan: <b>'+h.ditempatkan+'</b> · Belum tertempatkan: <b>'+h.gagal.length+'</b> · Dilewati (sudah ada jadwal manual): <b>'+h.dilewati+'</b> · Hasil otomatis lama diganti: <b>'+h.dihapusLama+'</b> · Memakai toleransi 3 MK/hari: <b>'+h.toleransi+'</b> · Mata kuliah dipecah JS: <b>'+(h.dipecah||0)+'</b></p>'+
-   (h.gagal.length?'<h2 style="margin-top:14px">Belum tertempatkan</h2><div class="scroll"><table class="kt"><tr><th>Prodi</th><th>Smt</th><th>Mata kuliah</th><th>Kelas</th><th>Alasan</th></tr>'+h.gagal.map(function(g){return '<tr><td>'+esc(g.prodi)+'</td><td>'+g.smt+'</td><td>'+esc(g.mk)+'</td><td>'+esc(g.kelas)+'</td><td>'+esc(g.alasan)+'</td></tr>'}).join("")+'</table></div><p style="color:var(--mut);margin-top:8px">Tambahkan secara manual lewat tab Jadwal, atau longgarkan Proteksi/ruang/dosen lalu jalankan sebar ulang.</p>':"")+
-   (h.peringatan&&h.peringatan.length?'<div class="banner" style="margin-top:12px"><b>Perhatian:</b><ul style="margin:6px 0 0 18px">'+h.peringatan.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul></div>':"")+'</div>';
+  var h=PJ.hasil, P=prioAktif(); if(!h&&!P.length)return "";
+  return '<div class="card'+(P.length?" prio":"")+'" style="margin-top:14px"><h2>Hasil sebar jadwal</h2>'+
+   (h?'<p>Jadwal ditempatkan: <b>'+h.ditempatkan+'</b> · Belum tertempatkan: <b>'+h.gagal.length+'</b> · Dilewati (sudah ada jadwal manual): <b>'+h.dilewati+'</b> · Hasil otomatis lama diganti: <b>'+h.dihapusLama+'</b> · Memakai toleransi 3 MK/hari: <b>'+h.toleransi+'</b> · Mata kuliah dipecah JS: <b>'+(h.dipecah||0)+'</b><br><small style="color:var(--mut)">Percobaan susunan: '+(h.percobaan||1)+' · Diselamatkan dengan menggeser jadwal penghalang: '+(h.diperbaiki||0)+' · Waktu proses: '+(h.detik||0)+' detik</small></p>':"")+
+   (P.length?'<h2 style="margin-top:14px">Belum tertempatkan — prioritas Penjadwalan Manual ('+P.length+')</h2><div class="scroll"><table class="kt"><tr><th>#</th><th>Prodi</th><th>Smt</th><th>Mata kuliah</th><th>Kelas</th><th>JS</th><th>Dosen</th><th>Kendala &amp; saran</th></tr>'+
+     P.map(function(g,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(g.prodi)+'</td><td>'+(g.smt||"")+'</td><td>'+esc(g.mk)+'</td><td>'+esc(g.kelas)+'</td><td>'+g.sisa+'</td><td>'+esc(g.dosen.join(", "))+'</td><td style="min-width:280px"><small>'+esc(g.alasan||"")+'</small>'+(g.saran?'<br><small style="color:var(--brand);font-weight:600">'+esc(g.saran)+'</small>':"")+'</td></tr>'}).join("")+'</table></div>'+
+     '<p style="color:var(--mut);margin-top:8px">Daftar ini tersimpan (sheet <i>Prioritas_Manual</i>) dan otomatis muncul sebagai prioritas di <b>Penjadwalan Manual</b>; mata kuliah hilang dari daftar setelah seluruh JS-nya dijadwalkan. <button class="btn p" style="margin-left:6px" onclick="S.tab=\'jadwal\';render()">Buka Penjadwalan Manual</button></p>':'<p style="color:var(--ok);margin-top:8px"><b>Semua mata kuliah berhasil ditempatkan.</b></p>')+
+   (h&&h.peringatan&&h.peringatan.length?'<div class="banner" style="margin-top:12px"><b>Perhatian:</b><ul style="margin:6px 0 0 18px">'+h.peringatan.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul></div>':"")+'</div>';
 }
 function pjSebar(){
-  if(!confirm("Sebar jadwal otomatis untuk "+S.ta+" · "+S.sem+"?\nHasil sebar otomatis sebelumnya pada periode ini akan diganti. Jadwal manual tidak diubah."))return;
+  var sa=!!S.user&&S.user.level==="super_admin";
+  if(!sa&&PJ.sebar&&PJ.sebar.dikunci){toast("Sebar Jadwal (Otomatis) sudah dijalankan. Hanya Super Admin yang dapat memulihkan tombolnya.",6000);return}
+  if(!confirm("Sebar jadwal otomatis untuk "+S.ta+" · "+S.sem+"?\nHasil sebar otomatis sebelumnya pada periode ini akan diganti. Jadwal manual tidak diubah."+(sa?"":"\n\nPERHATIAN: tombol ini hanya dapat dipakai SATU KALI oleh Admin. Setelah dijalankan, hanya Super Admin yang dapat memulihkannya. Pastikan semua file prodi sudah benar. Lanjutkan?")))return;
   $("pjgo").disabled=true; PJ.err=null;
   post({action:"rkSebar",ta:S.ta,sem:S.sem}).then(function(r){
     if(r.expired){S.user=S.token=null;render();return}
-    if(r.ok){PJ.hasil=r;toast("Penjadwalan selesai: "+r.ditempatkan+" jadwal dibuat");muat()}
-    else{pjErr(r.error);$("pjgo").disabled=false}
-  }).catch(function(){pjErr("Gagal terhubung ke server (proses mungkin terlalu lama). Segarkan data untuk melihat hasilnya.");$("pjgo").disabled=false});
+    if(r.sebar)PJ.sebar=r.sebar;
+    if(r.ok){PJ.hasil=r;toast("Penjadwalan selesai: "+r.ditempatkan+" jadwal dibuat"+(r.gagal.length?", "+r.gagal.length+" jadi prioritas manual":""),5000);muat()}
+    else{pjErr(r.error);if(r.terkunci)pjTampil();else $("pjgo").disabled=false}
+  }).catch(function(){pjErr("Gagal terhubung ke server (proses mungkin terlalu lama). Segarkan data untuk melihat hasilnya.");PJ.rk=null;pjKuliah(true)});
+}
+function pjPulihSebar(){
+  if(!confirm("Pulihkan tombol Sebar Jadwal (Otomatis) agar Admin dapat menjalankannya sekali lagi untuk "+S.ta+" · "+S.sem+"?"))return;
+  post({action:"rkPulihkanSebar",ta:S.ta,sem:S.sem}).then(function(r){
+    if(r.expired){S.user=S.token=null;render();return}
+    if(r.ok){PJ.sebar=r.sebar||{};toast("Tombol Sebar Jadwal (Otomatis) dipulihkan untuk Admin");pjKuliah(true)}else toast(r.error,6000)
+  }).catch(function(){toast("Gagal terhubung ke server.")});
 }
 function pjFile(p){return p.replace(/[^A-Za-z0-9]+/g,"_")+"_"+S.ta.replace("/","-")+"_"+S.sem}
 function pjAdaXLSX(){if(typeof XLSX==="undefined"){toast("Pustaka Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.",5000);return false}return true}

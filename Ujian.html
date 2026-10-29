@@ -61,6 +61,7 @@ select.f{-webkit-appearance:none;appearance:none;padding-right:38px;background-i
 .b h3{font-size:1.05rem;line-height:1.3}
 .m{font-size:.85rem;color:var(--mut);display:flex;flex-wrap:wrap;gap:4px 14px}
 .tag{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--tint-uts);color:var(--navy2)}
+.tag.sesi{background:transparent;border:1px solid currentColor}
 .UAS .tag.j{background:var(--tint-uas);color:var(--greenD)}
 :root[data-theme=dark] .tag{color:#fff}
 .st-Berlangsung{background:var(--green)!important;color:#fff!important}.st-Selesai{background:var(--line)!important;color:var(--mut)!important}
@@ -204,6 +205,7 @@ var $ = function (id) { return document.getElementById(id); };
 var S = { data: [], jenis: "Semua", demo: false };
 var HARI = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]; }); }
+function sesiTag(r) { return r.sesi ? '<span class="tag sesi">Sesi ' + esc(r.sesi) + "</span>" : ""; }
 function p2(n) { return ("0" + n).slice(-2); }
 function iso(d) { return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()); }
 
@@ -282,11 +284,11 @@ function gambar() {
     g[k].forEach(function (r) {
       var st = status(r, now), i = S.data.indexOf(r);
       if (pengawasMode()) { // tampilan Pengawas: hanya kapan, di mana, dan mata kuliah
-        h += '<article class="card s-' + st + (st === "Selesai" ? " selesai" : "") + '"><div class="t"><span class="num">' + esc(r.mulai) + "</span><small>s.d. " + esc(r.selesai) + '</small></div><div class="b"><div class="m"><span class="tag j">Tugas Pengawas</span><span class="tag st st-' + st + '">' + st + "</span></div><h3>" + esc(r.matkul) + '</h3><div class="m"><span>📍 ' + esc(r.ruang) + '</span></div><div class="m"><button class="btn sm" onclick="dlgHadir(' + i + ')">📋 Daftar Hadir</button><button class="btn sm" onclick="dlgBA(' + i + ')">📝 Berita Acara</button></div></div></article>';
+        h += '<article class="card s-' + st + (st === "Selesai" ? " selesai" : "") + '"><div class="t"><span class="num">' + esc(r.mulai) + "</span><small>s.d. " + esc(r.selesai) + '</small></div><div class="b"><div class="m"><span class="tag j">Tugas Pengawas</span>' + sesiTag(r) + '<span class="tag st st-' + st + '">' + st + "</span></div><h3>" + esc(r.matkul) + '</h3><div class="m"><span>📍 ' + esc(r.ruang) + '</span></div><div class="m"><button class="btn sm" onclick="dlgHadir(' + i + ')">📋 Daftar Hadir</button><button class="btn sm" onclick="dlgBA(' + i + ')">📝 Berita Acara</button></div></div></article>';
         return;
       }
       h += '<article class="card ' + esc(r.jenis) + (st === "Selesai" ? " selesai" : "") + " s-" + st + '"><div class="t"><span class="num">' + esc(r.mulai) + "</span><small>s.d. " + esc(r.selesai) + '</small></div><div class="b">' +
-        '<div class="m"><span class="tag j">' + esc(r.jenis) + '</span><span class="tag st st-' + st + '">' + st + "</span>" + (r.metode ? '<span class="tag">' + esc(r.metode) + "</span>" : "") + "</div>" +
+        '<div class="m"><span class="tag j">' + esc(r.jenis) + '</span>' + sesiTag(r) + '<span class="tag st st-' + st + '">' + st + "</span>" + (r.metode ? '<span class="tag">' + esc(r.metode) + "</span>" : "") + "</div>" +
         "<h3>" + esc(r.matkul) + '</h3><div class="m"><span>👤 ' + esc(r.dosen) + "</span><span>📍 " + esc(r.ruang) + "</span></div>" +
         '<div class="m"><span>' + esc(r.prodi) + "</span>" + (r.kelas ? "<span>Kelas " + esc(r.kelas) + "</span>" : "") + (r.semester ? "<span>Smt " + esc(r.semester) + "</span>" : "") + "</div>" +
         ((r.pengawas1 || r.pengawas2) ? '<div class="m">' + (r.pengawas1 ? "<span>Pengawas I: " + esc(r.pengawas1) + "</span>" : "") + (r.pengawas2 ? "<span>Pengawas II: " + esc(r.pengawas2) + "</span>" : "") + "</div>" : "") +

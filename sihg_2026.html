@@ -23,6 +23,17 @@ header{background:var(--teal);color:#fff;border-bottom:6px solid var(--rust)}
 .gratis{display:inline-block;margin-top:22px;background:var(--gold);color:#2b1d00;font-family:Bangers,"Comic Sans MS","Comic Neue",cursive;font-size:clamp(24px,4vw,36px);letter-spacing:2px;line-height:1;padding:10px 20px 8px;border:3px solid #2b1d00;border-radius:12px;box-shadow:4px 4px 0 #2b1d00;transform:rotate(-2deg)}
 .ket{margin-top:16px;max-width:52ch;color:#d6e8ea;font-size:12px;line-height:1.45;padding-left:12px;border-left:4px solid var(--gold)}
 .ket b{color:#fff}
+.until small{margin:8px 0 0;text-align:center}
+.loginrow{margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.18);text-align:center}
+.loginrow #who{display:block;font-size:13px;color:#b7d3d6;margin-bottom:8px}
+.loginrow #who:empty{display:none}
+.loginrow .ghost{width:100%;padding:11px 20px;font-size:15px}
+.recap{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.recap h3{font-size:15px;padding:12px 14px 8px}
+.rw{max-height:340px;overflow:auto}
+.recap table{font-size:12px}
+.recap th,.recap td{padding:6px 8px;white-space:normal;vertical-align:top}
+.recap th{position:sticky;top:0}
 .timebox{background:var(--teal-d);border:1px solid rgba(255,255,255,.18);border-top:4px solid var(--gold);border-radius:14px;padding:20px 22px}
 .timebox small{display:block;color:#b7d3d6;font-size:13px;margin-bottom:4px}
 .today{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.18)}
@@ -42,7 +53,7 @@ header{background:var(--teal);color:#fff;border-bottom:6px solid var(--rust)}
 .facts div:last-child{border:0}
 .facts small{color:var(--mute);font-size:13px}
 .facts b{display:block;font-size:17px}
-main{display:grid;grid-template-columns:1fr 2fr;gap:40px;padding:44px 0 56px;align-items:start}
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,2fr);gap:40px;padding:44px 0 56px;align-items:start}
 h2{font-size:24px;font-weight:800;margin-bottom:14px}
 .side ul{list-style:none;display:grid;gap:10px;margin-bottom:26px}
 .side li{padding-left:14px;border-left:4px solid var(--gold)}
@@ -84,6 +95,37 @@ footer .ic{min-height:48px;padding:0 20px 0 14px;gap:10px;border-radius:30px;bor
 footer .ic:hover{background:var(--rust);border-color:var(--rust)}
 footer .copy{flex-basis:100%;text-align:center;color:#b7d3d6;font-size:13px;margin-top:10px;padding-top:16px;border-top:1px solid rgba(255,255,255,.18)}
 footer .ic svg{width:24px;height:24px;flex:none}
+[hidden]{display:none!important}
+.top{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding-top:12px;font-size:14px;color:#d6e8ea}
+.ghost{width:auto;font-size:14px;padding:8px 20px;margin:0;border-radius:30px;background:transparent;border:1.5px solid #fff;color:#fff}
+.ghost:hover{background:var(--rust);border-color:var(--rust)}
+dialog{border:0;border-radius:14px;padding:0;width:min(440px,92vw);color:var(--ink);margin:auto}
+dialog::backdrop{background:rgba(10,63,70,.7)}
+.dlg{padding:24px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 16px}
+.tabs button{width:auto;font-size:14px;padding:9px 4px;margin:0;background:#e8f2f3;color:var(--teal)}
+.tabs button[aria-pressed=true]{background:var(--teal);color:#fff}
+.dlg .ghost.dark{color:var(--teal);border-color:var(--teal);margin-top:10px;width:100%}
+#dash{padding:40px 0 20px}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.dh h2{margin:0}
+.role{display:inline-block;background:var(--gold);color:#2b1d00;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;margin-right:8px;vertical-align:middle}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card small{color:var(--mute);font-size:13px}.card b{display:block;font-size:26px}
+.kv{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px 22px}
+.kv div{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line)}
+.kv div:last-child{border:0}.kv span{color:var(--mute)}.kv b{text-align:right;word-break:break-word}
+.linkbtn{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:8px;margin:14px 10px 0 0}
+.tbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tbar input,.tbar select{width:auto;flex:1;min-width:150px}
+.tbar button{width:auto;font-size:14px;padding:10px 16px;margin:0;background:var(--teal)}
+.tw{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#e8f2f3;color:var(--teal)}
+.hb{width:auto;font-size:13px;padding:5px 12px;margin:0;border-radius:20px;background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+.hb.on{background:var(--ok);border-color:var(--ok);color:#fff}
 @media(max-width:820px){.logo-umm{height:64px}.logo-fpsh{height:50px}.hero,main{grid-template-columns:1fr}.hero{gap:24px}.facts{grid-template-columns:1fr}.facts div{border-right:0;border-bottom:1px solid var(--line)}.row,.mode{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header .count,form,.demo{display:none}}
@@ -106,7 +148,8 @@ footer .ic svg{width:24px;height:24px;flex:none}
    </div>
    <aside class="timebox" aria-label="Hitung mundur acara">
     <div class="today"><div><small>Hari ini</small><b id="today"></b></div><div class="jam"><small>Jam</small><b id="jam"></b></div></div>
-    <div class="until"><small>Menuju seminar</small><div class="count" id="count" aria-live="off"></div></div>
+    <div class="until"><div class="count" id="count" aria-live="off"></div><small>Menuju seminar</small></div>
+    <div class="loginrow"><span id="who"></span><button type="button" class="ghost" id="btnLogin">Masuk</button></div>
    </aside>
   </div>
  </div>
@@ -119,6 +162,8 @@ footer .ic svg{width:24px;height:24px;flex:none}
   <div><small>Tempat</small><b>Theater Dome UMM &amp; online</b></div>
  </div>
 
+ <section id="dash" hidden aria-live="polite"></section>
+
  <main>
   <aside class="side">
    <h2>Yang Anda dapat</h2>
@@ -128,6 +173,7 @@ footer .ic svg{width:24px;height:24px;flex:none}
     <li>Peserta yang mengirim makalah<span>akan diterbitkan di prosiding SIBI FPSH UMM</span></li>
    </ul>
    <div class="kuota" id="kuota">Memuat ketersediaan tempat…</div>
+   <div class="recap"><h3 id="rch">Peserta Terdaftar</h3><div class="rw"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Metode</th><th>Makalah</th></tr></thead><tbody id="rcb"><tr><td colspan="4">Memuat…</td></tr></tbody></table></div></div>
   </aside>
 
   <section>
@@ -150,12 +196,17 @@ footer .ic svg{width:24px;height:24px;flex:none}
       <select id="kategori" name="kategori" required>
        <option value="">Pilih kategori</option><option>Dosen</option><option>Guru</option><option>Mahasiswa</option><option>Umum / Peneliti</option></select><div class="err"></div></div>
     </div>
-    <div class="fg"><label>Cara mengikuti</label>
+    <div class="fg"><label>Metode</label>
      <div class="mode">
       <label id="lbLuring"><input type="radio" name="mode" value="Luring" checked><div>Luring<span>Hadir di Theater Dome UMM</span></div></label>
       <label><input type="radio" name="mode" value="Daring"><div>Daring<span>Tautan Zoom muncul setelah mendaftar</span></div></label>
      </div></div>
-    <div class="fg"><label class="chk"><input type="checkbox" id="setuju" required><span>Data saya benar dan boleh digunakan panitia untuk keperluan seminar ini.</span></label><div class="err"></div></div>
+    <div class="fg"><label>Kirim makalah</label>
+     <div class="mode">
+      <label><input type="radio" name="makalah" value="Tidak" checked><div>Tidak<span>Hanya mengikuti seminar</span></div></label>
+      <label><input type="radio" name="makalah" value="Ya"><div>Ya<span>Terbit di prosiding SIBI FPSH UMM, kontribusi Rp.50.000,-/makalah/pemakalah</span></div></label>
+     </div></div>
+    <div class="fg"><label class="chk"><input type="checkbox" id="setuju" required><span>Data saya benar dan boleh digunakan panitia untuk keperluan seminar ini. Nama, kategori, metode, dan status kirim makalah saya akan tampil pada daftar Peserta Terdaftar di halaman ini.</span></label><div class="err"></div></div>
     <button id="btn" type="submit">Daftar sekarang</button>
    </form>
 
@@ -173,6 +224,32 @@ footer .ic svg{width:24px;height:24px;flex:none}
   </section>
  </main>
 </div>
+
+
+<dialog id="dlg" aria-labelledby="dlgT"><div class="dlg">
+ <h2 id="dlgT" style="margin:0">Masuk</h2>
+ <div class="tabs" role="group" aria-label="Masuk sebagai">
+  <button type="button" data-r="peserta" aria-pressed="true">Peserta</button>
+  <button type="button" data-r="pemateri" aria-pressed="false">Pemateri</button>
+  <button type="button" data-r="panitia" aria-pressed="false">Panitia</button>
+ </div>
+ <div id="lmsg" class="msg" role="alert"></div>
+ <form id="lf" novalidate>
+  <div class="fg"><label for="lu" id="lulb">Email</label><input id="lu" type="email" autocomplete="username" required></div>
+  <div class="fg"><label for="lp" id="lplb">Kata sandi</label><input id="lp" type="password" inputmode="numeric" autocomplete="current-password" required><span class="hint" id="lph"></span></div>
+  <label class="chk" style="margin-bottom:14px"><input type="checkbox" id="lshow"><span>Tampilkan kata sandi</span></label>
+  <button type="submit" id="lbtn">Masuk</button>
+ </form>
+ <form id="of" novalidate hidden>
+  <p id="otxt" class="hint" style="font-size:14px;margin:4px 0 14px"></p>
+  <div class="fg"><label for="oc">Kode verifikasi (6 digit)</label><input id="oc" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" style="letter-spacing:6px;font-size:20px;text-align:center"></div>
+  <button type="submit" id="obtn">Verifikasi</button>
+  <button type="button" class="ghost dark" id="ores">Kirim ulang kode</button>
+  <button type="button" class="ghost dark" id="oback">Kembali</button>
+ </form>
+ <p class="hint" id="ldemo" style="margin-top:12px"></p>
+ <button type="button" class="ghost dark" id="lclose">Tutup</button>
+</div></dialog>
 
 <footer><div class="wrap">
  <a class="ic" href="https://fpsh.umm.ac.id/sihg-2026" target="_blank" rel="noopener" aria-label="Website fpsh.umm.ac.id/sihg-2026" title="fpsh.umm.ac.id/sihg-2026">
@@ -210,11 +287,27 @@ clock(); setInterval(clock, 1000);
 
 /* Ketersediaan tempat */
 function loadStatus(){
-  if (DEMO){ showQuota({buka:true,kuotaLuring:350,terisiLuring:1}); return; }
+  if (DEMO){ showQuota({buka:true,kuotaLuring:350,terisiLuring:3,peserta:[
+    {nama:"Agus Salim",kategori:"Umum / Peneliti",metode:"Luring",makalah:false},
+    {nama:"Rina Wijaya, M.Si.",kategori:"Dosen",metode:"Daring",makalah:true},
+    {nama:"Budi Santoso",kategori:"Mahasiswa",metode:"Luring",makalah:false},
+    {nama:"Siti Aminah, S.Pd.",kategori:"Guru",metode:"Daring",makalah:false},
+    {nama:"Dr. Ahmad Dahlan, M.Pd.",kategori:"Dosen",metode:"Luring",makalah:true}]}); return; }
   fetch(CONFIG.SCRIPT_URL).then(function(r){return r.json()}).then(showQuota)
    .catch(function(){ $("kuota").textContent = "Ketersediaan tempat belum dapat dimuat. Anda tetap bisa mendaftar."; });
 }
+function renderRecap(list){
+  var tb=$("rcb"); tb.textContent=""; list=list||[];
+  $("rch").textContent="Peserta Terdaftar ("+list.length+")";
+  if(!list.length){ var tr=document.createElement("tr"), td=document.createElement("td"); td.colSpan=4; td.textContent="Belum ada pendaftar."; tr.appendChild(td); tb.appendChild(tr); return; }
+  list.forEach(function(p){
+    var tr=document.createElement("tr");
+    [p.nama,p.kategori,p.metode,p.makalah?"Ya":"Tidak"].forEach(function(v){ var td=document.createElement("td"); td.textContent=v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+}
 function showQuota(s){
+  renderRecap(s.peserta);
   var sisa = Math.max(0, s.kuotaLuring - s.terisiLuring), pct = Math.min(100, Math.round(s.terisiLuring/s.kuotaLuring*100));
   $("kuota").innerHTML = "<b>Kuota luring terisi: "+s.terisiLuring+", tersisa "+sisa+"</b><div class='bar'><i style='width:"+pct+"%'></i></div>" +
     (sisa===0 ? "<p>Kuota luring penuh. Silakan pilih daring.</p>" : "");
@@ -260,7 +353,7 @@ $("f").addEventListener("submit", function(ev){
   var f = this, data = {
     nama:$("nama").value.trim(), email:$("email").value.trim().toLowerCase(), wa:normWA($("wa").value),
     instansi:$("instansi").value.trim(), kategori:$("kategori").value,
-    mode:f.querySelector("input[name=mode]:checked").value, website:f.website.value
+    mode:f.querySelector("input[name=mode]:checked").value, makalah:f.querySelector("input[name=makalah]:checked").value, website:f.website.value
   };
   var btn=$("btn"); btn.disabled=true; btn.textContent="Mengirim…";
   var done = function(r){
@@ -282,6 +375,174 @@ function success(r, d){
     "&dates=20261125T010000Z/20261125T050000Z&location="+encodeURIComponent(d.mode==="Luring"?"Theater Dome UMM":"Zoom Meeting");
   $("ok").style.display="block"; $("ok").scrollIntoView({behavior:"smooth"});
 }
+</script>
+
+<script>
+(function(){
+var ROLE="peserta", SES=null, ROWS=[], KUOTA=0;
+var RC={
+ peserta:{u:"Email terdaftar",p:"Nomor HP",h:"Kata sandi: nomor HP yang Anda daftarkan, contoh 081234567890",up:"nama@email.com"},
+ pemateri:{u:"Email pemateri",p:"Nomor HP",h:"Kata sandi: nomor HP yang terdaftar di panitia, contoh 081234567890",up:"nama@email.com"},
+ panitia:{u:"Email UMM",p:"Tanggal lahir",h:"Kata sandi: 8 digit tanggal, bulan, tahun lahir (DDMMYYYY), contoh 17081990",up:"nama@umm.ac.id"}
+};
+var DEMOACC={peserta:["peserta@contoh.id","081234567890"],pemateri:["pemateri@contoh.id","081298765432"],panitia:["panitia@umm.ac.id","17081990"]};
+var DROWS=[["Dr. Ahmad Dahlan, M.Pd.","Dosen","Luring",1],["Siti Aminah, S.Pd.","Guru","Daring",0],["Budi Santoso","Mahasiswa","Luring",0],["Rina Wijaya, M.Si.","Dosen","Daring",1],["Agus Salim","Umum / Peneliti","Luring",0]].map(function(a,i){
+ return {id:"SIHG26-000"+(i+1),waktu:"03/11/2026 09:"+(10+i)+"",nama:a[0],email:"user"+(i+1)+"@contoh.id",wa:"08123456780"+i,instansi:"Instansi Contoh "+(i+1),kategori:a[1],mode:a[2],makalah:i%2===1,hadir:!!a[3]};});
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];});}
+function safeUrl(u){return /^https?:\/\//i.test(u)?esc(u):"";}
+function digits(s){return String(s||"").replace(/\D/g,"");}
+
+function demo(b){
+ if(b.action==="login"){var a=DEMOACC[b.role];
+  if(!a||b.username.toLowerCase()!==a[0]||digits(b.password)!==digits(a[1])) return {ok:false,error:"Email atau kata sandi salah."};
+  if(b.role==="panitia") return {ok:true,otp:true,challenge:"demo",email:"pa***@umm.ac.id"};
+  return {ok:true,token:"demo|"+b.role,role:b.role,nama:demoNama(b.role),data:demoData(b.role)};}
+ if(b.action==="otp") return digits(b.code)==="123456"?{ok:true,token:"demo|panitia",role:"panitia",nama:demoNama("panitia"),data:demoData("panitia")}:{ok:false,error:"Kode salah. Sisa percobaan: 4."};
+ if(b.action==="otp_resend") return {ok:true,otp:true,challenge:"demo",email:"pa***@umm.ac.id"};
+ if(b.action==="me"){var r=String(b.token).split("|")[1];return r?{ok:true,role:r,nama:demoNama(r),data:demoData(r)}:{ok:false,expired:true};}
+ if(b.action==="hadir"){DROWS.forEach(function(x){if(x.id===b.id)x.hadir=!!b.hadir;});return {ok:true};}
+ return {ok:true};
+}
+function demoNama(r){return {peserta:"Dr. Ahmad Dahlan, M.Pd.",pemateri:"Prof. Contoh Pemateri",panitia:"Panitia Contoh"}[r];}
+function demoData(r){
+ if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,zoom:"",waktu:x.waktu};}
+ if(r==="pemateri") return {nama:demoNama(r),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",zoom:"https://zoom.us",upload:"https://drive.google.com"};
+ return {nama:demoNama(r),peran:"Ketua Panitia",kuota:350,rows:DROWS};
+}
+function api(b){
+ if(DEMO) return new Promise(function(res){setTimeout(function(){res(demo(b));},250);});
+ return fetch(CONFIG.SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(b)}).then(function(r){return r.json();});
+}
+function store(v){try{if(v)sessionStorage.setItem("sihg_ses",v);else sessionStorage.removeItem("sihg_ses");}catch(e){}}
+function stored(){try{return sessionStorage.getItem("sihg_ses");}catch(e){return null;}}
+
+/* Dialog */
+function setRole(r){
+ ROLE=r; var c=RC[r];
+ document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.r===r);});
+ $("lulb").textContent=c.u; $("lplb").textContent=c.p; $("lph").textContent=c.h; $("lu").placeholder=c.up;
+ $("lu").value=""; $("lp").value=""; $("lmsg").className="msg";
+ $("ldemo").textContent=DEMO?"Mode contoh. Akun uji: "+DEMOACC[r][0]+" / "+DEMOACC[r][1]+(r==="panitia"?" (kode verifikasi: 123456)":""):"";
+ step("login");
+}
+document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){setRole(b.dataset.r);$("lu").focus();});});
+$("lshow").addEventListener("change",function(){$("lp").type=this.checked?"text":"password";});
+$("lclose").addEventListener("click",function(){$("dlg").close();step("login");});
+$("btnLogin").addEventListener("click",function(){
+ if(SES){ api({action:"logout",token:SES.token}); SES=null; store(null); $("dash").hidden=true; document.querySelector("main").hidden=false; $("who").textContent=""; this.textContent="Masuk"; window.scrollTo(0,0); return; }
+ setRole(ROLE); $("dlg").showModal(); $("lu").focus();
+});
+function lerr(t){var m=$("lmsg");m.textContent=t;m.className="msg e";}
+$("lf").addEventListener("submit",function(ev){
+ ev.preventDefault(); $("lmsg").className="msg";
+ var u=$("lu").value.trim().toLowerCase(), p=$("lp").value.trim();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(u)) return lerr("Masukkan email yang valid.");
+ if(ROLE==="panitia"){ if(!/@umm\.ac\.id$/.test(u)) return lerr("Panitia masuk dengan email berakhiran @umm.ac.id."); if(digits(p).length!==8) return lerr("Kata sandi panitia adalah 8 digit tanggal lahir (DDMMYYYY)."); }
+ else if(digits(p).length<9) return lerr("Kata sandi adalah nomor HP Anda (angka saja).");
+ var btn=$("lbtn"); btn.disabled=true; btn.textContent="Memeriksa…";
+ api({action:"login",role:ROLE,username:u,password:p}).then(function(r){
+  btn.disabled=false; btn.textContent="Masuk";
+  if(!r||!r.ok) return lerr((r&&r.error)||"Gagal masuk. Periksa koneksi lalu coba lagi.");
+  if(r.otp) return startOtp(r);
+  finish(r);
+ }).catch(function(){btn.disabled=false;btn.textContent="Masuk";lerr("Gagal terhubung ke server. Coba lagi.");});
+});
+
+/* Langkah OTP (Panitia) */
+var CH=null, TMR=null;
+function step(n){
+ var o=n==="otp";
+ $("lf").hidden=o; $("of").hidden=!o; document.querySelector(".tabs").hidden=o;
+ $("dlgT").textContent=o?"Verifikasi kode":"Masuk";
+ if(!o){clearTimeout(TMR);CH=null;$("oc").value="";}
+}
+function finish(r){
+ SES={token:r.token,role:r.role,nama:r.nama}; store(r.token);
+ $("dlg").close(); $("lp").value=""; $("oc").value=""; step("login"); show(r.role,r.nama,r.data);
+}
+function cool(sec){
+ clearTimeout(TMR); var b=$("ores"); b.disabled=true;
+ (function t(){ if(sec<=0){b.disabled=false;b.textContent="Kirim ulang kode";return;} b.textContent="Kirim ulang kode ("+sec+" dtk)"; sec--; TMR=setTimeout(t,1000); })();
+}
+function startOtp(r){
+ CH=r.challenge; step("otp"); $("lmsg").className="msg";
+ $("otxt").textContent="Kode 6 digit telah dikirim ke "+r.email+". Berlaku 10 menit. Cek juga folder spam."+(DEMO?" (Mode contoh: kode 123456)":"");
+ cool(60); $("oc").focus();
+}
+function backLogin(msg){ step("login"); if(msg) lerr(msg); }
+$("oback").addEventListener("click",function(){backLogin();});
+$("ores").addEventListener("click",function(){
+ api({action:"otp_resend",challenge:CH}).then(function(r){
+  if(r&&r.ok){ CH=r.challenge; $("lmsg").className="msg"; $("otxt").textContent="Kode baru telah dikirim ke "+r.email+"."; cool(60); }
+  else if(r&&r.restart) backLogin(r.error); else lerr((r&&r.error)||"Gagal mengirim ulang kode.");
+ }).catch(function(){lerr("Gagal terhubung ke server.");});
+});
+$("of").addEventListener("submit",function(ev){
+ ev.preventDefault(); $("lmsg").className="msg";
+ var c=digits($("oc").value); if(c.length!==6) return lerr("Masukkan 6 digit kode verifikasi.");
+ var b=$("obtn"); b.disabled=true; b.textContent="Memeriksa…";
+ api({action:"otp",challenge:CH,code:c}).then(function(r){
+  b.disabled=false; b.textContent="Verifikasi";
+  if(r&&r.ok) return finish(r);
+  if(r&&r.restart) return backLogin(r.error);
+  lerr((r&&r.error)||"Verifikasi gagal."); $("oc").select();
+ }).catch(function(){b.disabled=false;b.textContent="Verifikasi";lerr("Gagal terhubung ke server.");});
+});
+
+/* Dasbor */
+function kv(k,v){return "<div><span>"+esc(k)+"</span><b>"+esc(v||"-")+"</b></div>";}
+function head(role,nama){return '<div class="dh"><h2><span class="role">'+esc(role)+'</span>'+esc(nama)+'</h2></div>';}
+function show(role,nama,d){
+ SES=SES||{role:role,nama:nama}; 
+ document.querySelector("main").hidden=true; $("dash").hidden=false;
+ $("who").textContent="Halo, "+nama; $("btnLogin").textContent="Keluar";
+ var h="";
+ if(role==="peserta"){
+  h=head("Peserta",d.nama)+'<div class="kv">'+kv("Nomor pendaftaran",d.id)+kv("Nama",d.nama)+kv("Email",d.email)+kv("WhatsApp",d.wa)+kv("Instansi",d.instansi)+kv("Kategori",d.kategori)+kv("Metode",d.mode)+kv("Kirim makalah",d.makalah?"Ya":"Tidak")+kv("Status kehadiran",d.hadir?"Sudah hadir":"Belum tercatat")+kv("Waktu daftar",d.waktu)+'</div>'+
+   (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Buka tautan Zoom</a>':"")+
+   '<p class="hint" style="margin-top:12px">E-sertifikat dikirim setelah acara untuk peserta yang kehadirannya tercatat.</p>';
+ } else if(role==="pemateri"){
+  h=head("Pemateri",d.nama)+'<div class="kv">'+kv("Nama",d.nama)+kv("Email",d.email)+kv("Judul materi",d.judul)+kv("Waktu sesi",d.sesi)+'</div>'+
+   (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Masuk Zoom sebagai pemateri</a>':"")+
+   (safeUrl(d.upload)?'<a class="linkbtn" href="'+safeUrl(d.upload)+'" target="_blank" rel="noopener">Unggah materi</a>':"");
+ } else {
+  ROWS=d.rows||[]; KUOTA=d.kuota||0;
+  h=head(d.peran||"Panitia",d.nama)+'<div class="cards" id="cards"></div>'+
+   '<div class="tbar"><input id="tq" type="search" placeholder="Cari nama, email, instansi, nomor" aria-label="Cari"><select id="tm" aria-label="Filter metode"><option value="">Semua metode</option><option>Luring</option><option>Daring</option></select><button type="button" id="tx">Unduh CSV</button></div>'+
+   '<p class="hint" id="tc" style="margin-bottom:8px"></p><div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>WhatsApp</th><th>Instansi</th><th>Kategori</th><th>Metode</th><th>Makalah</th><th>Kehadiran</th></tr></thead><tbody id="tb"></tbody></table></div>';
+ }
+ $("dash").innerHTML=h;
+ if(role==="panitia"){
+  $("tq").addEventListener("input",draw); $("tm").addEventListener("change",draw); $("tx").addEventListener("click",csv);
+  $("tb").addEventListener("click",function(e){
+   var b=e.target.closest("button[data-id]"); if(!b) return;
+   var id=b.dataset.id, row=ROWS.filter(function(r){return r.id===id;})[0], nv=!row.hadir; b.disabled=true;
+   api({action:"hadir",token:SES.token,id:id,hadir:nv}).then(function(r){ if(r&&r.ok){row.hadir=nv;} else alert((r&&r.error)||"Gagal menyimpan."); draw(); }).catch(function(){alert("Gagal terhubung ke server.");draw();});
+  });
+  draw();
+ }
+ $("dash").scrollIntoView({behavior:"smooth"});
+}
+function draw(){
+ var q=$("tq").value.toLowerCase(), m=$("tm").value;
+ var rs=ROWS.filter(function(r){return (!m||r.mode===m)&&(!q||(r.nama+" "+r.email+" "+r.instansi+" "+r.id+" "+r.wa).toLowerCase().indexOf(q)>=0);});
+ $("tb").innerHTML=rs.map(function(r){return "<tr><td>"+esc(r.id)+"</td><td>"+esc(r.nama)+"</td><td>"+esc(r.email)+"</td><td>"+esc(r.wa)+"</td><td>"+esc(r.instansi)+"</td><td>"+esc(r.kategori)+"</td><td>"+esc(r.mode)+"</td><td>"+(r.makalah?"Ya":"Tidak")+'</td><td><button type="button" class="hb'+(r.hadir?" on":"")+'" data-id="'+esc(r.id)+'">'+(r.hadir?"Hadir":"Tandai hadir")+"</button></td></tr>";}).join("")||'<tr><td colspan="9">Tidak ada data.</td></tr>';
+ $("tc").textContent=rs.length+" dari "+ROWS.length+" pendaftar";
+ var lu=ROWS.filter(function(r){return r.mode==="Luring";}).length, hd=ROWS.filter(function(r){return r.hadir;}).length;
+ $("cards").innerHTML='<div class="card"><small>Total pendaftar</small><b>'+ROWS.length+'</b></div><div class="card"><small>Luring (kuota '+KUOTA+')</small><b>'+lu+'</b></div><div class="card"><small>Daring</small><b>'+(ROWS.length-lu)+'</b></div><div class="card"><small>Sudah hadir</small><b>'+hd+'</b></div>';
+}
+function csv(){
+ var c=function(v){v=String(v==null?"":v); if(/^[=+\-@]/.test(v)) v="'"+v; return '"'+v.replace(/"/g,'""')+'"';};
+ var out=[["ID","Nama","Email","WhatsApp","Instansi","Kategori","Metode","Kirim Makalah","Hadir","Waktu Daftar"]].concat(ROWS.map(function(r){return [r.id,r.nama,r.email,r.wa,r.instansi,r.kategori,r.mode,r.makalah?"Ya":"Tidak",r.hadir?"Hadir":"",r.waktu];}));
+ var blob=new Blob(["\ufeff"+out.map(function(r){return r.map(c).join(",");}).join("\r\n")],{type:"text/csv;charset=utf-8"});
+ var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="pendaftar-sihg-2026.csv"; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+/* Pulihkan sesi saat halaman dimuat ulang */
+var t=stored();
+if(t) api({action:"me",token:t}).then(function(r){ if(r&&r.ok){SES={token:t,role:r.role,nama:r.nama};show(r.role,r.nama,r.data);} else store(null); }).catch(function(){});
+})();
 </script>
 </body>
 </html>

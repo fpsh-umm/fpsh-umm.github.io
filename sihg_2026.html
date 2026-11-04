@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pendaftaran Seminar Internasional Hari Guru 2026 – FPSH UMM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Bangers&display=swap">
 <style>
 :root{--teal:#0f5a63;--teal-d:#0a3f46;--rust:#b9531f;--gold:#e0a528;--paper:#f6f3ee;--ink:#17323a;--mute:#5d7076;--line:#d9d4ca;--ok:#1d6b3a;--err:#a32a1d}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -20,6 +20,7 @@ header{background:var(--teal);color:#fff;border-bottom:6px solid var(--rust)}
 .logo-umm{height:84px}
 .logo-fpsh{height:68px}
 .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:center;padding:28px 0 60px}
+.gratis{display:inline-block;margin-top:22px;background:var(--gold);color:#2b1d00;font-family:Bangers,"Comic Sans MS","Comic Neue",cursive;font-size:clamp(24px,4vw,36px);letter-spacing:2px;line-height:1;padding:10px 20px 8px;border:3px solid #2b1d00;border-radius:12px;box-shadow:4px 4px 0 #2b1d00;transform:rotate(-2deg)}
 .timebox{background:var(--teal-d);border:1px solid rgba(255,255,255,.18);border-top:4px solid var(--gold);border-radius:14px;padding:20px 22px}
 .timebox small{display:block;color:#b7d3d6;font-size:13px;margin-bottom:4px}
 .today{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.18)}
@@ -96,6 +97,7 @@ footer .ic svg{width:24px;height:24px;flex:none}
    <div>
     <h1><span>Seminar Internasional</span><em>Hari Guru 2026</em></h1>
     <p class="tema">Memberdayakan Guru, Mengintegrasikan Pendidikan, Sains, dan Humaniora: Dialog Lintas Agama untuk Martabat Manusia dan Perdamaian Global</p>
+    <p class="gratis">Pendaftaran GRATIS!..</p>
    </div>
    <aside class="timebox" aria-label="Hitung mundur acara">
     <div class="today"><small>Hari ini</small><b id="today"></b></div>
@@ -118,7 +120,7 @@ footer .ic svg{width:24px;height:24px;flex:none}
    <ul>
     <li>E-sertifikat<span>Dikirim setelah acara untuk peserta yang hadir.</span></li>
     <li>Materi seminar<span>Tautan unduhan dikirim lewat email.</span></li>
-    <li>Konsumsi<span>Khusus peserta luring.</span></li>
+    <li>Peserta yang mengirim makalah, akan diterbitkan di prosiding SIBI FPSH UMM</li>
    </ul>
    <div class="kuota" id="kuota">Memuat ketersediaan tempat…</div>
   </aside>
@@ -199,13 +201,13 @@ tick(); setInterval(tick, 30000);
 
 /* Ketersediaan tempat */
 function loadStatus(){
-  if (DEMO){ showQuota({buka:true,kuotaLuring:300,terisiLuring:112}); return; }
+  if (DEMO){ showQuota({buka:true,kuotaLuring:350,terisiLuring:1}); return; }
   fetch(CONFIG.SCRIPT_URL).then(function(r){return r.json()}).then(showQuota)
    .catch(function(){ $("kuota").textContent = "Ketersediaan tempat belum dapat dimuat. Anda tetap bisa mendaftar."; });
 }
 function showQuota(s){
   var sisa = Math.max(0, s.kuotaLuring - s.terisiLuring), pct = Math.min(100, Math.round(s.terisiLuring/s.kuotaLuring*100));
-  $("kuota").innerHTML = "<b>Tempat luring: "+sisa+" dari "+s.kuotaLuring+" tersisa</b><div class='bar'><i style='width:"+pct+"%'></i></div>" +
+  $("kuota").innerHTML = "<b>Kuota luring terisi: "+s.terisiLuring+", tersisa "+sisa+"</b><div class='bar'><i style='width:"+pct+"%'></i></div>" +
     (sisa===0 ? "<p>Kuota luring penuh. Silakan pilih daring.</p>" : "");
   if (sisa === 0){
     $("lbLuring").className = "off";

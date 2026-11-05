@@ -126,6 +126,12 @@ th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white
 th{background:#e8f2f3;color:var(--teal)}
 .hb{width:auto;font-size:13px;padding:5px 12px;margin:0;border-radius:20px;background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
 .hb.on{background:var(--ok);border-color:var(--ok);color:#fff}
+#dlg2{width:min(520px,94vw);max-height:92vh;overflow:auto}
+#dlg2.wide{width:min(1000px,96vw)}
+.pb{width:auto;font-size:15px;padding:10px 18px;margin:0 8px 8px 0;border-radius:8px;background:var(--teal);color:#fff}
+.pb:hover{background:var(--teal-d)}
+.pb.alt{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+.qrb{background:#fff;border:1px solid var(--line);border-radius:12px;text-align:center;padding:16px;margin-bottom:12px}
 @media(max-width:820px){.logo-umm{height:64px}.logo-fpsh{height:50px}.hero,main{grid-template-columns:1fr}.hero{gap:24px}.facts{grid-template-columns:1fr}.facts div{border-right:0;border-bottom:1px solid var(--line)}.row,.mode{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header .count,form,.demo{display:none}}
@@ -250,6 +256,8 @@ th{background:#e8f2f3;color:var(--teal)}
  <p class="hint" id="ldemo" style="margin-top:12px"></p>
  <button type="button" class="ghost dark" id="lclose">Tutup</button>
 </div></dialog>
+
+<dialog id="dlg2" aria-label="Daftar hadir"><div class="dlg" id="d2"></div></dialog>
 
 <footer><div class="wrap">
  <a class="ic" href="https://fpsh.umm.ac.id/sihg-2026" target="_blank" rel="noopener" aria-label="Website fpsh.umm.ac.id/sihg-2026" title="fpsh.umm.ac.id/sihg-2026">
@@ -379,7 +387,8 @@ function success(r, d){
 
 <script>
 (function(){
-var ROLE="peserta", SES=null, ROWS=[], KUOTA=0;
+var ROLE="peserta", SES=null, ROWS=[], KUOTA=0, PH=null;
+try{ var _h=new URLSearchParams(location.search).get("h"); if(_h){ PH=_h; history.replaceState(null,"",location.pathname); } }catch(e){}
 var RC={
  peserta:{u:"Email terdaftar",p:"Nomor HP",h:"Kata sandi: nomor HP yang Anda daftarkan, contoh 081234567890",up:"nama@email.com"},
  pemateri:{u:"Email pemateri",p:"Nomor HP",h:"Kata sandi: nomor HP yang terdaftar di panitia, contoh 081234567890",up:"nama@email.com"},
@@ -401,12 +410,21 @@ function demo(b){
  if(b.action==="otp") return digits(b.code)==="123456"?{ok:true,token:"demo|panitia",role:"panitia",nama:demoNama("panitia"),data:demoData("panitia")}:{ok:false,error:"Kode salah. Sisa percobaan: 4."};
  if(b.action==="otp_resend") return {ok:true,otp:true,challenge:"demo",email:"pa***@umm.ac.id"};
  if(b.action==="me"){var r=String(b.token).split("|")[1];return r?{ok:true,role:r,nama:demoNama(r),data:demoData(r)}:{ok:false,expired:true};}
- if(b.action==="hadir"){DROWS.forEach(function(x){if(x.id===b.id)x.hadir=!!b.hadir;});return {ok:true};}
+ function setSt(id,st,via){DROWS.forEach(function(x){if(x.id===id){x.st=st;x.hadir=st==="Hadir";x.wh=st==="Hadir"?"2026-11-25 08:"+(10+Math.floor(Math.random()*40))+":00":"";x.via=st==="Hadir"?via:"";}});}
+ function stOf(x){return x.st!==undefined?x.st:(x.hadir?"Hadir":"");}
+ if(b.action==="hadir"){setSt(b.id,b.hadir?"Hadir":"","Panitia");return {ok:true};}
+ if(b.action==="setHadir"||b.action==="daftarHadir"){ if(b.action==="setHadir") setSt(b.id,b.status,"Panitia");
+  return {ok:true,info:{acara:"Seminar Internasional Hari Guru 2026",tanggal:"25 November 2026",waktu:"08:00–12:00 WIB",tempat:"Theater Dome UMM"},
+   peserta:DROWS.filter(function(x){return x.mode==="Luring";}).map(function(x){return {id:x.id,nama:x.nama,instansi:x.instansi,kategori:x.kategori,status:stOf(x),waktu:x.wh||(x.hadir?"2026-11-25 08:05:00":""),via:x.via||(x.hadir?"QR":"")};})};}
+ if(b.action==="qrHadir") return {ok:true,kode:"0123456789ab.0123456789"};
+ if(b.action==="scanHadir"){ if(!/^[0-9a-f]{12}\.[0-9a-f]{10}$/.test(b.kode)) return {ok:false,error:"QR tidak valid atau sudah kedaluwarsa."};
+  var me=DROWS[0], sudah=me.hadir; if(!sudah) setSt(me.id,"Hadir","QR"); return {ok:true,sudah:sudah,nama:me.nama,id:me.id,waktu:me.wh||"2026-11-25 08:05:00"}; }
  return {ok:true};
 }
+function stOf2(x){return x.st!==undefined?x.st:(x.hadir?"Hadir":"");}
 function demoNama(r){return {peserta:"Dr. Ahmad Dahlan, M.Pd.",pemateri:"Prof. Contoh Pemateri",panitia:"Panitia Contoh"}[r];}
 function demoData(r){
- if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,zoom:"",waktu:x.waktu};}
+ if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,statusHadir:stOf2(x),waktuHadir:x.wh||"",zoom:"",waktu:x.waktu};}
  if(r==="pemateri") return {nama:demoNama(r),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",zoom:"https://zoom.us",upload:"https://drive.google.com"};
  return {nama:demoNama(r),peran:"Ketua Panitia",kuota:350,rows:DROWS};
 }
@@ -459,7 +477,7 @@ function step(n){
 }
 function finish(r){
  SES={token:r.token,role:r.role,nama:r.nama}; store(r.token);
- $("dlg").close(); $("lp").value=""; $("oc").value=""; step("login"); show(r.role,r.nama,r.data);
+ $("dlg").close(); $("lp").value=""; $("oc").value=""; step("login"); show(r.role,r.nama,r.data); afterLogin();
 }
 function cool(sec){
  clearTimeout(TMR); var b=$("ores"); b.disabled=true;
@@ -499,8 +517,9 @@ function show(role,nama,d){
  $("who").textContent="Halo, "+nama; $("btnLogin").textContent="Keluar";
  var h="";
  if(role==="peserta"){
-  h=head("Peserta",d.nama)+'<div class="kv">'+kv("Nomor pendaftaran",d.id)+kv("Nama",d.nama)+kv("Email",d.email)+kv("WhatsApp",d.wa)+kv("Instansi",d.instansi)+kv("Kategori",d.kategori)+kv("Metode",d.mode)+kv("Kirim makalah",d.makalah?"Ya":"Tidak")+kv("Status kehadiran",d.hadir?"Sudah hadir":"Belum tercatat")+kv("Waktu daftar",d.waktu)+'</div>'+
+  h=head("Peserta",d.nama)+'<div class="kv">'+kv("Nomor pendaftaran",d.id)+kv("Nama",d.nama)+kv("Email",d.email)+kv("WhatsApp",d.wa)+kv("Instansi",d.instansi)+kv("Kategori",d.kategori)+kv("Metode",d.mode)+kv("Kirim makalah",d.makalah?"Ya":"Tidak")+kv("Status kehadiran",d.statusHadir||"Belum tercatat")+(d.mode==="Luring"?kv("Waktu hadir",d.waktuHadir?d.waktuHadir.slice(11,16)+" WIB":"-"):"")+kv("Waktu daftar",d.waktu)+'</div>'+
    (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Buka tautan Zoom</a>':"")+
+   (d.mode==="Luring"?'<button type="button" class="pb" id="pa" style="margin-top:14px">📷 Absen kehadiran</button>':"")+
    '<p class="hint" style="margin-top:12px">E-sertifikat dikirim setelah acara untuk peserta yang kehadirannya tercatat.</p>';
  } else if(role==="pemateri"){
   h=head("Pemateri",d.nama)+'<div class="kv">'+kv("Nama",d.nama)+kv("Email",d.email)+kv("Judul materi",d.judul)+kv("Waktu sesi",d.sesi)+'</div>'+
@@ -509,16 +528,18 @@ function show(role,nama,d){
  } else {
   ROWS=d.rows||[]; KUOTA=d.kuota||0;
   h=head(d.peran||"Panitia",d.nama)+'<div class="cards" id="cards"></div>'+
-   '<div class="tbar"><input id="tq" type="search" placeholder="Cari nama, email, instansi, nomor" aria-label="Cari"><select id="tm" aria-label="Filter metode"><option value="">Semua metode</option><option>Luring</option><option>Daring</option></select><button type="button" id="tx">Unduh CSV</button></div>'+
+   '<div class="tbar"><input id="tq" type="search" placeholder="Cari nama, email, instansi, nomor" aria-label="Cari"><select id="tm" aria-label="Filter metode"><option value="">Semua metode</option><option>Luring</option><option>Daring</option></select><button type="button" id="th">📋 Daftar Hadir Luring</button><button type="button" id="tx">Unduh CSV</button></div>'+
    '<p class="hint" id="tc" style="margin-bottom:8px"></p><div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>WhatsApp</th><th>Instansi</th><th>Kategori</th><th>Metode</th><th>Makalah</th><th>Kehadiran</th></tr></thead><tbody id="tb"></tbody></table></div>';
  }
  $("dash").innerHTML=h;
+ if($("pa")) $("pa").addEventListener("click",dlgAbsen);
+ if($("th")) $("th").addEventListener("click",dlgHadir);
  if(role==="panitia"){
   $("tq").addEventListener("input",draw); $("tm").addEventListener("change",draw); $("tx").addEventListener("click",csv);
   $("tb").addEventListener("click",function(e){
    var b=e.target.closest("button[data-id]"); if(!b) return;
    var id=b.dataset.id, row=ROWS.filter(function(r){return r.id===id;})[0], nv=!row.hadir; b.disabled=true;
-   api({action:"hadir",token:SES.token,id:id,hadir:nv}).then(function(r){ if(r&&r.ok){row.hadir=nv;} else alert((r&&r.error)||"Gagal menyimpan."); draw(); }).catch(function(){alert("Gagal terhubung ke server.");draw();});
+   api({action:"hadir",token:SES.token,id:id,hadir:nv}).then(function(r){ if(r&&r.ok){row.hadir=nv;row.status=nv?"Hadir":"";} else alert((r&&r.error)||"Gagal menyimpan."); draw(); }).catch(function(){alert("Gagal terhubung ke server.");draw();});
   });
   draw();
  }
@@ -539,9 +560,126 @@ function csv(){
  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="pendaftar-sihg-2026.csv"; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
 }
 
+/* ===== Daftar Hadir (QR) peserta luring ===== */
+var SC={stream:null,raf:0}, HD={d:null,t:null,qt:null};
+function loadScript(src){return new Promise(function(ok,no){var e=document.createElement("script");e.src=src;e.onload=ok;e.onerror=function(){no(new Error("Gagal memuat pustaka. Periksa koneksi internet."));};document.head.appendChild(e);});}
+function stopScan(){cancelAnimationFrame(SC.raf);SC.raf=0;if(SC.stream){SC.stream.getTracks().forEach(function(t){t.stop();});SC.stream=null;}}
+function stopAll(){clearInterval(HD.t);clearInterval(HD.qt);HD.t=HD.qt=null;stopScan();}
+function dlg2(h,wide){$("d2").innerHTML=h;$("dlg2").className=wide?"wide":"";if(!$("dlg2").open)$("dlg2").showModal();}
+$("dlg2").addEventListener("close",stopAll);
+function ekstrakKode(t){t=String(t||"").trim();var m=/[?&]h=([0-9a-f]{12}\.[0-9a-f]{10})/i.exec(t)||/^([0-9a-f]{12}\.[0-9a-f]{10})$/i.exec(t);return m?m[1].toLowerCase():null;}
+function openLogin(role){setRole(role);$("dlg").showModal();$("lu").focus();}
+function afterLogin(){ if(!PH) return; var k=PH; PH=null; if(SES&&SES.role==="peserta") kirimHadir(k); }
+function tutup2(id){$(id).addEventListener("click",function(){$("dlg2").close();});}
+
+/* --- Peserta: absen --- */
+function serr(t){var e=$("sce");if(e){e.textContent=t;e.className="msg e";}}
+function dlgAbsen(){
+ stopAll();
+ dlg2('<h3 style="margin:0 0 8px">Absen kehadiran</h3><p class="hint" style="font-size:14px;margin-bottom:10px">Pindai QR yang ditampilkan panitia di Theater Dome UMM. Khusus peserta luring.</p><div style="border-radius:12px;overflow:hidden;background:#000"><video id="scv" playsinline muted style="width:100%;display:block;max-height:46vh;object-fit:cover"></video></div><div class="msg" id="sce" role="alert" style="margin-top:8px"></div><div class="fg" style="margin-top:12px"><label for="scm">Atau tempel tautan / kode QR</label><input id="scm" placeholder="https://…?h=…"></div><button type="button" class="pb" id="scs">Kirim</button><button type="button" class="pb alt" id="scc">Tutup</button>');
+ $("scs").addEventListener("click",function(){var k=ekstrakKode($("scm").value);if(!k){serr("Kode QR tidak valid.");return;}stopScan();kirimHadir(k);});
+ tutup2("scc"); mulaiScan();
+}
+async function mulaiScan(){
+ var v=$("scv");
+ try{ SC.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false}); v.srcObject=SC.stream; await v.play(); }
+ catch(x){ serr("Kamera tidak dapat dibuka. Izinkan akses kamera atau tempel tautan QR di bawah."); return; }
+ var det=window.BarcodeDetector?new BarcodeDetector({formats:["qr_code"]}):null, cv=document.createElement("canvas"), cx=cv.getContext("2d",{willReadFrequently:true});
+ if(!det){ try{ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"); }catch(x){ serr("Pemindai tidak termuat. Tempel tautan QR di bawah."); return; } }
+ var tick=0;
+ async function loop(){
+  if(!SC.stream||!$("scv")) return;
+  try{
+   var kode=null;
+   if(v.readyState>=2&&(++tick%3===0)){
+    if(det){ var r=await det.detect(v); if(r.length) kode=r[0].rawValue; }
+    else{ cv.width=v.videoWidth; cv.height=v.videoHeight; cx.drawImage(v,0,0); var im=cx.getImageData(0,0,cv.width,cv.height), q=window.jsQR&&jsQR(im.data,im.width,im.height); if(q) kode=q.data; }
+   }
+   var k=kode&&ekstrakKode(kode);
+   if(k){ stopScan(); return kirimHadir(k); }
+  }catch(x){}
+  SC.raf=requestAnimationFrame(loop);
+ }
+ loop();
+}
+async function kirimHadir(k){
+ if(!SES||SES.role!=="peserta"){ PH=k; if($("dlg2").open) $("dlg2").close(); openLogin("peserta"); $("ldemo").textContent="Masuk sebagai Peserta untuk mencatat kehadiran dari QR."; return; }
+ dlg2('<h3 style="margin:0 0 8px">Absen kehadiran</h3><p>Mencatat kehadiran…</p>');
+ try{
+  var j=await api({action:"scanHadir",token:SES.token,kode:k});
+  if(j&&j.expired){ SES=null; store(null); PH=k; $("dlg2").close(); openLogin("peserta"); return; }
+  if(!j||!j.ok) throw new Error((j&&j.error)||"Absen gagal. Coba lagi.");
+  dlg2('<h3 style="margin:0 0 10px;color:var(--ok)">✓ '+(j.sudah?"Kehadiran sudah tercatat":"Kehadiran tercatat")+'</h3><div class="kv">'+kv("Nama",j.nama)+kv("Nomor pendaftaran",j.id)+kv("Waktu",(j.waktu||"").slice(11,16)+" WIB")+'</div><button type="button" class="pb" id="sct" style="margin-top:14px">Tutup</button>');
+  tutup2("sct");
+  api({action:"me",token:SES.token}).then(function(r){ if(r&&r.ok&&SES) show(r.role,r.nama,r.data); });
+ }catch(x){
+  dlg2('<h3 style="margin:0 0 10px">Absen gagal</h3><div class="msg e" role="alert">'+esc(x.message)+'</div><button type="button" class="pb" id="sca">Coba lagi</button><button type="button" class="pb alt" id="scc2">Tutup</button>');
+  $("sca").addEventListener("click",dlgAbsen); tutup2("scc2");
+ }
+}
+
+/* --- Panitia: daftar hadir + QR --- */
+function dlgHadir(){
+ stopAll();
+ dlg2('<h3 style="margin:0 0 8px">Daftar Hadir Peserta Luring</h3><div id="hdi"></div><div style="margin:12px 0 4px"><button type="button" class="pb" id="hq">📱 Tampilkan QR Absen</button><button type="button" class="pb" id="hp">🖨 Cetak</button><button type="button" class="pb alt" id="hc">Tutup</button></div><div id="qrWrap" hidden></div><input id="hf" type="search" placeholder="Cari nama, instansi, nomor" aria-label="Cari" style="margin:8px 0 10px"><div class="tw" style="max-height:50vh;overflow:auto"><table><thead><tr><th>No</th><th>Nomor</th><th>Nama</th><th>Instansi</th><th>Status</th><th>Waktu</th></tr></thead><tbody id="hdb"><tr><td colspan="6">Memuat…</td></tr></tbody></table></div>',true);
+ $("hq").addEventListener("click",tampilQr); $("hp").addEventListener("click",cetakHadir); tutup2("hc");
+ $("hf").addEventListener("input",gambarHadir);
+ $("hdb").addEventListener("change",function(e){
+  var el=e.target.closest("select[data-id]"); if(!el) return;
+  api({action:"setHadir",token:SES.token,id:el.dataset.id,status:el.value}).then(function(r){ if(r&&r.ok){HD.d=r;gambarHadir();} else{ alert((r&&r.error)||"Gagal menyimpan."); muatHadir(); } }).catch(function(){alert("Gagal terhubung ke server.");muatHadir();});
+ });
+ muatHadir();
+ HD.t=setInterval(function(){ if(!$("hdb")) return stopAll(); if(document.activeElement&&document.activeElement.tagName==="SELECT") return; muatHadir(); },15000);
+}
+function muatHadir(){
+ return api({action:"daftarHadir",token:SES.token}).then(function(r){
+  if(r&&r.ok){HD.d=r;gambarHadir();} else if($("hdi")) $("hdi").innerHTML='<div class="msg e" role="alert">'+esc((r&&r.error)||"Gagal memuat daftar hadir.")+'</div>';
+ }).catch(function(){ if($("hdi")) $("hdi").innerHTML='<div class="msg e">Gagal terhubung ke server.</div>'; });
+}
+function gambarHadir(){
+ if(!$("hdb")||!HD.d) return;
+ var d=HD.d, ps=d.peserta, n={Hadir:0};
+ ps.forEach(function(p){ if(p.status==="Hadir") n.Hadir++; });
+ $("hdi").innerHTML='<div class="hint" style="font-size:14px;margin-bottom:6px">'+esc(d.info.acara)+' · '+esc(d.info.tanggal)+' · '+esc(d.info.waktu)+' · '+esc(d.info.tempat)+'</div><div style="display:flex;gap:6px 18px;flex-wrap:wrap;font-size:14px"><span>Peserta luring: <b>'+ps.length+'</b></span><span>Hadir: <b>'+n.Hadir+'</b></span><span>Tidak hadir: <b>'+(ps.length-n.Hadir)+'</b></span></div>';
+ var q=$("hf").value.toLowerCase(), opt=function(v,l,c){return '<option value="'+v+'"'+(c===v?" selected":"")+'>'+l+'</option>';};
+ var rs=ps.filter(function(p){return !q||(p.nama+" "+p.instansi+" "+p.id).toLowerCase().indexOf(q)>=0;});
+ $("hdb").innerHTML=rs.map(function(p,k){return '<tr><td>'+(k+1)+'</td><td>'+esc(p.id)+'</td><td>'+esc(p.nama)+'</td><td>'+esc(p.instansi)+'</td><td><select data-id="'+esc(p.id)+'" aria-label="Status '+esc(p.nama)+'" style="width:auto;padding:6px 28px 6px 8px">'+opt("","Tidak hadir",p.status)+opt("Hadir","Hadir",p.status)+'</select></td><td>'+esc(p.waktu?p.waktu.slice(11,16)+(p.via==="QR"?" · QR":""):"")+'</td></tr>';}).join("")||'<tr><td colspan="6">Belum ada peserta luring.</td></tr>';
+}
+function qrSvg(t){
+ var q=qrcode(0,"M"); q.addData(t); q.make();
+ var n=q.getModuleCount(), m=4, p="", r, c;
+ for(r=0;r<n;r++) for(c=0;c<n;c++) if(q.isDark(r,c)) p+="M"+(c+m)+" "+(r+m)+"h1v1h-1z";
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(n+2*m)+' '+(n+2*m)+'" shape-rendering="crispEdges" role="img" aria-label="QR absen" style="width:100%;max-width:380px;display:block;margin:0 auto"><rect width="100%" height="100%" fill="#fff"/><path d="'+p+'" fill="#000"/></svg>';
+}
+async function segarQr(){
+ try{
+  var j=await api({action:"qrHadir",token:SES.token});
+  if(!j||!j.ok) throw new Error((j&&j.error)||"Gagal membuat QR.");
+  if(!window.qrcode) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+  if(!$("qrBox")) return;
+  $("qrBox").innerHTML=qrSvg(location.href.split("#")[0].split("?")[0]+"?h="+j.kode); $("qrErr").className="msg";
+ }catch(x){ if($("qrErr")){ $("qrErr").textContent=x.message; $("qrErr").className="msg e"; $("qrBox").innerHTML=""; clearInterval(HD.qt); } }
+}
+function tampilQr(){
+ var w=$("qrWrap"); w.hidden=false;
+ w.innerHTML='<div class="qrb"><div id="qrBox">Memuat QR…</div><p class="hint" style="margin:10px 0 6px;font-size:13px">Peserta luring memindai QR ini lewat tombol <b>📷 Absen</b> di akun mereka atau kamera ponsel. QR berganti otomatis tiap 40 detik; tampilkan di layar atau proyektor.'+(location.protocol==="file:"?' <b>Halaman ini dibuka dari file lokal; QR hanya berfungsi jika halaman di-hosting di alamat publik (https).</b>':"")+'</p><div class="msg" id="qrErr" role="alert"></div><button type="button" class="pb alt" id="qrh">Sembunyikan QR</button></div>';
+ $("qrh").addEventListener("click",function(){clearInterval(HD.qt);w.hidden=true;});
+ clearInterval(HD.qt); segarQr();
+ HD.qt=setInterval(function(){ if(!$("qrBox")) return clearInterval(HD.qt); segarQr(); },40000);
+}
+function cetakHadir(){
+ var d=HD.d; if(!d) return;
+ var rows=d.peserta.map(function(p,i){return "<tr><td>"+(i+1)+"</td><td>"+esc(p.id)+"</td><td>"+esc(p.nama)+"</td><td>"+esc(p.instansi)+"</td><td>"+esc(p.kategori)+"</td><td>"+esc(p.status||"")+"</td><td>"+esc(p.waktu?p.waktu.slice(11,16):"")+"</td><td></td></tr>";}).join("");
+ var w=window.open("","_blank"); if(!w){ alert("Pop-up diblokir. Izinkan pop-up untuk mencetak."); return; }
+ var u=document.querySelector(".logo-umm").src, f=document.querySelector(".logo-fpsh").src;
+ w.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Daftar Hadir</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:18px}.k{background:#0f5a63;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}.k img{height:54px}h2{text-align:center;margin:14px 0 4px}p{text-align:center;margin:0 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:5px 6px;text-align:left}th{background:#e8f2f3;-webkit-print-color-adjust:exact;print-color-adjust:exact}td:last-child{width:110px}</style></head><body><div class="k"><img src="'+u+'" alt=""><img src="'+f+'" alt=""></div><h2>DAFTAR HADIR PESERTA LURING</h2><p>'+esc(d.info.acara)+' · '+esc(d.info.tanggal)+' · '+esc(d.info.tempat)+'</p><table><thead><tr><th>No</th><th>Nomor</th><th>Nama</th><th>Instansi</th><th>Kategori</th><th>Status</th><th>Waktu</th><th>Tanda tangan</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print()}<\/script></body></html>');
+ w.document.close();
+}
+
 /* Pulihkan sesi saat halaman dimuat ulang */
 var t=stored();
-if(t) api({action:"me",token:t}).then(function(r){ if(r&&r.ok){SES={token:t,role:r.role,nama:r.nama};show(r.role,r.nama,r.data);} else store(null); }).catch(function(){});
+if(t) api({action:"me",token:t}).then(function(r){ if(r&&r.ok){SES={token:t,role:r.role,nama:r.nama};show(r.role,r.nama,r.data);afterLogin();} else store(null); }).catch(function(){});
+if(PH) setTimeout(function(){ if(!SES){ openLogin("peserta"); $("ldemo").textContent="Masuk sebagai Peserta untuk mencatat kehadiran dari QR."; } },700);
 })();
 </script>
 </body>

@@ -21,8 +21,6 @@ header{background:var(--teal);color:#fff;border-bottom:6px solid var(--rust)}
 .logo-fpsh{height:68px}
 .hero{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:center;padding:28px 0 60px}
 .gratis{display:inline-block;margin-top:22px;background:var(--gold);color:#2b1d00;font-family:Bangers,"Comic Sans MS","Comic Neue",cursive;font-size:clamp(24px,4vw,36px);letter-spacing:2px;line-height:1;padding:10px 20px 8px;border:3px solid #2b1d00;border-radius:12px;box-shadow:4px 4px 0 #2b1d00;transform:rotate(-2deg)}
-.ket{margin-top:16px;max-width:52ch;color:#d6e8ea;font-size:12px;line-height:1.45;padding-left:12px;border-left:4px solid var(--gold)}
-.ket b{color:#fff}
 .until small{margin:8px 0 0;text-align:center}
 .loginrow{margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.18);text-align:center}
 .loginrow #who{display:block;font-size:13px;color:#b7d3d6;margin-bottom:8px}
@@ -155,7 +153,6 @@ th{background:#e8f2f3;color:var(--teal)}
     <h1><span>Seminar Internasional</span><em>Hari Guru 2026</em></h1>
     <p class="tema">Memberdayakan Guru, Mengintegrasikan Pendidikan, Sains, dan Humaniora: Dialog Lintas Agama untuk Martabat Manusia dan Perdamaian Global</p>
     <p class="gratis">Pendaftaran GRATIS!..</p>
-    <p class="ket"><b>Keterangan:</b> untuk pengirim makalah yang akan diterbitkan di prosiding SIBI FPSH UMM, dikenakan kontribusi <b>Rp.50.000,-/per-makalah/per-pemakalah</b></p>
    </div>
    <aside class="timebox" aria-label="Hitung mundur acara">
     <div class="today"><div><small>Hari ini</small><b id="today"></b></div><div class="jam"><small>Jam</small><b id="jam"></b></div></div>
@@ -192,11 +189,11 @@ th{background:#e8f2f3;color:var(--teal)}
    <div id="msg" class="msg" role="alert"></div>
    <form id="f" novalidate>
     <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <div class="fg"><label for="nama">Nama lengkap dan gelar</label>
-     <input id="nama" name="nama" required autocomplete="name" placeholder="Contoh: Dr. Ahmad Dahlan, M.Pd."><div class="err"></div></div>
+    <div class="fg"><label for="nama">Nama (Lengkap)</label>
+     <input id="nama" name="nama" required autocomplete="name" placeholder="Contoh: Dr. Ahmad Dahlan, M.Pd." aria-describedby="namaInfo"><span class="hint" id="namaInfo" style="display:block;margin-top:5px">Sesuai kartu identitas/dokumen sah yang anda miliki.</span><div class="err"></div></div>
     <div class="row">
-     <div class="fg"><label for="email">Email</label>
-      <input id="email" name="email" type="email" required autocomplete="email" placeholder="nama@email.com"><div class="err"></div></div>
+     <div class="fg"><label for="email">Email (Aktif)</label>
+      <input id="email" name="email" type="email" required autocomplete="email" placeholder="nama@email.com" aria-describedby="emailInfo"><span class="hint" id="emailInfo" style="display:block;margin-top:5px">Semua informasi dan fasilitas seminar dikirim ke Email anda.</span><div class="err"></div></div>
      <div class="fg"><label for="wa">Nomor WhatsApp</label>
       <input id="wa" name="wa" type="tel" required autocomplete="tel" placeholder="0812 3456 7890"><div class="err"></div></div>
     </div>
@@ -207,7 +204,7 @@ th{background:#e8f2f3;color:var(--teal)}
       <select id="kategori" name="kategori" required>
        <option value="">Pilih kategori</option><option>Dosen</option><option>Guru</option><option>Mahasiswa</option><option>Umum / Peneliti</option></select><div class="err"></div></div>
     </div>
-    <div class="fg"><label>Metode</label>
+    <div class="fg"><label>Metode <span class="hint">(kapasitas luring max. 350 peserta)</span></label>
      <div class="mode">
       <label id="lbLuring"><input type="radio" name="mode" value="Luring" checked><div>Luring<span>Hadir di Theater Dome UMM</span></div></label>
       <label><input type="radio" name="mode" value="Daring"><div>Daring<span>Tautan Zoom muncul setelah mendaftar</span></div></label>
@@ -217,7 +214,7 @@ th{background:#e8f2f3;color:var(--teal)}
       <label><input type="radio" name="makalah" value="Tidak" checked><div>Tidak<span>Hanya mengikuti seminar</span></div></label>
       <label><input type="radio" name="makalah" value="Ya"><div>Ya<span>Terbit di prosiding SIBI FPSH UMM, kontribusi Rp.50.000,-/makalah/pemakalah</span></div></label>
      </div></div>
-    <div class="fg"><label class="chk"><input type="checkbox" id="setuju" required><span>Data saya benar dan boleh digunakan panitia untuk keperluan seminar ini. Nama, kategori, metode, dan status kirim makalah saya akan tampil pada daftar Peserta Terdaftar di halaman ini.</span></label><div class="err"></div></div>
+    <div class="fg"><label class="chk"><input type="checkbox" id="setuju" required><span>Data saya (Nama lengkap dan gelar, Email, Instansi) benar dan sesuai dengan data identitas yang ada, segala bentuk akibat yang timbul karena kesalahan dan/atau ketidaksesuaian pengisian data di Formulir pendaftaran ini, bukan lagi menjadi tanggungjawab Panitia.</span></label><div class="err"></div></div>
     <button id="btn" type="submit">Daftar sekarang</button>
    </form>
 
@@ -309,13 +306,20 @@ function loadStatus(){
   fetch(CONFIG.SCRIPT_URL).then(function(r){return r.json()}).then(showQuota)
    .catch(function(){ $("kuota").textContent = "Ketersediaan tempat belum dapat dimuat. Anda tetap bisa mendaftar."; });
 }
+function samar(n){ /* hanya untuk mode contoh; pada mode live nama sudah disamarkan oleh server */
+  return String(n||"").trim().split(/\s+/).map(function(w){
+    if(w.indexOf(".")>=0) return w.replace(/,+$/,"");
+    var k=w.replace(/[,;]+$/,""); if(k.length<=2) return k;
+    return k.slice(0,Math.max(2,Math.min(4,k.length-2)))+"…";
+  }).join(" ");
+}
 function renderRecap(list){
   var tb=$("rcb"); tb.textContent=""; list=list||[];
   $("rch").textContent="Peserta Terdaftar ("+list.length+")";
   if(!list.length){ var tr=document.createElement("tr"), td=document.createElement("td"); td.colSpan=4; td.textContent="Belum ada pendaftar."; tr.appendChild(td); tb.appendChild(tr); return; }
   list.forEach(function(p){
     var tr=document.createElement("tr");
-    [p.nama,p.kategori,p.metode,p.makalah?"Ya":"Tidak"].forEach(function(v){ var td=document.createElement("td"); td.textContent=v; tr.appendChild(td); });
+    [DEMO?samar(p.nama):p.nama,p.kategori,p.metode,p.makalah?"Ya":"Tidak"].forEach(function(v){ var td=document.createElement("td"); td.textContent=v; tr.appendChild(td); });
     tb.appendChild(tr);
   });
 }
@@ -349,7 +353,7 @@ function setErr(el, m){
 }
 function validate(){
   var ok = true, f = $("f");
-  [["nama","Isi nama lengkap beserta gelar."],["instansi","Isi nama instansi."],["kategori","Pilih kategori peserta."]].forEach(function(p){
+  [["nama","Isi nama lengkap Anda."],["instansi","Isi nama instansi."],["kategori","Pilih kategori peserta."]].forEach(function(p){
     var el=$(p[0]); if(!setErr(el, el.value.trim()?"":p[1])) ok=false; });
   if(!setErr($("email"), /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("email").value.trim())?"":"Masukkan email yang valid, misalnya nama@email.com.")) ok=false;
   if(!setErr($("wa"), /^08\d{8,12}$/.test(normWA($("wa").value))?"":"Masukkan nomor WhatsApp yang valid, misalnya 0812 3456 7890.")) ok=false;

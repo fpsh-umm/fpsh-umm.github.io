@@ -139,6 +139,49 @@ th{background:#e8f2f3;color:var(--teal)}
 @media(max-width:820px){.logo-umm{height:64px}.logo-fpsh{height:50px}.hero,main{grid-template-columns:1fr}.hero{gap:24px}.facts{grid-template-columns:1fr}.facts div{border-right:0;border-bottom:1px solid var(--line)}.row,.mode{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header .count,form,.demo{display:none}}
+
+/* E-sertifikat */
+.pvw{overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#e8e3d9}
+#scpv{width:1122px;transform-origin:top left}
+#certPrint{display:none}
+.cw{position:relative;width:1122px;height:793px;background:#fff;overflow:hidden}
+.cw .kv{position:absolute;right:34px;bottom:5px;font-family:Consolas,Menlo,monospace;font-size:12px;letter-spacing:.5px;color:#17323a;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cert{position:relative;width:1122px;height:765px;box-sizing:border-box;background:#fff;color:#17323a;font-family:'Archivo','Segoe UI',Arial,sans-serif;overflow:hidden;border:12px solid #0f5a63;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;line-height:1.3}
+.cert *{box-sizing:border-box}
+.cert .cin{position:absolute;inset:8px;border:2px solid #e0a528;pointer-events:none;z-index:2}
+.cert .cb{background:#0f5a63;height:104px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;border-bottom:6px solid #b9531f}
+.cert .cb img{height:72px;width:auto;display:block;object-fit:contain}
+.cert .ct{color:#fff;font-size:13px;letter-spacing:2px;line-height:1.6;font-weight:600}
+.cert .ct b{display:block;font-size:15px;color:#e0a528}
+.cert h1{font-family:Georgia,'Times New Roman',serif;font-size:56px;letter-spacing:10px;color:#0f5a63;line-height:1;margin:26px 0 8px;font-weight:700}
+.cert .no{font-size:13px;color:#5d7076;letter-spacing:1px}
+.cert .dk{font-size:16px;font-style:italic;margin:20px 0 4px}
+.cert .nm{font-family:Georgia,'Times New Roman',serif;font-weight:700;color:#0f5a63;line-height:1.15;padding:0 60px;margin:4px 0}
+.cert .in{font-size:16px;margin-bottom:12px;min-height:8px}
+.cert .sb{font-size:15px;margin-top:10px}
+.cert .rl{display:inline-block;background:#0f5a63;color:#fff;font-weight:800;letter-spacing:4px;font-size:20px;padding:5px 28px;border-radius:30px;margin:4px 0 6px}
+.cert .ex{font-size:16px;padding:0 90px;margin:4px 0 6px}
+.cert .ac{font-family:Georgia,'Times New Roman',serif;font-size:27px;font-weight:700;color:#0f5a63;line-height:1.2;padding:0 60px}
+.cert .dt{font-size:14px;margin-top:10px}
+.cert .ft{position:absolute;left:46px;right:46px;bottom:30px;display:flex;justify-content:space-between;align-items:flex-end}
+.cert .qb{width:200px;text-align:left;font-size:10.5px;color:#5d7076;line-height:1.35}
+.cert .qb svg{width:104px;height:104px;display:block;border:1px solid #d9d4ca;margin-bottom:5px}
+.cert .qb b{display:block;color:#17323a;font-family:Consolas,Menlo,monospace;font-size:12px;letter-spacing:.5px;margin-top:2px}
+.cert .tk{font-size:13.5px;margin-bottom:6px}
+.cert .tt{display:flex;gap:56px}
+.cert .tt>div{width:250px;font-size:13.5px}
+.cert .tl{margin-bottom:62px}
+.cert .tn{border-top:1.5px solid #17323a;padding-top:5px;font-weight:700;min-height:28px}
+.vres{border-radius:12px;padding:12px 16px;margin-bottom:10px;border:1px solid}
+.vres b{display:block;font-size:18px}.vres span{font-size:14px}
+.vres.vyes{background:#e3f3e8;color:var(--ok);border-color:#b9dcc4}
+.vres.vno{background:#fbe9e6;color:var(--err);border-color:#efc3bc}
+@media print{
+ @page{size:A4 landscape;margin:0}
+ html,body{background:#fff!important;margin:0!important;padding:0!important}
+ body>*:not(#certPrint){display:none!important}
+ #certPrint{display:block!important;position:absolute;left:0;top:0;width:297mm;height:210mm;overflow:hidden}
+}
 </style>
 </head>
 <body>
@@ -177,10 +220,11 @@ th{background:#e8f2f3;color:var(--teal)}
   <aside class="side">
    <h2>Yang Anda dapat</h2>
    <ul>
-    <li>E-sertifikat<span>Tombol unduh muncul di akun peserta dengan durasi hadir minimal 150 menit (Cek in &amp; Cek out) dan langsung dikirim ke email.</span></li>
+    <li>E-sertifikat<span>Dikirim setelah acara untuk peserta yang hadir dan/atau terverifikasi oleh Panitia.</span></li>
     <li>Materi seminar<span>Tautan unduhan dikirim lewat email.</span></li>
     <li>Peserta yang mengirim makalah<span>akan diterbitkan di prosiding SIBI FPSH UMM</span></li>
    </ul>
+   <button type="button" class="pb alt" id="vbtn" style="margin:0 0 16px">🔎 Validasi E-sertifikat</button>
    <div class="kuota" id="kuota">Memuat ketersediaan tempat…</div>
    <div class="recap"><h3 id="rch">Peserta Terdaftar</h3><div class="rw"><table><thead><tr><th>Nama</th><th>Kategori</th><th>Metode</th><th>Makalah</th></tr></thead><tbody id="rcb"><tr><td colspan="4">Memuat…</td></tr></tbody></table></div></div>
   </aside>
@@ -261,6 +305,7 @@ th{background:#e8f2f3;color:var(--teal)}
 </div></dialog>
 
 <dialog id="dlg2" aria-label="Daftar hadir"><div class="dlg" id="d2"></div></dialog>
+<div id="certPrint" aria-hidden="true"></div>
 
 <footer><div class="wrap">
  <a class="ic" href="https://fpsh.umm.ac.id/sihg-2026" target="_blank" rel="noopener" aria-label="Website fpsh.umm.ac.id/sihg-2026" title="fpsh.umm.ac.id/sihg-2026">
@@ -277,6 +322,7 @@ var CONFIG = {
   SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyAogbZvn5k7VrcjlWYKnR_pABRxkco4xwZeXdasuLOIPPlJyLNvh4LQ_qPYxOw82qyQQ/exec",
   EVENT_START: "2026-11-25T08:00:00+07:00"
 };
+var DEMOABS={ci:true,co:true};   /* demo: ubah ke false untuk mencoba tombol Cek in/out nonaktif */
 var DEMO = CONFIG.SCRIPT_URL.indexOf("script.google.com") < 0;
 var $ = function(i){return document.getElementById(i)};
 if (DEMO) $("demo").style.display = "block";
@@ -399,6 +445,7 @@ function success(r, d){
 (function(){
 var ROLE="peserta", SES=null, ROWS=[], KUOTA=0, MINDUR=150, PH=null;
 try{ var _h=new URLSearchParams(location.search).get("h"); if(_h){ PH=_h; history.replaceState(null,"",location.pathname); } }catch(e){}
+var CEK=null; try{ var _c=new URLSearchParams(location.search).get("cek"); if(_c) CEK=_c; }catch(e){}
 var RC={
  peserta:{u:"Email terdaftar",p:"Nomor HP",h:"Kata sandi: nomor HP yang Anda daftarkan, contoh 081234567890",up:"nama@email.com"},
  pemateri:{u:"Email pemateri",p:"Nomor HP",h:"Kata sandi: nomor HP yang terdaftar di panitia, contoh 081234567890",up:"nama@email.com"},
@@ -416,6 +463,8 @@ function durOf(x){return x.ci&&x.co?Math.round((new Date(x.co.replace(" ","T"))-
 function syncMk(x){x.jmlMakalah=x.mk.length;x.adaMakalah=x.jmlMakalah>0;x.kuotaUtama=x.buktiStatus==="Terverifikasi"?(x.kuota||1):0; x.kuotaMakalah=x.kuotaUtama+x.tmb.reduce(function(a,t){return a+(x.kuotaUtama&&t.s==="Terverifikasi"?t.j:0);},0); x.tambahan=x.tmb.map(function(t,i){return {no:i+1,status:t.s,jumlah:t.j,catatan:t.c||"",waktu:t.w};});}
 function syncDemo(x){syncMk(x);x.cekin=x.ci||"";x.cekout=x.co||"";x.durasi=(x.dz&&x.ci&&x.co)?x.dz:durOf(x);x.layak=x.durasi>=150;}
 DROWS.forEach(function(x,i){ if(x.hadir){x.ci="2026-11-25 08:0"+(5+i)+":00";x.co="";} syncDemo(x); });
+var DCERT={"SIHG26-P-0A1B2C3D":{peran:"PESERTA",nomor:"0001/SIHG/2026/P"},"SIHG26-M-1A2B3C4D":{peran:"PEMATERI",nomor:"0002/SIHG/2026/M",nama:"Prof. Contoh Pemateri",ket:"Dialog Lintas Agama dalam Pendidikan"},"SIHG26-N-2A3B4C5D":{peran:"PANITIA",nomor:"0003/SIHG/2026/N",nama:"Panitia Contoh",ket:"Ketua Panitia"},"SIHG26-P-DEADBEEF":{peran:"PESERTA",nomor:"0004/SIHG/2026/P",dicabut:true}};
+function demoCert(k){ var d=DCERT[k], p=d.peran==="PESERTA"; return {kode:k,nomor:d.nomor,peran:d.peran,nama:d.nama||DROWS[0].nama,keterangan:d.ket||(p?DROWS[0].instansi:""),durasi:p?(DROWS[0].durasi||175):"",acara:"Seminar Internasional Hari Guru 2026",tanggal:"25 November 2026",tempat:"Theater Dome UMM",waktu:"08:00–12:00 WIB",ttd:[{jabatan:"Dekan FPSH UMM",nama:""},{jabatan:"Ketua Panitia SIHG 2026",nama:""}]}; }
 function demo(b){
  if(b.action==="login"){var a=DEMOACC[b.role];
   if(!a||b.username.toLowerCase()!==a[0]||digits(b.password)!==digits(a[1])) return {ok:false,error:"Email atau kata sandi salah."};
@@ -460,7 +509,9 @@ function demo(b){
    return {ok:true,nama:"contoh.svg",mime:"image/svg+xml",data:btoa(svg)}; }
   if(b.action==="qrHadir") return {ok:true,mode:b.mode,kode:b.mode==="out"?"0123456789ab.9876543210":"0123456789ab.0123456789"};
  if(b.action==="scanHadir"){ if(!/^[0-9a-f]{12}\.[0-9a-f]{10}$/.test(b.kode)) return {ok:false,error:"QR tidak valid atau sudah kedaluwarsa."};
-  var me2=DROWS[0], isOut=/\.9876543210$/.test(b.kode);
+  var me2=DROWS[0], isOut=/\.9876543210$/.test(b.kode), mdq=isOut?"out":"in";
+  if(b.mode&&b.mode!==mdq) return {ok:false,error:"Anda memindai QR Cek "+mdq+", padahal sedang melakukan Cek "+b.mode+". Pindai QR Cek "+b.mode+" yang ditampilkan panitia."};
+  if(!(mdq==="in"?DEMOABS.ci:DEMOABS.co)) return {ok:false,error:"Tombol Cek "+mdq+" belum diaktifkan oleh panitia."};
   if(!isOut){ var sudah=me2.hadir; if(!sudah) setSt(me2.id,"Hadir","QR"); return {ok:true,mode:"in",sudah:sudah,nama:me2.nama,id:me2.id,waktu:me2.ci||"2026-11-25 08:05:00"}; }
   if(!me2.hadir) return {ok:false,error:"Anda belum Cek in. Pindai QR Cek in terlebih dahulu (atau hubungi panitia)."};
   var sd=!!me2.co; me2.co="2026-11-25 11:00:00"; syncDemo(me2);
@@ -469,17 +520,22 @@ function demo(b){
    if(!x){lz.push({id:it.id,alasan:"Pendaftar tidak ditemukan"});return;} if(x.mode!=="Daring"){lz.push({id:it.id,alasan:"Bukan peserta daring (absen lewat QR)"});return;}
    x.ci=it.cekin; x.co=it.cekout; x.dz=it.durasi; x.hadir=true; x.st="Hadir"; x.wh=x.ci; x.via="Zoom"; syncDemo(x); okz++; });
   return {ok:true,diterapkan:okz,dilewati:lz}; }
- if(b.action==="sertifikat"){ var m3=DROWS[0]; if(!m3.layak) return {ok:false,error:"Sertifikat tersedia setelah durasi kehadiran minimal 150 menit (Cek in dan Cek out). Durasi Anda saat ini: "+m3.durasi+" menit."};
-  return {ok:true,nama:"Sertifikat_SIHG2026_contoh.pdf",mime:"application/pdf",data:btoa("%PDF-1.1\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 100]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF"),email:DEMOACC.peserta[0],emailTerkirim:true}; }
+ if(b.action==="validasi"){ var mm=/(SIHG26-[PMN]-[0-9A-F]{8})/.exec(String(b.kode||"").toUpperCase()); if(!mm) return {ok:false,error:"Format kode tidak valid. Contoh: SIHG26-P-1A2B3C4D."};
+  var dc=DCERT[mm[1]]; if(!dc) return {ok:true,ada:false}; var cc=demoCert(mm[1]); cc.terbit="2026-11-25 11:05:00";
+  return {ok:true,ada:true,sah:!dc.dicabut,alasan:dc.dicabut?"Sertifikat ini telah dicabut.":"",cert:cc}; }
+ if(b.action==="sertifikat"){ var rl=String(b.token).split("|")[1];
+  if(rl==="peserta"){ var m3=DROWS[0]; if(!m3.layak) return {ok:false,error:"Sertifikat tersedia setelah durasi kehadiran minimal 150 menit (Cek in dan Cek out). Durasi Anda saat ini: "+m3.durasi+" menit."};
+   return {ok:true,email:DEMOACC.peserta[0],emailTerkirim:true,cert:demoCert("SIHG26-P-0A1B2C3D")}; }
+  return {ok:true,email:"",emailTerkirim:false,cert:demoCert(rl==="pemateri"?"SIHG26-M-1A2B3C4D":"SIHG26-N-2A3B4C5D")}; }
  return {ok:true};
 }
 function stOf2(x){return x.st!==undefined?x.st:(x.hadir?"Hadir":"");}
 function demoNama(r){return {peserta:"Dr. Ahmad Dahlan, M.Pd.",pemateri:"Prof. Contoh Pemateri",panitia:"Panitia Contoh"}[r];}
 function demoData(r){
- if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,statusHadir:stOf2(x),waktuHadir:x.wh||"",cekin:x.cekin,cekout:x.cekout,durasi:x.durasi,minDurasi:150,layak:x.layak,zoom:"",waktu:x.waktu,
+ if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,statusHadir:stOf2(x),waktuHadir:x.wh||"",cekin:x.cekin,cekout:x.cekout,durasi:x.durasi,minDurasi:150,layak:x.layak,absen:{cekinAktif:DEMOABS.ci,cekoutAktif:DEMOABS.co},tanggalSeminar:"25 November 2026",zoom:"",waktu:x.waktu,
    bukti:{perlu:x.makalah,ada:!!x.adaBukti,status:x.buktiStatus||"",waktu:x.bw||"",catatan:x.catatan||"",tambahan:x.tambahan,bisaTambah:x.buktiStatus==="Terverifikasi"&&x.tmb.length<10&&!x.tmb.some(function(t){return t.s==="Menunggu";})},makalahFile:{ada:x.mk.length>0,waktu:x.mk[x.mk.length-1]||"",jumlah:x.mk.length,kuota:x.kuotaMakalah,sisa:Math.max(0,x.kuotaMakalah-x.mk.length),files:x.mk.map(function(w,i){return {no:i+1,waktu:w};})}};}
- if(r==="pemateri") return {nama:demoNama(r),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",zoom:"https://zoom.us",upload:"https://drive.google.com"};
- return {nama:demoNama(r),peran:"Ketua Panitia",kuota:350,rows:DROWS};
+ if(r==="pemateri") return {nama:demoNama(r),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",zoom:"https://zoom.us",upload:"https://drive.google.com",sertAktif:true};
+ return {nama:demoNama(r),peran:"Ketua Panitia",kuota:350,sertAktif:true,rows:DROWS};
 }
 function api(b){
  if(DEMO) return new Promise(function(res){setTimeout(function(){res(demo(b));},250);});
@@ -569,12 +625,22 @@ function sertifikatHint(d){
  if(d.mode!=="Luring"){
   var nz="Saat masuk Zoom, ubah nama tampilan Anda menjadi <b>"+esc(d.id)+" "+esc(d.nama)+"</b> agar kehadiran dan durasi tercatat otomatis. ";
   if(d.cekin) return "Durasi hadir Anda "+d.durasi+" menit (dari laporan Zoom); minimal "+min+" menit untuk sertifikat. Hubungi panitia bila ada kesalahan pencatatan.";
-  return nz+"Kehadiran peserta daring dicatat panitia dari laporan Zoom setelah acara; tombol <b>Unduh sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
+  return nz+"Kehadiran peserta daring dicatat panitia dari laporan Zoom setelah acara; tombol <b>Cetak E-sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
  }
- if(!d.cekin) return "Lakukan <b>Cek in</b> saat tiba dan <b>Cek out</b> saat pulang (pindai QR panitia). Tombol <b>Unduh sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
- if(!d.cekout) return "Anda sudah Cek in. Jangan lupa <b>Cek out</b> saat pulang; tombol <b>Unduh sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
+ if(!d.cekin) return "Lakukan <b>Cek in</b> saat tiba dan <b>Cek out</b> saat pulang (pindai QR panitia). Tombol <b>Cetak E-sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
+ if(!d.cekout) return "Anda sudah Cek in. Jangan lupa <b>Cek out</b> saat pulang; tombol <b>Cetak E-sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
  return "Durasi hadir Anda "+d.durasi+" menit; minimal "+min+" menit untuk sertifikat. Hubungi panitia bila ada kesalahan pencatatan.";
 }
+function tombolAbsen(d){
+ if(d.mode!=="Luring") return "";
+ var a=d.absen||{}, ci=a.cekinAktif!==false, co=a.cekoutAktif!==false, tg=d.tanggalSeminar?" (seminar "+esc(d.tanggalSeminar)+")":"";
+ if(!(d.hadir||d.cekin)){   /* belum Cek in: hanya tombol Cek in; tombol Cek out tidak muncul */
+  return ci?'<button type="button" class="pb" id="pa" data-m="in" style="margin-top:14px">📷 Cek in</button>':'<p class="hint" style="margin-top:14px">Tombol <b>Cek in</b> belum diaktifkan panitia'+tg+'. Tombol akan muncul di halaman ini saat Cek in dibuka.</p>';
+ }
+ /* sudah Cek in: tombol Cek in DIGANTI Cek out */
+ return co?'<button type="button" class="pb" id="pa" data-m="out" style="margin-top:14px">📷 '+(d.cekout?"Perbarui Cek out":"Cek out")+'</button>':'<p class="hint" style="margin-top:14px">Anda sudah Cek in. Tombol <b>Cek out</b> belum diaktifkan panitia; akan muncul di halaman ini saat Cek out dibuka.</p>';
+}
+function sertBtn(d,r){ return d.sertAktif===false?'<p class="hint" style="margin-top:12px">E-sertifikat '+r+' belum dibuka panitia. Tombol cetak akan muncul di halaman ini setelah dibuka.</p>':'<button type="button" class="pb" id="pc" style="margin-top:14px">🎓 Cetak E-sertifikat '+r+'</button><p class="hint" style="margin-top:8px">Sertifikat memuat QR Code untuk validasi keaslian.</p>'; }
 function kv(k,v){return "<div><span>"+esc(k)+"</span><b>"+esc(v||"-")+"</b></div>";}
 function head(role,nama){return '<div class="dh"><h2><span class="role">'+esc(role)+'</span>'+esc(nama)+'</h2></div>';}
 function show(role,nama,d){
@@ -585,20 +651,20 @@ function show(role,nama,d){
  if(role==="peserta"){
   h=head("Peserta",d.nama)+'<div class="kv">'+kv("Nomor pendaftaran",d.id)+kv("Nama",d.nama)+kv("Email",d.email)+kv("WhatsApp",d.wa)+kv("Instansi",d.instansi)+kv("Kategori",d.kategori)+kv("Metode",d.mode)+kv("Kirim makalah",d.makalah?"Ya":"Tidak")+kv("Status kehadiran",d.statusHadir||"Belum tercatat")+((d.mode==="Luring"||d.cekin)?kv("Cek in",d.cekin?d.cekin.slice(11,16)+" WIB":"-")+kv("Cek out",d.cekout?d.cekout.slice(11,16)+" WIB":"-")+kv("Durasi hadir",d.cekin&&d.cekout?d.durasi+" menit":"-"):"")+kv("Waktu daftar",d.waktu)+'</div>'+blokUnggahan(d)+
    (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Buka tautan Zoom</a>':"")+
-   (d.mode==="Luring"?'<button type="button" class="pb" id="pa" style="margin-top:14px">📷 Absen (Cek in / Cek out)</button>':"")+
-   (d.layak?'<button type="button" class="pb" id="pc" style="margin-top:14px">🎓 Unduh sertifikat</button><p class="hint" style="margin-top:8px">Sertifikat juga langsung dikirim ke email Anda ('+esc(d.email)+').</p>':'<p class="hint" style="margin-top:12px">'+sertifikatHint(d)+'</p>');
+   tombolAbsen(d)+
+   (d.layak?'<button type="button" class="pb" id="pc" style="margin-top:14px">🎓 Cetak E-sertifikat</button><p class="hint" style="margin-top:8px">Sertifikat memuat QR Code untuk validasi keaslian. Salinan PDF juga dikirim ke email Anda ('+esc(d.email)+').</p>':'<p class="hint" style="margin-top:12px">'+sertifikatHint(d)+'</p>');
  } else if(role==="pemateri"){
   h=head("Pemateri",d.nama)+'<div class="kv">'+kv("Nama",d.nama)+kv("Email",d.email)+kv("Judul materi",d.judul)+kv("Waktu sesi",d.sesi)+'</div>'+
    (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Masuk Zoom sebagai pemateri</a>':"")+
-   (safeUrl(d.upload)?'<a class="linkbtn" href="'+safeUrl(d.upload)+'" target="_blank" rel="noopener">Unggah materi</a>':"");
+   (safeUrl(d.upload)?'<a class="linkbtn" href="'+safeUrl(d.upload)+'" target="_blank" rel="noopener">Unggah materi</a>':"")+sertBtn(d,"Pemateri");
  } else {
   ROWS=d.rows||[]; KUOTA=d.kuota||0; MINDUR=d.minDurasi||150;
-  h=head(d.peran||"Panitia",d.nama)+'<div class="cards" id="cards"></div>'+
+  h=head(d.peran||"Panitia",d.nama)+'<div style="margin-bottom:16px">'+sertBtn(d,"Panitia")+'</div><div class="cards" id="cards"></div>'+
    '<div class="tbar"><input id="tq" type="search" placeholder="Cari nama, email, instansi, nomor" aria-label="Cari"><select id="tm" aria-label="Filter metode"><option value="">Semua metode</option><option>Luring</option><option>Daring</option></select><button type="button" id="th">📋 Daftar Hadir</button><button type="button" id="tz">📥 Unggah CSV Zoom</button><button type="button" id="tx">Unduh CSV</button></div>'+
    '<p class="hint" id="tc" style="margin-bottom:8px"></p><div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>WhatsApp</th><th>Instansi</th><th>Kategori</th><th>Metode</th><th>Makalah</th><th>Kehadiran</th><th>Cek in</th><th>Cek out</th><th>Durasi</th><th>Bukti transfer</th><th>File makalah</th></tr></thead><tbody id="tb"></tbody></table></div>';
  }
  $("dash").innerHTML=h;
- if($("pa")) $("pa").addEventListener("click",dlgAbsen);
+ if($("pa")) $("pa").addEventListener("click",function(){dlgAbsen(this.dataset.m);});
  if($("pc")) $("pc").addEventListener("click",function(){unduhSertifikat(this);});
  if($("ub")) $("ub").addEventListener("click",function(){dlgUnggah("bukti");});
  if($("ut")) $("ut").addEventListener("click",function(){dlgUnggah("tambahan");});
@@ -806,16 +872,21 @@ function unduhMakalah(id,btn,idx){
  api({action:"lihatBerkas",token:SES.token,id:id,jenis:"makalah",idx:Number(idx)||0}).then(function(r){
   btn.disabled=false;
   if(!r||!r.ok){ alert((r&&r.error)||"Berkas tidak dapat diunduh."); return; }
-  var u=URL.createObjectURL(b64blob(r.data,r.mime)), a=document.createElement("a"); a.href=u; a.download=r.nama||"makalah"; a.click(); setTimeout(function(){URL.revokeObjectURL(u);},2000);
+  if(!r.data){ alert("Berkas yang diterima dari server kosong. Minta peserta mengunggah ulang makalahnya."); return; }
+  var bl=b64blob(r.data,r.mime||"application/octet-stream");
+  if(!bl.size){ alert("Berkas yang diterima dari server kosong. Minta peserta mengunggah ulang makalahnya."); return; }
+  var u=URL.createObjectURL(bl), a=document.createElement("a"); a.href=u; a.download=r.nama||"makalah"; a.style.display="none"; document.body.appendChild(a); a.click(); setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},30000);
  }).catch(function(){ btn.disabled=false; alert("Gagal terhubung ke server."); });
 }
 
 /* --- Peserta: absen --- */
 function serr(t){var e=$("sce");if(e){e.textContent=t;e.className="msg e";}}
-function dlgAbsen(){
- stopAll();
- dlg2('<h3 style="margin:0 0 8px">Absen kehadiran</h3><p class="hint" style="font-size:14px;margin-bottom:10px">Pindai QR <b>Cek in</b> saat tiba dan QR <b>Cek out</b> saat pulang yang ditampilkan panitia di Theater Dome UMM. Khusus peserta luring.</p><div style="border-radius:12px;overflow:hidden;background:#000"><video id="scv" playsinline muted style="width:100%;display:block;max-height:46vh;object-fit:cover"></video></div><div class="msg" id="sce" role="alert" style="margin-top:8px"></div><div class="fg" style="margin-top:12px"><label for="scm">Atau tempel tautan / kode QR</label><input id="scm" placeholder="https://…?h=…"></div><button type="button" class="pb" id="scs">Kirim</button><button type="button" class="pb alt" id="scc">Tutup</button>');
- $("scs").addEventListener("click",function(){var k=ekstrakKode($("scm").value);if(!k){serr("Kode QR tidak valid.");return;}stopScan();kirimHadir(k);});
+var ABSM="";
+function dlgAbsen(md){
+ stopAll(); ABSM=(md==="in"||md==="out")?md:"";
+ var jd=ABSM==="out"?"Cek out":ABSM==="in"?"Cek in":"Absen kehadiran";
+ dlg2('<h3 style="margin:0 0 8px">'+jd+'</h3><p class="hint" style="font-size:14px;margin-bottom:10px">'+(ABSM==="out"?"Pindai QR <b>Cek out</b> saat pulang yang ditampilkan panitia di Theater Dome UMM.":ABSM==="in"?"Pindai QR <b>Cek in</b> saat tiba yang ditampilkan panitia di Theater Dome UMM.":"Pindai QR <b>Cek in</b> saat tiba dan QR <b>Cek out</b> saat pulang yang ditampilkan panitia di Theater Dome UMM.")+' Khusus peserta luring.</p><div style="border-radius:12px;overflow:hidden;background:#000"><video id="scv" playsinline muted style="width:100%;display:block;max-height:46vh;object-fit:cover"></video></div><div class="msg" id="sce" role="alert" style="margin-top:8px"></div><div class="fg" style="margin-top:12px"><label for="scm">Atau tempel tautan / kode QR</label><input id="scm" placeholder="https://…?h=…"></div><button type="button" class="pb" id="scs">Kirim</button><button type="button" class="pb alt" id="scc">Tutup</button>');
+ $("scs").addEventListener("click",function(){var k=ekstrakKode($("scm").value);if(!k){serr("Kode QR tidak valid.");return;}stopScan();kirimHadir(k,ABSM);});
  tutup2("scc"); mulaiScan();
 }
 async function mulaiScan(){
@@ -834,42 +905,116 @@ async function mulaiScan(){
     else{ cv.width=v.videoWidth; cv.height=v.videoHeight; cx.drawImage(v,0,0); var im=cx.getImageData(0,0,cv.width,cv.height), q=window.jsQR&&jsQR(im.data,im.width,im.height); if(q) kode=q.data; }
    }
    var k=kode&&ekstrakKode(kode);
-   if(k){ stopScan(); return kirimHadir(k); }
+   if(k){ stopScan(); return kirimHadir(k,ABSM); }
   }catch(x){}
   SC.raf=requestAnimationFrame(loop);
  }
  loop();
 }
-async function kirimHadir(k){
+async function kirimHadir(k,md){
  if(!SES||SES.role!=="peserta"){ PH=k; if($("dlg2").open) $("dlg2").close(); openLogin("peserta"); $("ldemo").textContent="Masuk sebagai Peserta untuk mencatat kehadiran dari QR."; return; }
  dlg2('<h3 style="margin:0 0 8px">Absen kehadiran</h3><p>Mencatat kehadiran…</p>');
  try{
-  var j=await api({action:"scanHadir",token:SES.token,kode:k});
+  var j=await api({action:"scanHadir",token:SES.token,kode:k,mode:md||undefined});
   if(j&&j.expired){ SES=null; store(null); PH=k; $("dlg2").close(); openLogin("peserta"); return; }
   if(!j||!j.ok) throw new Error((j&&j.error)||"Absen gagal. Coba lagi.");
   var out=j.mode==="out", jdl=out?(j.sudah?"Cek out diperbarui":"Cek out tercatat"):(j.sudah?"Cek in sudah tercatat":"Cek in tercatat");
   dlg2('<h3 style="margin:0 0 10px;color:var(--ok)">✓ '+jdl+'</h3><div class="kv">'+kv("Nama",j.nama)+kv("Nomor pendaftaran",j.id)+kv(out?"Waktu Cek out":"Waktu Cek in",(j.waktu||"").slice(11,16)+" WIB")+(out?kv("Durasi hadir",j.durasi+" menit"):"")+'</div>'+
-   (out?(j.layak?'<p style="margin-top:10px;color:var(--ok)">Durasi memenuhi syarat. Tombol <b>Unduh sertifikat</b> kini tersedia di akun Anda.</p>':'<p class="hint" style="margin-top:10px">Durasi minimal untuk sertifikat: '+j.min+' menit.</p>'):'<p class="hint" style="margin-top:10px">Jangan lupa pindai QR <b>Cek out</b> saat pulang.</p>')+
+   (out?(j.layak?'<p style="margin-top:10px;color:var(--ok)">Durasi memenuhi syarat. Tombol <b>Cetak E-sertifikat</b> kini tersedia di akun Anda.</p>':'<p class="hint" style="margin-top:10px">Durasi minimal untuk sertifikat: '+j.min+' menit.</p>'):'<p class="hint" style="margin-top:10px">Tombol <b>Cek in</b> kini diganti tombol <b>Cek out</b> di halaman Anda (muncul bila Cek out sudah diaktifkan panitia). Jangan lupa Cek out saat pulang.</p>')+
    '<button type="button" class="pb" id="sct" style="margin-top:14px">Tutup</button>');
   tutup2("sct");
   api({action:"me",token:SES.token}).then(function(r){ if(r&&r.ok&&SES) show(r.role,r.nama,r.data); });
  }catch(x){
   dlg2('<h3 style="margin:0 0 10px">Absen gagal</h3><div class="msg e" role="alert">'+esc(x.message)+'</div><button type="button" class="pb" id="sca">Coba lagi</button><button type="button" class="pb alt" id="scc2">Tutup</button>');
-  $("sca").addEventListener("click",dlgAbsen); tutup2("scc2");
+  $("sca").addEventListener("click",function(){dlgAbsen(md);}); tutup2("scc2");
  }
 }
 
-/* --- Peserta: unduh sertifikat (juga dikirim ke email) --- */
+/* ===== E-sertifikat (Peserta, Pemateri, Panitia): cetak + QR validasi ===== */
+var CERT={html:"",nama:""};
+function certUrl(k){ var b=/^https?:$/.test(location.protocol)?location.href.split("#")[0].split("?")[0]:CONFIG.SCRIPT_URL; return b+"?cek="+k; }
+function qrCert(t){
+ var q=qrcode(0,"M"); q.addData(t); q.make();
+ var n=q.getModuleCount(), m=2, p="", r, c;
+ for(r=0;r<n;r++) for(c=0;c<n;c++) if(q.isDark(r,c)) p+="M"+(c+m)+" "+(r+m)+"h1v1h-1z";
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(n+2*m)+' '+(n+2*m)+'" shape-rendering="crispEdges" role="img" aria-label="QR validasi sertifikat"><rect width="100%" height="100%" fill="#fff"/><path d="'+p+'" fill="#000"/></svg>';
+}
+var NOMOR_SERT={PESERTA:"E.4.d/304/FPSH-UMM/XI/2026",PEMATERI:"E.4.d/305/FPSH-UMM/XI/2026",PANITIA:"E.4.d/306/FPSH-UMM/XI/2026"};
+function certHtml(c){
+ var u=document.querySelector(".logo-umm").src, f=document.querySelector(".logo-fpsh").src;
+ var role=String(c.peran||"PESERTA").toUpperCase(), nm=String(c.nama||""), fs=nm.length<=30?44:nm.length<=45?36:28, ket=String(c.keterangan||""), ex="";
+ if(role==="PESERTA") ex="";
+ else if(role==="PEMATERI") ex=ket?"dengan materi “"+esc(ket)+"”":"";
+ else ex=(ket&&ket.toLowerCase()!=="panitia")?"dengan peran "+esc(ket):"";
+ var tt=(c.ttd&&c.ttd.length?c.ttd:[{jabatan:"Dekan FPSH UMM",nama:""},{jabatan:"Ketua Panitia SIHG 2026",nama:""}]).slice(0,2);
+ return '<div class="cw"><div class="cert"><div class="cin"></div>'+
+  '<div class="cb"><img src="'+u+'" alt=""><div class="ct"><b>FAKULTAS PENDIDIKAN, SAINS, DAN HUMANIORA</b>UNIVERSITAS MUHAMMADIYAH MALANG</div><img src="'+f+'" alt=""></div>'+
+  '<h1>SERTIFIKAT</h1><div class="no">Nomor : '+esc(NOMOR_SERT[role]||c.nomor)+'</div>'+
+  '<div class="dk">Diberikan kepada</div><div class="nm" style="font-size:'+fs+'px">'+esc(nm)+'</div>'+
+  (role==="PESERTA"&&ket?'<div class="in">'+esc(ket)+'</div>':'<div class="in"></div>')+
+  '<div class="sb">sebagai</div><div class="rl">'+esc(role)+'</div>'+
+  (ex?'<div class="ex">'+ex+'</div>':'')+
+  '<div class="sb">dalam kegiatan</div><div class="ac">'+esc(c.acara||"Seminar Internasional Hari Guru 2026")+'</div>'+
+  '<div class="dt">'+esc(c.tanggal)+' · '+esc(c.tempat)+'</div>'+
+  '<div class="ft"><div class="qb">'+qrCert(certUrl(c.kode))+'Pindai untuk memvalidasi keaslian sertifikat</div>'+
+  '<div><div class="tk">Malang, '+esc(c.tanggal)+'</div><div class="tt">'+tt.map(function(t){return '<div><div class="tl">'+esc(t.jabatan)+'</div><div class="tn">'+(esc(t.nama)||"&nbsp;")+'</div></div>';}).join("")+'</div></div></div></div><div class="kv">Kode validasi : '+esc(c.kode)+'</div></div>';
+}
+function fitSert(){ var w=$("scvw"), p=$("scpv"); if(!w||!p) return; var s=Math.min(1,w.clientWidth/1122); p.style.transform="scale("+s+")"; w.style.height=Math.ceil(793*s)+"px"; }
+window.addEventListener("resize",fitSert);
+async function tampilSertifikat(r){
+ var c=r.cert;
+ try{ if(!window.qrcode) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"); }
+ catch(x){ alert(x.message); return; }
+ CERT.html=certHtml(c); CERT.nama=c.nama;
+ dlg2('<h3 style="margin:0 0 6px;color:var(--ok)">✓ E-sertifikat siap</h3>'+
+  '<p class="hint" style="font-size:14px;margin-bottom:10px">Klik <b>Cetak / Simpan PDF</b>, lalu pilih tujuan <b>Simpan sebagai PDF</b> (kertas A4, lanskap) atau printer.'+(r.emailTerkirim?' Salinan PDF juga telah dikirim ke email <b>'+esc(r.email)+'</b>.':'')+' Kode validasi: <b>'+esc(c.kode)+'</b>.</p>'+
+  '<div class="pvw" id="scvw"><div id="scpv">'+CERT.html+'</div></div>'+
+  '<div style="margin-top:14px"><button type="button" class="pb" id="scp">🖨️ Cetak / Simpan PDF</button><button type="button" class="pb alt" id="scx">Tutup</button></div>',true);
+ fitSert(); tutup2("scx"); $("scp").addEventListener("click",cetakSert);
+}
+function cetakSert(){
+ var p=$("certPrint"), t0=document.title;
+ p.innerHTML=CERT.html;
+ document.title="Sertifikat_SIHG2026_"+String(CERT.nama).replace(/[^\w]+/g,"_").slice(0,40);
+ var done=function(){ document.title=t0; p.innerHTML=""; window.removeEventListener("afterprint",done); };
+ window.addEventListener("afterprint",done);
+ Promise.all([].map.call(p.querySelectorAll("img"),function(i){return i.decode?i.decode().catch(function(){}):null;})).then(function(){ setTimeout(function(){ window.print(); },60); });
+}
 function unduhSertifikat(btn){
  btn.disabled=true; var t=btn.textContent; btn.textContent="Menyiapkan sertifikat…";
  api({action:"sertifikat",token:SES.token}).then(function(r){
   btn.disabled=false; btn.textContent=t;
-  if(r&&r.expired){ SES=null; store(null); openLogin("peserta"); return; }
-  if(!r||!r.ok){ alert((r&&r.error)||"Sertifikat belum dapat dibuat."); return; }
-  var u=URL.createObjectURL(b64blob(r.data,r.mime)), a=document.createElement("a"); a.href=u; a.download=r.nama||"sertifikat.pdf"; a.click(); setTimeout(function(){URL.revokeObjectURL(u);},2000);
-  dlg2('<h3 style="margin:0 0 10px;color:var(--ok)">✓ Sertifikat siap</h3><p>'+(r.emailTerkirim?'Sertifikat telah dikirim ke email <b>'+esc(r.email)+'</b> dan diunduh ke perangkat Anda.':'Sertifikat diunduh ke perangkat Anda. Pengiriman ke email sedang dibatasi atau gagal; silakan coba lagi nanti bila perlu.')+'</p><button type="button" class="pb" id="sct2" style="margin-top:14px">Tutup</button>');
-  tutup2("sct2");
+  if(r&&r.expired){ var rl=SES&&SES.role||"peserta"; SES=null; store(null); openLogin(rl); return; }
+  if(!r||!r.ok||!r.cert){ alert((r&&r.error)||"Sertifikat belum dapat dibuat."); return; }
+  tampilSertifikat(r);
  }).catch(function(){ btn.disabled=false; btn.textContent=t; alert("Gagal terhubung ke server."); });
+}
+
+/* ===== Validasi e-sertifikat (publik: lewat QR ?cek=KODE atau ketik kode) ===== */
+function tglWaktu(s){ var m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(String(s||"")); return m?m[3]+"/"+m[2]+"/"+m[1]+" "+m[4]+":"+m[5]+" WIB":String(s||""); }
+function ekstrakCek(t){ var m=/SIHG26-[PMN]-[0-9A-F]{8}/i.exec(String(t||"")); return m?m[0].toUpperCase():""; }
+function dlgValidasi(kode){
+ stopAll();
+ dlg2('<h3 style="margin:0 0 8px">Validasi E-sertifikat</h3><p class="hint" style="font-size:14px;margin-bottom:10px">Pindai QR Code pada sertifikat, atau ketik kode validasi yang tercetak di sertifikat (contoh: SIHG26-P-1A2B3C4D).'+(DEMO?' <b>Mode contoh:</b> coba kode SIHG26-P-0A1B2C3D, SIHG26-M-1A2B3C4D, atau SIHG26-P-DEADBEEF (dicabut).':'')+'</p>'+
+  '<div class="fg"><label for="vk">Kode validasi</label><input id="vk" autocomplete="off" maxlength="100" placeholder="SIHG26-P-1A2B3C4D" style="text-transform:uppercase"></div>'+
+  '<button type="button" class="pb" id="vgo">Periksa</button><button type="button" class="pb alt" id="vx">Tutup</button><div id="vres" aria-live="polite" style="margin-top:12px"></div>');
+ tutup2("vx");
+ $("vgo").addEventListener("click",function(){ cekKode($("vk").value); });
+ $("vk").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); cekKode(this.value); } });
+ if(kode){ $("vk").value=ekstrakCek(kode)||String(kode).slice(0,40); cekKode(kode); } else $("vk").focus();
+}
+function cekKode(raw){
+ var k=ekstrakCek(raw), res=$("vres");
+ if(!k){ res.innerHTML='<div class="vres vno"><b>Format kode tidak valid</b><span>Contoh kode: SIHG26-P-1A2B3C4D.</span></div>'; return; }
+ res.innerHTML='<p class="hint">Memeriksa…</p>'; $("vgo").disabled=true;
+ api({action:"validasi",kode:k}).then(function(r){
+  if(!$("vres")) return; $("vgo").disabled=false;
+  if(!r||!r.ok){ res.innerHTML='<div class="vres vno"><b>Tidak dapat diperiksa</b><span>'+esc((r&&r.error)||"Gagal memeriksa. Coba lagi.")+'</span></div>'; return; }
+  if(!r.ada){ res.innerHTML='<div class="vres vno"><b>✕ Kode tidak ditemukan</b><span>Kode ini tidak terdaftar pada arsip panitia. Periksa kembali penulisan kode atau hubungi panitia.</span></div>'; return; }
+  var c=r.cert, lb=c.peran==="PEMATERI"?"Judul materi":c.peran==="PESERTA"?"Instansi":"Peran";
+  res.innerHTML=(r.sah?'<div class="vres vyes"><b>✓ Sertifikat SAH</b><span>Tercatat pada arsip resmi panitia SIHG 2026.</span></div>':'<div class="vres vno"><b>✕ Sertifikat TIDAK BERLAKU</b><span>'+esc(r.alasan||"Sertifikat tidak berlaku.")+'</span></div>')+
+   '<div class="kv">'+kv("Nomor",c.nomor)+kv("Kode validasi",c.kode)+kv("Nama",c.nama)+kv("Sebagai",c.peran)+(c.keterangan?kv(lb,c.keterangan):"")+(c.peran==="PESERTA"&&c.durasi?kv("Durasi hadir",c.durasi+" menit"):"")+kv("Kegiatan",c.acara)+kv("Tanggal kegiatan",c.tanggal)+kv("Tempat",c.tempat)+kv("Diterbitkan",tglWaktu(c.terbit))+'</div>';
+ }).catch(function(){ if($("vres")){ $("vgo").disabled=false; res.innerHTML='<div class="vres vno"><b>Gagal terhubung ke server</b><span>Periksa koneksi internet lalu coba lagi.</span></div>'; } });
 }
 
 /* --- Panitia: unggah laporan peserta Zoom (CSV) untuk peserta daring --- */
@@ -1048,6 +1193,8 @@ function cetakHadir(){
 var t=stored();
 if(t) api({action:"me",token:t}).then(function(r){ if(r&&r.ok){SES={token:t,role:r.role,nama:r.nama};show(r.role,r.nama,r.data);afterLogin();} else store(null); }).catch(function(){});
 if(PH) setTimeout(function(){ if(!SES){ openLogin("peserta"); $("ldemo").textContent="Masuk sebagai Peserta untuk mencatat kehadiran dari QR."; } },700);
+$("vbtn").addEventListener("click",function(){dlgValidasi();});
+if(CEK) setTimeout(function(){dlgValidasi(CEK);},400);
 })();
 </script>
 </body>

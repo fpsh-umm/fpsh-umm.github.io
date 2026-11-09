@@ -637,7 +637,7 @@ function sertifikatHint(d){
   return nz+"Kehadiran peserta daring dicatat panitia dari laporan Zoom setelah acara; tombol <b>Cetak E-sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
  }
  if(!d.cekin) return "Lakukan <b>Cek in</b> saat tiba dan <b>Cek out</b> saat pulang (pindai QR panitia). Tombol <b>Cetak E-sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
- if(!d.cekout) return "Anda sudah Cek in. Jangan lupa <b>Cek out</b> saat pulang; tombol <b>Cetak E-sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
+ if(!d.cekout) return "Anda sudah Cek in. Jangan lupa <b>Cek out</b> saat Acara Selesai; tombol <b>Cetak E-sertifikat</b> muncul bila durasi keikutsertaan minimal "+min+" menit.";
  return "Durasi hadir Anda "+d.durasi+" menit; minimal "+min+" menit untuk sertifikat. Hubungi panitia bila ada kesalahan pencatatan.";
 }
 function tombolAbsen(d){
@@ -756,7 +756,7 @@ function blokUnggahan(d){
   });
  }
  return '<div class="up"><h3>Makalah &amp; kontribusi</h3>'+rek+'<div class="kv">'+rows+'</div>'+tb+tm+tt+
-  (ok?(sisa===0&&kuota>0?'<p class="hint" style="margin-top:6px">Seluruh jatah makalah sudah terpakai. Untuk menambah makalah, transfer '+rp(50000)+' per makalah tambahan ke rekening di atas, lalu klik <b>Unggah bukti transfer tambahan</b>. Jatah bertambah setelah diverifikasi panitia.</p>':'<p class="hint" style="margin-top:6px">Salah mengunggah berkas? Klik <b>Hapus</b> pada makalah terkait, lalu unggah kembali. Ingin menambah makalah? Transfer '+rp(50000)+' per makalah tambahan lalu klik <b>Unggah bukti transfer tambahan</b>.</p>')
+  (ok?(sisa===0&&kuota>0?'<p class="hint" style="margin-top:6px">Seluruh jatah makalah sudah terpakai. Untuk menambah makalah, transfer '+rp(50000)+' per makalah tambahan ke rekening di atas, lalu klik <b>Unggah bukti transfer tambahan</b>. Jatah bertambah setelah diverifikasi panitia.</p>':'<p class="hint" style="margin-top:6px">Ingin menambah makalah? Transfer '+rp(50000)+' per makalah tambahan lalu klik <b>Unggah bukti transfer tambahan</b>.</p>')
    :'<p class="hint" style="margin-top:6px">Tombol <b>Unggah makalah</b> akan muncul setelah bukti transfer diverifikasi panitia. Jumlah makalah yang dapat diunggah mengikuti nominal pembayaran yang terverifikasi ('+rp(50000)+' per makalah).</p>')+'</div>';
 }
 function selMakalah(r){
@@ -1218,7 +1218,7 @@ async function segarQr(){
 function tampilQr(mode){
  HD.mode=mode==="out"?"out":"in";
  var w=$("qrWrap"); w.hidden=false;
- w.innerHTML='<div class="qrb"><div style="font-weight:800;font-size:20px;margin-bottom:8px;color:'+(HD.mode==="out"?"var(--err,#b3261e)":"var(--ok)")+'">'+(HD.mode==="out"?"QR CEK OUT (peserta pulang)":"QR CEK IN (peserta tiba)")+'</div><div id="qrBox">Memuat QR…</div><p class="hint" style="margin:10px 0 6px;font-size:13px">Peserta luring memindai QR ini lewat tombol <b>📷 Absen</b> di akun mereka atau kamera ponsel. QR berganti otomatis tiap 40 detik; tampilkan di layar atau proyektor.'+(location.protocol==="file:"?' <b>Halaman ini dibuka dari file lokal; QR hanya berfungsi jika halaman di-hosting di alamat publik (https).</b>':"")+'</p><div class="msg" id="qrErr" role="alert"></div><button type="button" class="pb alt" id="qrh">Sembunyikan QR</button></div>';
+ w.innerHTML='<div class="qrb"><div style="font-weight:800;font-size:20px;margin-bottom:8px;color:'+(HD.mode==="out"?"var(--err,#b3261e)":"var(--ok)")+'">'+(HD.mode==="out"?"QR CEK OUT":"QR CEK IN")+'</div><div id="qrBox">Memuat QR…</div><p class="hint" style="margin:10px 0 6px;font-size:13px">Peserta luring memindai QR ini lewat tombol <b>📷 Absen</b> di akun mereka atau kamera ponsel. QR berganti otomatis tiap 40 detik; tampilkan di layar atau proyektor.'+(location.protocol==="file:"?' <b>Halaman ini dibuka dari file lokal; QR hanya berfungsi jika halaman di-hosting di alamat publik (https).</b>':"")+'</p><div class="msg" id="qrErr" role="alert"></div><button type="button" class="pb alt" id="qrh">Sembunyikan QR</button></div>';
  $("qrh").addEventListener("click",function(){clearInterval(HD.qt);w.hidden=true;});
  clearInterval(HD.qt); segarQr();
  HD.qt=setInterval(function(){ if(!$("qrBox")) return clearInterval(HD.qt); segarQr(); },40000);

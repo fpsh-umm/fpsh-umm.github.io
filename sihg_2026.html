@@ -134,6 +134,7 @@ th{background:#e8f2f3;color:var(--teal)}
 .upf{width:100%;padding:12px;border:2px dashed var(--teal);border-radius:10px;background:#fff;font-size:15px;cursor:pointer}
 .upv{margin:10px 0;text-align:center}.upv img{max-width:100%;max-height:34vh;border:1px solid var(--line);border-radius:10px}
 .pb.alt{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+.rek{background:#f2f8f8;border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:12px;padding:12px 16px;margin-bottom:12px;line-height:1.55}.rek p{margin:4px 0}.rek .no{font-size:20px;font-weight:800;letter-spacing:1px;color:var(--teal)}.kv .fl{align-items:center}
 .qrb{background:#fff;border:1px solid var(--line);border-radius:12px;text-align:center;padding:16px;margin-bottom:12px}
 @media(max-width:820px){.logo-umm{height:64px}.logo-fpsh{height:50px}.hero,main{grid-template-columns:1fr}.hero{gap:24px}.facts{grid-template-columns:1fr}.facts div{border-right:0;border-bottom:1px solid var(--line)}.row,.mode{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -405,14 +406,15 @@ var RC={
 };
 var DEMOACC={peserta:["peserta@contoh.id","081234567890"],pemateri:["pemateri@contoh.id","081298765432"],panitia:["panitia@umm.ac.id","17081990"]};
 var DROWS=[["Dr. Ahmad Dahlan, M.Pd.","Dosen","Luring",1],["Siti Aminah, S.Pd.","Guru","Daring",0],["Budi Santoso","Mahasiswa","Luring",0],["Rina Wijaya, M.Si.","Dosen","Daring",1],["Agus Salim","Umum / Peneliti","Luring",0]].map(function(a,i){
- return {id:"SIHG26-000"+(i+1),waktu:"03/11/2026 09:"+(10+i)+"",nama:a[0],email:"user"+(i+1)+"@contoh.id",wa:"08123456780"+i,instansi:"Instansi Contoh "+(i+1),kategori:a[1],mode:a[2],makalah:i%2===0,hadir:!!a[3],adaBukti:i===2,buktiStatus:i===2?"Menunggu":"",adaMakalah:false,catatan:""};});
+ return {id:"SIHG26-000"+(i+1),waktu:"03/11/2026 09:"+(10+i)+"",nama:a[0],email:"user"+(i+1)+"@contoh.id",wa:"08123456780"+i,instansi:"Instansi Contoh "+(i+1),kategori:a[1],mode:a[2],makalah:i%2===0,hadir:!!a[3],adaBukti:i===2,buktiStatus:i===2?"Menunggu":"",adaMakalah:false,catatan:"",mk:[],mkd:[],kuota:0,tmb:[],jmlMakalah:0,kuotaMakalah:0,kuotaUtama:0,tambahan:[]};});
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];});}
 function safeUrl(u){return /^https?:\/\//i.test(u)?esc(u):"";}
 function digits(s){return String(s||"").replace(/\D/g,"");}
 
 function durOf(x){return x.ci&&x.co?Math.round((new Date(x.co.replace(" ","T"))-new Date(x.ci.replace(" ","T")))/60000):0;}
-function syncDemo(x){x.cekin=x.ci||"";x.cekout=x.co||"";x.durasi=durOf(x);x.layak=x.durasi>=150;}
+function syncMk(x){x.jmlMakalah=x.mk.length;x.adaMakalah=x.jmlMakalah>0;x.kuotaUtama=x.buktiStatus==="Terverifikasi"?(x.kuota||1):0; x.kuotaMakalah=x.kuotaUtama+x.tmb.reduce(function(a,t){return a+(x.kuotaUtama&&t.s==="Terverifikasi"?t.j:0);},0); x.tambahan=x.tmb.map(function(t,i){return {no:i+1,status:t.s,jumlah:t.j,catatan:t.c||"",waktu:t.w};});}
+function syncDemo(x){syncMk(x);x.cekin=x.ci||"";x.cekout=x.co||"";x.durasi=(x.dz&&x.ci&&x.co)?x.dz:durOf(x);x.layak=x.durasi>=150;}
 DROWS.forEach(function(x,i){ if(x.hadir){x.ci="2026-11-25 08:0"+(5+i)+":00";x.co="";} syncDemo(x); });
 function demo(b){
  if(b.action==="login"){var a=DEMOACC[b.role];
@@ -422,7 +424,7 @@ function demo(b){
  if(b.action==="otp") return digits(b.code)==="123456"?{ok:true,token:"demo|panitia",role:"panitia",nama:demoNama("panitia"),data:demoData("panitia")}:{ok:false,error:"Kode salah. Sisa percobaan: 4."};
  if(b.action==="otp_resend") return {ok:true,otp:true,challenge:"demo",email:"pa***@umm.ac.id"};
  if(b.action==="me"){var r=String(b.token).split("|")[1];return r?{ok:true,role:r,nama:demoNama(r),data:demoData(r)}:{ok:false,expired:true};}
- function setSt(id,st,via){DROWS.forEach(function(x){if(x.id===id){x.st=st;x.hadir=st==="Hadir";x.wh=st==="Hadir"?"2026-11-25 08:"+(10+Math.floor(Math.random()*40))+":00":"";x.ci=x.wh;if(st!=="Hadir")x.co="";x.via=st==="Hadir"?via:"";syncDemo(x);}});}
+ function setSt(id,st,via){DROWS.forEach(function(x){if(x.id===id){x.st=st;x.hadir=st==="Hadir";x.wh=st==="Hadir"?"2026-11-25 08:"+(10+Math.floor(Math.random()*40))+":00":"";x.ci=x.wh;if(st!=="Hadir"){x.co="";x.dz=0;}x.via=st==="Hadir"?via:"";syncDemo(x);}});}
  function stOf(x){return x.st!==undefined?x.st:(x.hadir?"Hadir":"");}
  if(b.action==="hadir"){setSt(b.id,b.hadir?"Hadir":"","Panitia");return {ok:true};}
  if(b.action==="setWaktu"){ var w0=DROWS.filter(function(x){return x.id===b.id;})[0];
@@ -432,16 +434,28 @@ function demo(b){
     syncDemo(w0); } }
  if(b.action==="setHadir"||b.action==="daftarHadir"||b.action==="setWaktu"){ if(b.action==="setHadir") setSt(b.id,b.status,"Panitia");
   return {ok:true,minDurasi:150,info:{acara:"Seminar Internasional Hari Guru 2026",tanggal:"25 November 2026",waktu:"08:00–12:00 WIB",tempat:"Theater Dome UMM"},
-   peserta:DROWS.filter(function(x){return x.mode==="Luring";}).map(function(x){return {id:x.id,nama:x.nama,instansi:x.instansi,kategori:x.kategori,status:stOf(x),waktu:x.wh||(x.hadir?"2026-11-25 08:05:00":""),via:x.via||(x.hadir?"QR":""),cekin:x.cekin,cekout:x.cekout,durasi:x.durasi,layak:x.layak};})};}
+   mode:(b.mode==="Daring"?"Daring":"Luring"),peserta:DROWS.filter(function(x){return x.mode===(b.mode==="Daring"?"Daring":"Luring");}).map(function(x){return {id:x.id,nama:x.nama,instansi:x.instansi,kategori:x.kategori,status:stOf(x),waktu:x.wh||(x.hadir?"2026-11-25 08:05:00":""),via:x.via||(x.hadir?"QR":""),cekin:x.cekin,cekout:x.cekout,durasi:x.durasi,layak:x.layak};})};}
+ if(b.action==="unggahTambahan"){ var mt=DROWS[0];
+   if(!b.berkas||!b.berkas.data) return {ok:false,error:"Berkas belum dipilih."};
+   if(mt.buktiStatus!=="Terverifikasi") return {ok:false,error:"Bukti tambahan dapat diunggah setelah bukti transfer utama diverifikasi."};
+   if(mt.tmb.some(function(t){return t.s==="Menunggu";})) return {ok:false,error:"Bukti tambahan sebelumnya masih menunggu verifikasi panitia."};
+   mt.tmb=mt.tmb.filter(function(t){return t.s!=="Ditolak";}); mt.tmb.push({s:"Menunggu",j:0,c:"",w:"2026-11-22 10:00:00",d:b.berkas.data}); syncMk(mt); return {ok:true,data:demoData("peserta")}; }
+ if(b.action==="hapusMakalah"){ var mh=DROWS[0]; if(!(b.idx>=0&&b.idx<mh.mk.length)) return {ok:false,error:"Makalah tidak ditemukan."}; mh.mk.splice(b.idx,1); mh.mkd.splice(b.idx,1); syncMk(mh); return {ok:true,data:demoData("peserta")}; }
  if(b.action==="unggahBukti"||b.action==="unggahMakalah"){ var me=DROWS[0];
    if(!b.berkas||!b.berkas.data) return {ok:false,error:"Berkas belum dipilih."};
    if(b.action==="unggahBukti"){ if(me.buktiStatus==="Terverifikasi") return {ok:false,error:"Bukti transfer Anda sudah diverifikasi."}; me.adaBukti=true; me.buktiStatus="Menunggu"; me.catatan=""; me.bw="2026-11-20 10:15:00"; }
-   else { if(me.buktiStatus!=="Terverifikasi") return {ok:false,error:"Unggah makalah dibuka setelah bukti transfer diverifikasi panitia."}; me.adaMakalah=true; me.mw="2026-11-21 09:00:00"; }
-   me.berkas=me.berkas||{}; me.berkas[b.action==="unggahBukti"?"bukti":"makalah"]=b.berkas.data;
+   else { if(me.buktiStatus!=="Terverifikasi") return {ok:false,error:"Unggah makalah dibuka setelah bukti transfer diverifikasi panitia."};
+     if(me.mk.length>=me.kuotaMakalah) return {ok:false,error:"Jumlah makalah yang diunggah sudah mencapai batas ("+me.kuotaMakalah+" makalah). Untuk menambah, hubungi panitia."};
+     me.mk.push("2026-11-21 09:0"+me.mk.length+":00"); me.mkd.push(b.berkas.data); syncMk(me); return {ok:true,data:demoData("peserta")}; }
+   me.berkas=me.berkas||{}; me.berkas.bukti=b.berkas.data;
    return {ok:true,data:demoData("peserta")}; }
-  if(b.action==="verifikasiBukti"){ var rw=DROWS.filter(function(x){return x.id===b.id;})[0]; if(!rw||!rw.adaBukti) return {ok:false,error:"Peserta belum mengunggah bukti transfer."}; rw.buktiStatus=b.status; rw.catatan=b.status==="Ditolak"?(b.catatan||""):""; return {ok:true,status:b.status,catatan:rw.catatan}; }
+  if(b.action==="verifikasiBukti"&&b.t!==undefined&&b.t!==null){ var rt=DROWS.filter(function(x){return x.id===b.id;})[0], tt=rt&&rt.tmb[b.t]; if(!tt) return {ok:false,error:"Bukti tambahan tidak ditemukan."};
+   if(b.status==="Terverifikasi"&&!(b.jumlah>=1)) return {ok:false,error:"Jumlah makalah harus antara 1 dan 50."};
+   tt.s=b.status; tt.j=b.status==="Terverifikasi"?b.jumlah:0; tt.c=b.status==="Ditolak"?(b.catatan||""):""; syncMk(rt); return {ok:true,status:b.status,catatan:tt.c,jumlah:tt.j,kuota:rt.kuotaMakalah}; }
+  if(b.action==="verifikasiBukti"){ var rw=DROWS.filter(function(x){return x.id===b.id;})[0]; if(!rw||!rw.adaBukti) return {ok:false,error:"Peserta belum mengunggah bukti transfer."}; if(b.status==="Terverifikasi"&&!(b.jumlah>=1)) return {ok:false,error:"Jumlah makalah harus antara 1 dan 50."}; rw.buktiStatus=b.status; rw.kuota=b.status==="Terverifikasi"?b.jumlah:0; rw.catatan=b.status==="Ditolak"?(b.catatan||""):""; syncMk(rw); return {ok:true,status:b.status,catatan:rw.catatan,kuota:rw.kuotaMakalah,kuotaUtama:rw.kuotaUtama}; }
   if(b.action==="lihatBerkas"){ var rr=DROWS.filter(function(x){return x.id===b.id;})[0], k=b.jenis==="makalah"?"makalah":"bukti";
-   if(rr&&rr.berkas&&rr.berkas[k]){ var dd=rr.berkas[k], m=/^data:([^;,]+);base64,(.*)$/.exec(dd); if(m) return {ok:true,nama:"contoh-"+k,mime:m[1],data:m[2]}; }
+   var dd0=rr&&(k==="makalah"?rr.mkd[Number(b.idx)||0]:b.jenis==="tambahan"?(rr.tmb[Number(b.idx)||0]||{}).d:(rr.berkas&&rr.berkas.bukti));
+   if(dd0){ var dd=dd0, m=/^data:([^;,]+);base64,(.*)$/.exec(dd); if(m) return {ok:true,nama:"contoh-"+k,mime:m[1],data:m[2]}; }
    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="520" height="300"><rect width="520" height="300" fill="#f6f3ee"/><text x="260" y="140" text-anchor="middle" font-family="Arial" font-size="26" fill="#0f5a63">Contoh bukti transfer</text><text x="260" y="180" text-anchor="middle" font-family="Arial" font-size="18" fill="#5d7076">Rp 50.000 - '+(rr?rr.nama:"")+'</text></svg>';
    return {ok:true,nama:"contoh.svg",mime:"image/svg+xml",data:btoa(svg)}; }
   if(b.action==="qrHadir") return {ok:true,mode:b.mode,kode:b.mode==="out"?"0123456789ab.9876543210":"0123456789ab.0123456789"};
@@ -451,6 +465,10 @@ function demo(b){
   if(!me2.hadir) return {ok:false,error:"Anda belum Cek in. Pindai QR Cek in terlebih dahulu (atau hubungi panitia)."};
   var sd=!!me2.co; me2.co="2026-11-25 11:00:00"; syncDemo(me2);
   return {ok:true,mode:"out",sudah:sd,nama:me2.nama,id:me2.id,waktu:me2.co,durasi:me2.durasi,min:150,layak:me2.layak}; }
+ if(b.action==="importZoom"){ var okz=0, lz=[]; (b.items||[]).forEach(function(it){ var x=DROWS.filter(function(y){return y.id===it.id;})[0];
+   if(!x){lz.push({id:it.id,alasan:"Pendaftar tidak ditemukan"});return;} if(x.mode!=="Daring"){lz.push({id:it.id,alasan:"Bukan peserta daring (absen lewat QR)"});return;}
+   x.ci=it.cekin; x.co=it.cekout; x.dz=it.durasi; x.hadir=true; x.st="Hadir"; x.wh=x.ci; x.via="Zoom"; syncDemo(x); okz++; });
+  return {ok:true,diterapkan:okz,dilewati:lz}; }
  if(b.action==="sertifikat"){ var m3=DROWS[0]; if(!m3.layak) return {ok:false,error:"Sertifikat tersedia setelah durasi kehadiran minimal 150 menit (Cek in dan Cek out). Durasi Anda saat ini: "+m3.durasi+" menit."};
   return {ok:true,nama:"Sertifikat_SIHG2026_contoh.pdf",mime:"application/pdf",data:btoa("%PDF-1.1\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 100]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF"),email:DEMOACC.peserta[0],emailTerkirim:true}; }
  return {ok:true};
@@ -459,7 +477,7 @@ function stOf2(x){return x.st!==undefined?x.st:(x.hadir?"Hadir":"");}
 function demoNama(r){return {peserta:"Dr. Ahmad Dahlan, M.Pd.",pemateri:"Prof. Contoh Pemateri",panitia:"Panitia Contoh"}[r];}
 function demoData(r){
  if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,statusHadir:stOf2(x),waktuHadir:x.wh||"",cekin:x.cekin,cekout:x.cekout,durasi:x.durasi,minDurasi:150,layak:x.layak,zoom:"",waktu:x.waktu,
-   bukti:{perlu:x.makalah,ada:!!x.adaBukti,status:x.buktiStatus||"",waktu:x.bw||"",catatan:x.catatan||""},makalahFile:{ada:!!x.adaMakalah,waktu:x.mw||""}};}
+   bukti:{perlu:x.makalah,ada:!!x.adaBukti,status:x.buktiStatus||"",waktu:x.bw||"",catatan:x.catatan||"",tambahan:x.tambahan,bisaTambah:x.buktiStatus==="Terverifikasi"&&x.tmb.length<10&&!x.tmb.some(function(t){return t.s==="Menunggu";})},makalahFile:{ada:x.mk.length>0,waktu:x.mk[x.mk.length-1]||"",jumlah:x.mk.length,kuota:x.kuotaMakalah,sisa:Math.max(0,x.kuotaMakalah-x.mk.length),files:x.mk.map(function(w,i){return {no:i+1,waktu:w};})}};}
  if(r==="pemateri") return {nama:demoNama(r),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",zoom:"https://zoom.us",upload:"https://drive.google.com"};
  return {nama:demoNama(r),peran:"Ketua Panitia",kuota:350,rows:DROWS};
 }
@@ -548,7 +566,11 @@ function hm(v){return v?esc(String(v).slice(11,16)):"-";}
 function durTxt(r){return r.cekin&&r.cekout?r.durasi+" mnt"+(r.layak?" ✓":""):"-";}
 function sertifikatHint(d){
  var min=d.minDurasi||150;
- if(d.mode!=="Luring") return "Sertifikat tersedia bagi peserta dengan durasi hadir minimal "+min+" menit (Cek in dan Cek out). Untuk peserta daring, hubungi panitia untuk pencatatan kehadiran.";
+ if(d.mode!=="Luring"){
+  var nz="Saat masuk Zoom, ubah nama tampilan Anda menjadi <b>"+esc(d.id)+" "+esc(d.nama)+"</b> agar kehadiran dan durasi tercatat otomatis. ";
+  if(d.cekin) return "Durasi hadir Anda "+d.durasi+" menit (dari laporan Zoom); minimal "+min+" menit untuk sertifikat. Hubungi panitia bila ada kesalahan pencatatan.";
+  return nz+"Kehadiran peserta daring dicatat panitia dari laporan Zoom setelah acara; tombol <b>Unduh sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
+ }
  if(!d.cekin) return "Lakukan <b>Cek in</b> saat tiba dan <b>Cek out</b> saat pulang (pindai QR panitia). Tombol <b>Unduh sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
  if(!d.cekout) return "Anda sudah Cek in. Jangan lupa <b>Cek out</b> saat pulang; tombol <b>Unduh sertifikat</b> muncul bila durasi hadir minimal "+min+" menit.";
  return "Durasi hadir Anda "+d.durasi+" menit; minimal "+min+" menit untuk sertifikat. Hubungi panitia bila ada kesalahan pencatatan.";
@@ -561,7 +583,7 @@ function show(role,nama,d){
  $("who").textContent="Halo, "+nama; $("btnLogin").textContent="Keluar";
  var h="";
  if(role==="peserta"){
-  h=head("Peserta",d.nama)+'<div class="kv">'+kv("Nomor pendaftaran",d.id)+kv("Nama",d.nama)+kv("Email",d.email)+kv("WhatsApp",d.wa)+kv("Instansi",d.instansi)+kv("Kategori",d.kategori)+kv("Metode",d.mode)+kv("Kirim makalah",d.makalah?"Ya":"Tidak")+kv("Status kehadiran",d.statusHadir||"Belum tercatat")+(d.mode==="Luring"?kv("Cek in",d.cekin?d.cekin.slice(11,16)+" WIB":"-")+kv("Cek out",d.cekout?d.cekout.slice(11,16)+" WIB":"-")+kv("Durasi hadir",d.cekin&&d.cekout?d.durasi+" menit":"-"):"")+kv("Waktu daftar",d.waktu)+'</div>'+blokUnggahan(d)+
+  h=head("Peserta",d.nama)+'<div class="kv">'+kv("Nomor pendaftaran",d.id)+kv("Nama",d.nama)+kv("Email",d.email)+kv("WhatsApp",d.wa)+kv("Instansi",d.instansi)+kv("Kategori",d.kategori)+kv("Metode",d.mode)+kv("Kirim makalah",d.makalah?"Ya":"Tidak")+kv("Status kehadiran",d.statusHadir||"Belum tercatat")+((d.mode==="Luring"||d.cekin)?kv("Cek in",d.cekin?d.cekin.slice(11,16)+" WIB":"-")+kv("Cek out",d.cekout?d.cekout.slice(11,16)+" WIB":"-")+kv("Durasi hadir",d.cekin&&d.cekout?d.durasi+" menit":"-"):"")+kv("Waktu daftar",d.waktu)+'</div>'+blokUnggahan(d)+
    (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Buka tautan Zoom</a>':"")+
    (d.mode==="Luring"?'<button type="button" class="pb" id="pa" style="margin-top:14px">📷 Absen (Cek in / Cek out)</button>':"")+
    (d.layak?'<button type="button" class="pb" id="pc" style="margin-top:14px">🎓 Unduh sertifikat</button><p class="hint" style="margin-top:8px">Sertifikat juga langsung dikirim ke email Anda ('+esc(d.email)+').</p>':'<p class="hint" style="margin-top:12px">'+sertifikatHint(d)+'</p>');
@@ -572,20 +594,24 @@ function show(role,nama,d){
  } else {
   ROWS=d.rows||[]; KUOTA=d.kuota||0; MINDUR=d.minDurasi||150;
   h=head(d.peran||"Panitia",d.nama)+'<div class="cards" id="cards"></div>'+
-   '<div class="tbar"><input id="tq" type="search" placeholder="Cari nama, email, instansi, nomor" aria-label="Cari"><select id="tm" aria-label="Filter metode"><option value="">Semua metode</option><option>Luring</option><option>Daring</option></select><button type="button" id="th">📋 Daftar Hadir Luring</button><button type="button" id="tx">Unduh CSV</button></div>'+
+   '<div class="tbar"><input id="tq" type="search" placeholder="Cari nama, email, instansi, nomor" aria-label="Cari"><select id="tm" aria-label="Filter metode"><option value="">Semua metode</option><option>Luring</option><option>Daring</option></select><button type="button" id="th">📋 Daftar Hadir</button><button type="button" id="tz">📥 Unggah CSV Zoom</button><button type="button" id="tx">Unduh CSV</button></div>'+
    '<p class="hint" id="tc" style="margin-bottom:8px"></p><div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>WhatsApp</th><th>Instansi</th><th>Kategori</th><th>Metode</th><th>Makalah</th><th>Kehadiran</th><th>Cek in</th><th>Cek out</th><th>Durasi</th><th>Bukti transfer</th><th>File makalah</th></tr></thead><tbody id="tb"></tbody></table></div>';
  }
  $("dash").innerHTML=h;
  if($("pa")) $("pa").addEventListener("click",dlgAbsen);
  if($("pc")) $("pc").addEventListener("click",function(){unduhSertifikat(this);});
  if($("ub")) $("ub").addEventListener("click",function(){dlgUnggah("bukti");});
- if($("um")) $("um").addEventListener("click",function(){dlgUnggah("makalah");});
+ if($("ut")) $("ut").addEventListener("click",function(){dlgUnggah("tambahan");});
+ if($("um")) $("um").addEventListener("click",function(){dlgUnggah("makalah",Number(this.dataset.sisa)||0);});
+ if($("rekcp")) $("rekcp").addEventListener("click",function(){ var t=this; function ok(){ t.textContent="Tersalin ✓"; setTimeout(function(){t.textContent="Salin";},1800); } try{ navigator.clipboard.writeText("2020765064").then(ok,function(){}); }catch(e){} });
+ [].forEach.call(document.querySelectorAll("button[data-hm]"),function(bt){ bt.addEventListener("click",function(){ hapusMakalah(Number(this.dataset.hm),this); }); });
  if($("th")) $("th").addEventListener("click",dlgHadir);
+ if($("tz")) $("tz").addEventListener("click",dlgZoom);
  if(role==="panitia"){
   $("tq").addEventListener("input",draw); $("tm").addEventListener("change",draw); $("tx").addEventListener("click",csv);
   $("tb").addEventListener("click",function(e){
-   var bk=e.target.closest("button[data-bk]"); if(bk) return dlgBukti(bk.dataset.bk);
-    var mk=e.target.closest("button[data-mk]"); if(mk) return unduhMakalah(mk.dataset.mk,mk);
+   var bk=e.target.closest("button[data-bk]"); if(bk) return dlgBukti(bk.dataset.bk,bk.dataset.t===undefined?null:Number(bk.dataset.t));
+    var mk=e.target.closest("button[data-mk]"); if(mk) return unduhMakalah(mk.dataset.mk,mk,mk.dataset.i);
     var b=e.target.closest("button[data-id]"); if(!b) return;
    var id=b.dataset.id, row=ROWS.filter(function(r){return r.id===id;})[0], nv=!row.hadir; b.disabled=true;
    api({action:"hadir",token:SES.token,id:id,hadir:nv}).then(function(r){ if(r&&r.ok){row.hadir=nv;row.status=nv?"Hadir":"";} else alert((r&&r.error)||"Gagal menyimpan."); draw(); }).catch(function(){alert("Gagal terhubung ke server.");draw();});
@@ -597,14 +623,14 @@ function show(role,nama,d){
 function draw(){
  var q=$("tq").value.toLowerCase(), m=$("tm").value;
  var rs=ROWS.filter(function(r){return (!m||r.mode===m)&&(!q||(r.nama+" "+r.email+" "+r.instansi+" "+r.id+" "+r.wa).toLowerCase().indexOf(q)>=0);});
- $("tb").innerHTML=rs.map(function(r){return "<tr><td>"+esc(r.id)+"</td><td>"+esc(r.nama)+"</td><td>"+esc(r.email)+"</td><td>"+esc(r.wa)+"</td><td>"+esc(r.instansi)+"</td><td>"+esc(r.kategori)+"</td><td>"+esc(r.mode)+"</td><td>"+(r.makalah?"Ya":"Tidak")+'</td><td><button type="button" class="hb'+(r.hadir?" on":"")+'" data-id="'+esc(r.id)+'">'+(r.hadir?"Hadir":"Tandai hadir")+"</button></td><td>"+hm(r.cekin)+"</td><td>"+hm(r.cekout)+"</td><td>"+durTxt(r)+"</td><td>"+selBukti(r)+"</td><td>"+(r.adaMakalah?'<button type="button" class="hb" data-mk="'+esc(r.id)+'">Unduh</button>':"-")+"</td></tr>";}).join("")||'<tr><td colspan="14">Tidak ada data.</td></tr>';
+ $("tb").innerHTML=rs.map(function(r){return "<tr><td>"+esc(r.id)+"</td><td>"+esc(r.nama)+"</td><td>"+esc(r.email)+"</td><td>"+esc(r.wa)+"</td><td>"+esc(r.instansi)+"</td><td>"+esc(r.kategori)+"</td><td>"+esc(r.mode)+"</td><td>"+(r.makalah?"Ya":"Tidak")+'</td><td><button type="button" class="hb'+(r.hadir?" on":"")+'" data-id="'+esc(r.id)+'">'+(r.hadir?"Hadir":"Tandai hadir")+"</button></td><td>"+hm(r.cekin)+"</td><td>"+hm(r.cekout)+"</td><td>"+durTxt(r)+"</td><td>"+selBukti(r)+"</td><td>"+selMakalah(r)+"</td></tr>";}).join("")||'<tr><td colspan="14">Tidak ada data.</td></tr>';
  $("tc").textContent=rs.length+" dari "+ROWS.length+" pendaftar";
- var lu=ROWS.filter(function(r){return r.mode==="Luring";}).length, hd=ROWS.filter(function(r){return r.hadir;}).length, bw=ROWS.filter(function(r){return r.buktiStatus==="Menunggu";}).length, ly=ROWS.filter(function(r){return r.layak;}).length;
+ var lu=ROWS.filter(function(r){return r.mode==="Luring";}).length, hd=ROWS.filter(function(r){return r.hadir;}).length, bw=ROWS.filter(function(r){return r.buktiStatus==="Menunggu"||(r.tambahan||[]).some(function(t){return t.status==="Menunggu";});}).length, ly=ROWS.filter(function(r){return r.layak;}).length;
  $("cards").innerHTML='<div class="card"><small>Total pendaftar</small><b>'+ROWS.length+'</b></div><div class="card"><small>Luring (kuota '+KUOTA+')</small><b>'+lu+'</b></div><div class="card"><small>Daring</small><b>'+(ROWS.length-lu)+'</b></div><div class="card"><small>Sudah hadir</small><b>'+hd+'</b></div><div class="card"><small>Bukti transfer menunggu</small><b>'+bw+'</b></div><div class="card"><small>Layak sertifikat (≥ '+MINDUR+' mnt)</small><b>'+ly+'</b></div>';
 }
 function csv(){
  var c=function(v){v=String(v==null?"":v); if(/^[=+\-@]/.test(v)) v="'"+v; return '"'+v.replace(/"/g,'""')+'"';};
- var out=[["ID","Nama","Email","WhatsApp","Instansi","Kategori","Metode","Kirim Makalah","Hadir","Cek in","Cek out","Durasi (menit)","Layak Sertifikat","Waktu Daftar","Status Bukti Transfer","File Makalah"]].concat(ROWS.map(function(r){return [r.id,r.nama,r.email,r.wa,r.instansi,r.kategori,r.mode,r.makalah?"Ya":"Tidak",r.hadir?"Hadir":"",r.cekin||"",r.cekout||"",r.cekin&&r.cekout?r.durasi:"",r.layak?"Ya":"",r.waktu,r.makalah?(r.buktiStatus||"Belum diunggah"):"-",r.adaMakalah?"Ya":""];}));
+ var out=[["ID","Nama","Email","WhatsApp","Instansi","Kategori","Metode","Kirim Makalah","Hadir","Cek in","Cek out","Durasi (menit)","Layak Sertifikat","Waktu Daftar","Status Bukti Transfer","Kuota Makalah","Makalah Terunggah"]].concat(ROWS.map(function(r){return [r.id,r.nama,r.email,r.wa,r.instansi,r.kategori,r.mode,r.makalah?"Ya":"Tidak",r.hadir?"Hadir":"",r.cekin||"",r.cekout||"",r.cekin&&r.cekout?r.durasi:"",r.layak?"Ya":"",r.waktu,r.makalah?(r.buktiStatus||"Belum diunggah"):"-",r.kuotaMakalah||0,r.jmlMakalah||(r.adaMakalah?1:0)];}));
  var blob=new Blob(["\ufeff"+out.map(function(r){return r.map(c).join(",");}).join("\r\n")],{type:"text/csv;charset=utf-8"});
  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="pendaftar-sihg-2026.csv"; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
 }
@@ -625,28 +651,54 @@ function tutup2(id){$(id).addEventListener("click",function(){$("dlg2").close();
 var BU=null;
 $("dlg2").addEventListener("close",function(){ if(BU){URL.revokeObjectURL(BU);BU=null;} });
 function waktuId(s){ return s?String(s).slice(8,10)+"/"+String(s).slice(5,7)+"/"+String(s).slice(0,4)+" "+String(s).slice(11,16)+" WIB":""; }
+function rp(n){ return "Rp"+String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,".")+",-"; }
 function blokUnggahan(d){
  var b=d.bukti; if(!b||!b.perlu) return "";
- var st=b.status, ok=st==="Terverifikasi", mf=d.makalahFile||{}, bs, tb, tm;
+ var st=b.status, ok=st==="Terverifikasi", mf=d.makalahFile||{}, files=mf.files||[], kuota=mf.kuota||0, jml=files.length, sisa=Math.max(0,kuota-jml), bs, tb, tm, tt;
  if(ok) bs='<span class="bs ok">Terverifikasi</span>';
  else if(st==="Menunggu") bs='<span class="bs wt">Menunggu verifikasi panitia</span>';
  else if(st==="Ditolak") bs='<span class="bs no">Ditolak</span>';
  else bs='<span class="bs">Belum diunggah</span>';
  tb=ok?"":'<button type="button" class="pb" id="ub">📤 '+(b.ada?"Unggah ulang bukti transfer":"Unggah bukti transfer")+'</button>';
- tm=ok?'<button type="button" class="pb" id="um">📄 '+(mf.ada?"Unggah ulang makalah":"Unggah makalah")+'</button>':"";
- return '<div class="up"><h3>Makalah &amp; kontribusi</h3><div class="kv">'+
-  '<div><span>Bukti transfer</span><b>'+bs+'</b></div>'+
+ tt=(ok&&b.bisaTambah)?'<button type="button" class="pb alt" id="ut">➕ Unggah bukti transfer tambahan</button>':"";
+ tm=(ok&&sisa>0)?'<button type="button" class="pb" id="um" data-sisa="'+sisa+'">📄 '+(jml?"Tambah makalah":"Unggah makalah")+' (sisa '+sisa+')</button>':"";
+ var rek='<div class="rek"><b>Pembayaran kontribusi makalah</b>'+
+  '<p>Bukti transfer ke rekening BNI<br>Nomor : <span class="no" id="rekno">2020765064</span> a.n. FPSH Program '+
+  '<button type="button" class="hb" id="rekcp" aria-label="Salin nomor rekening">Salin</button></p>'+
+  '<p class="hint" style="margin:6px 0 0">Kontribusi '+rp(50000)+' per makalah. Peserta dapat mengunggah lebih dari satu makalah, sesuai jumlah yang ditetapkan panitia berdasarkan verifikasi pembayaran.</p></div>';
+ var rows='<div><span>Bukti transfer</span><b>'+bs+'</b></div>'+
   (st==="Ditolak"&&b.catatan?'<div><span>Catatan panitia</span><b>'+esc(b.catatan)+'</b></div>':"")+
-  (b.waktu?'<div><span>Waktu unggah bukti</span><b>'+esc(waktuId(b.waktu))+'</b></div>':"")+
-  (ok?'<div><span>Makalah</span><b>'+(mf.ada?"Sudah diunggah"+(mf.waktu?" ("+esc(waktuId(mf.waktu))+")":""):"Belum diunggah")+'</b></div>':"")+
-  '</div>'+tb+tm+
-  (ok?'':'<p class="hint" style="margin-top:6px">Tombol <b>Unggah makalah</b> akan muncul setelah bukti transfer diverifikasi panitia.</p>')+'</div>';
+  (b.waktu?'<div><span>Waktu unggah bukti</span><b>'+esc(waktuId(b.waktu))+'</b></div>':"");
+ if(ok){
+  rows+='<div><span>Jumlah makalah diizinkan</span><b>'+kuota+' makalah ('+rp(kuota*50000)+')</b></div>'+
+   '<div><span>Makalah terunggah</span><b>'+jml+' dari '+kuota+'</b></div>';
+  (b.tambahan||[]).forEach(function(t){
+   var c=t.status==="Terverifikasi"?"ok":t.status==="Ditolak"?"no":"wt", tx=t.status==="Menunggu"?"Menunggu verifikasi":t.status;
+   rows+='<div><span>Bukti tambahan '+t.no+'</span><b><span class="bs '+c+'">'+esc(tx)+'</span>'+(t.status==="Terverifikasi"?' +'+t.jumlah+' makalah':"")+(t.status==="Ditolak"&&t.catatan?'<br><span class="hint">Catatan panitia: '+esc(t.catatan)+'</span>':"")+'</b></div>';
+  });
+  files.forEach(function(f,i){
+   rows+='<div class="fl"><span>Makalah '+(i+1)+'</span><b>'+(f.waktu?esc(waktuId(f.waktu))+" ":"")+'<button type="button" class="hb" data-hm="'+i+'" aria-label="Hapus makalah '+(i+1)+'">Hapus</button></b></div>';
+  });
+ }
+ return '<div class="up"><h3>Makalah &amp; kontribusi</h3>'+rek+'<div class="kv">'+rows+'</div>'+tb+tm+tt+
+  (ok?(sisa===0&&kuota>0?'<p class="hint" style="margin-top:6px">Seluruh jatah makalah sudah terpakai. Untuk menambah makalah, transfer '+rp(50000)+' per makalah tambahan ke rekening di atas, lalu klik <b>Unggah bukti transfer tambahan</b>. Jatah bertambah setelah diverifikasi panitia.</p>':'<p class="hint" style="margin-top:6px">Salah mengunggah berkas? Klik <b>Hapus</b> pada makalah terkait, lalu unggah kembali. Ingin menambah makalah? Transfer '+rp(50000)+' per makalah tambahan lalu klik <b>Unggah bukti transfer tambahan</b>.</p>')
+   :'<p class="hint" style="margin-top:6px">Tombol <b>Unggah makalah</b> akan muncul setelah bukti transfer diverifikasi panitia. Jumlah makalah yang dapat diunggah mengikuti nominal pembayaran yang terverifikasi ('+rp(50000)+' per makalah).</p>')+'</div>';
+}
+function selMakalah(r){
+ if(!r.makalah) return "-";
+ var n=r.jmlMakalah||(r.adaMakalah?1:0), k=r.kuotaMakalah||0;
+ if(!n) return k?'<span class="hint">0/'+k+'</span>':"-";
+ var bt=""; for(var i=0;i<n;i++) bt+='<button type="button" class="hb" data-mk="'+esc(r.id)+'" data-i="'+i+'" style="margin:0 4px 4px 0">'+(n>1?"Unduh "+(i+1):"Unduh")+'</button>';
+ return '<span class="hint">'+n+'/'+(k||n)+'</span> '+bt;
 }
 function selBukti(r){
  if(!r.makalah) return "-";
  if(!r.adaBukti) return '<span class="bs">Belum</span>';
  var st=r.buktiStatus||"Menunggu", c=st==="Terverifikasi"?"ok":st==="Ditolak"?"no":"wt";
- return '<span class="bs '+c+'">'+esc(st)+'</span> <button type="button" class="hb" data-bk="'+esc(r.id)+'">Periksa</button>';
+ var o='<span class="bs '+c+'">'+esc(st)+'</span> <button type="button" class="hb" data-bk="'+esc(r.id)+'">Periksa</button>';
+ (r.tambahan||[]).forEach(function(t,i){ var ct=t.status==="Terverifikasi"?"ok":t.status==="Ditolak"?"no":"wt";
+  o+='<div style="margin-top:6px"><span class="bs '+ct+'">Tambahan '+t.no+': '+esc(t.status)+(t.status==="Terverifikasi"?" +"+t.jumlah:"")+'</span> <button type="button" class="hb" data-bk="'+esc(r.id)+'" data-t="'+i+'">Periksa</button></div>'; });
+ return o;
 }
 function b64blob(b64,mime){ var bin=atob(b64),n=bin.length,a=new Uint8Array(n); for(var i=0;i<n;i++)a[i]=bin.charCodeAt(i); return new Blob([a],{type:mime}); }
 function bacaBerkas(file,gambar){
@@ -662,11 +714,19 @@ function bacaBerkas(file,gambar){
   var fr=new FileReader(); fr.onload=function(){ok({nama:file.name,data:String(fr.result)});}; fr.onerror=function(){no(new Error("Berkas tidak dapat dibaca."));}; fr.readAsDataURL(file);
  });
 }
-function dlgUnggah(jenis){
- var bk=jenis==="bukti", ttl=bk?"Unggah bukti transfer":"Unggah makalah", maks=bk?2.5:6;
+function hapusMakalah(i,btn){
+ if(!SES||!confirm("Hapus makalah "+(i+1)+"? Berkas akan dihapus dan jatah unggah Anda kembali.")) return;
+ btn.disabled=true;
+ api({action:"hapusMakalah",token:SES.token,idx:i}).then(function(r){
+  if(r&&r.ok){ show("peserta",SES.nama,r.data); return; }
+  btn.disabled=false; alert((r&&r.error)||"Gagal menghapus.");
+ }).catch(function(){ btn.disabled=false; alert("Gagal terhubung ke server."); });
+}
+function dlgUnggah(jenis,sisa){
+ var tb=jenis==="tambahan", bk=jenis!=="makalah", ttl=tb?"Unggah bukti transfer tambahan":bk?"Unggah bukti transfer":"Unggah makalah", maks=bk?2.5:6;
  var ket=bk?"Format JPG, PNG, atau PDF. Foto otomatis dikecilkan. Maksimal 2,5 MB.":"Format PDF, DOC, atau DOCX. Maksimal 6 MB.";
  dlg2('<h3 style="margin:0 0 8px">'+ttl+'</h3><p class="hint" style="font-size:14px;margin-bottom:10px">'+ket+'</p>'+
-  (bk?'<p class="hint" style="font-size:14px;margin-bottom:10px">Pastikan nominal, tanggal, dan nama pengirim terbaca jelas.</p>':'<p class="hint" style="font-size:14px;margin-bottom:10px">Berkas yang diunggah ulang akan menggantikan berkas sebelumnya.</p>')+
+  (bk?'<p class="hint" style="font-size:14px;margin-bottom:10px">Pastikan nominal, tanggal, dan nama pengirim terbaca jelas.'+(tb?" Unggah bukti untuk pembayaran makalah tambahan saja (Rp50.000,- per makalah) ke BNI 2020765064 a.n. FPSH Program.":"")+'</p>':'<p class="hint" style="font-size:14px;margin-bottom:10px">Setiap berkas dihitung sebagai satu makalah. Sisa jatah unggah: <b>'+(sisa||0)+'</b> makalah.</p>')+
   '<input type="file" class="upf" id="uf" accept="'+(bk?"image/jpeg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf":".pdf,.doc,.docx")+'" aria-label="Pilih berkas">'+
   '<div class="upv" id="uv"></div><div class="msg" id="ue" role="alert"></div>'+
   '<button type="button" class="pb" id="us" disabled>Unggah</button><button type="button" class="pb alt" id="uc">Batal</button>');
@@ -689,10 +749,10 @@ function dlgUnggah(jenis){
  });
  us.addEventListener("click",function(){
   if(!BERKAS||!SES) return; us.disabled=true; us.textContent="Mengunggah…"; uerr("");
-  api({action:bk?"unggahBukti":"unggahMakalah",token:SES.token,berkas:BERKAS}).then(function(r){
+  api({action:tb?"unggahTambahan":bk?"unggahBukti":"unggahMakalah",token:SES.token,berkas:BERKAS}).then(function(r){
    if(r&&r.ok){
     show("peserta",SES.nama,r.data);
-    dlg2('<h3 style="margin:0 0 8px">Berhasil diunggah ✅</h3><p style="margin-bottom:14px">'+(bk?"Bukti transfer Anda telah diterima. Panitia akan memverifikasinya; setelah terverifikasi, tombol <b>Unggah makalah</b> akan muncul di halaman ini.":"Makalah Anda telah diterima panitia.")+'</p><button type="button" class="pb" id="uo">Tutup</button>');
+    dlg2('<h3 style="margin:0 0 8px">Berhasil diunggah ✅</h3><p style="margin-bottom:14px">'+(tb?"Bukti transfer tambahan Anda telah diterima. Setelah diverifikasi panitia, jatah makalah Anda akan bertambah dan tombol <b>Tambah makalah</b> muncul kembali.":bk?"Bukti transfer Anda telah diterima. Panitia akan memverifikasinya; setelah terverifikasi, tombol <b>Unggah makalah</b> akan muncul di halaman ini.":"Makalah Anda telah diterima panitia."+(function(){var m=(r.data&&r.data.makalahFile)||{}; return m.sisa>0?" Anda masih dapat mengunggah "+m.sisa+" makalah lagi.":" Seluruh jatah makalah Anda sudah terpakai.";})())+'</p><button type="button" class="pb" id="uo">Tutup</button>');
     tutup2("uo"); return;
    }
    if(r&&r.expired){ uerr("Sesi berakhir. Silakan masuk kembali."); }
@@ -703,40 +763,47 @@ function dlgUnggah(jenis){
 }
 
 /* --- Panitia: periksa & verifikasi bukti transfer, unduh makalah --- */
-function dlgBukti(id){
+function dlgBukti(id,t){
  var row=ROWS.filter(function(r){return r.id===id;})[0]; if(!row) return;
- dlg2('<h3 style="margin:0 0 4px">Bukti transfer</h3><p class="hint" style="margin-bottom:10px">'+esc(row.nama)+' · '+esc(row.id)+'</p><div id="bvw" class="hint" style="text-align:center;padding:26px 0">Memuat berkas…</div>',true);
- api({action:"lihatBerkas",token:SES.token,id:id,jenis:"bukti"}).then(function(r){
+ var isT=(t!==null&&t!==undefined), tx=isT?row.tambahan[t]:null; if(isT&&!tx) return;
+ dlg2('<h3 style="margin:0 0 4px">Bukti transfer'+(isT?' tambahan '+(t+1):'')+'</h3><p class="hint" style="margin-bottom:10px">'+esc(row.nama)+' · '+esc(row.id)+'</p><div id="bvw" class="hint" style="text-align:center;padding:26px 0">Memuat berkas…</div>',true);
+ api({action:"lihatBerkas",token:SES.token,id:id,jenis:isT?"tambahan":"bukti",idx:isT?t:0}).then(function(r){
   if(!r||!r.ok){ $("bvw").textContent=(r&&r.error)||"Berkas tidak dapat dimuat."; return; }
   if(BU) URL.revokeObjectURL(BU);
   BU=URL.createObjectURL(b64blob(r.data,r.mime));
   var pv=/^image\//.test(r.mime)?'<img src="'+BU+'" alt="Bukti transfer" style="max-width:100%;max-height:58vh;border:1px solid var(--line);border-radius:10px">'
    :'<iframe src="'+BU+'" title="Bukti transfer" style="width:100%;height:58vh;border:1px solid var(--line);border-radius:10px"></iframe>';
-  var ver=row.buktiStatus==="Terverifikasi";
+  var ver=isT?tx.status==="Terverifikasi":row.buktiStatus==="Terverifikasi", jm0=isT?(tx.jumlah||1):(row.kuotaUtama||1);
+  var jml='<div style="margin-bottom:10px"><label for="bvj" style="font-weight:700;display:block;margin-bottom:4px">'+(isT?"Jumlah makalah TAMBAHAN yang disetujui":"Jumlah makalah yang disetujui")+'</label><input id="bvj" type="number" min="1" max="50" step="1" value="'+jm0+'" style="max-width:120px"> <span class="hint" id="bvt"></span><p class="hint" style="margin-top:4px">Rp50.000,- per makalah. Sesuaikan dengan nominal pada bukti transfer.</p></div>';
   var w=$("bvw"); w.className=""; w.style.padding="0";
   w.innerHTML=pv+'<p style="margin:8px 0 12px"><a href="'+BU+'" target="_blank" rel="noopener">Buka di tab baru</a></p>'+
-   (ver?'<p style="margin-bottom:10px"><span class="bs ok">Terverifikasi</span></p><button type="button" class="pb alt" id="bv3">Batalkan verifikasi</button>'
+   (ver?'<p style="margin-bottom:10px"><span class="bs ok">Terverifikasi</span></p>'+jml+'<button type="button" class="pb" id="bv4">Simpan jumlah</button><button type="button" class="pb alt" id="bv3">Batalkan verifikasi</button>'
     :'<input id="bvc" maxlength="150" placeholder="Catatan untuk peserta bila ditolak (opsional)" aria-label="Catatan penolakan" style="margin-bottom:10px">'+
-     '<button type="button" class="pb" id="bv1">✅ Verifikasi</button><button type="button" class="pb alt" id="bv2">❌ Tolak</button>')+
+     jml+'<button type="button" class="pb" id="bv1">✅ Verifikasi</button><button type="button" class="pb alt" id="bv2">❌ Tolak</button>')+
    '<button type="button" class="pb alt" id="bvx">Tutup</button><div class="msg" id="bve" role="alert" style="margin-top:10px"></div>';
   tutup2("bvx");
   function kirim(st,btn){
    var cat=st==="Ditolak"&&$("bvc")?$("bvc").value.trim():"";
    [].forEach.call(document.querySelectorAll("#bvw .pb"),function(b){b.disabled=true;});
-   api({action:"verifikasiBukti",token:SES.token,id:id,status:st,catatan:cat}).then(function(x){
-    if(x&&x.ok){ row.buktiStatus=st; row.catatan=x.catatan||""; draw(); $("dlg2").close(); return; }
+   var jm=$("bvj")?Math.floor(Number($("bvj").value)):0;
+   if(st==="Terverifikasi"&&!(jm>=1&&jm<=50)){ var e0=$("bve"); e0.textContent="Isi jumlah makalah (1–50)."; e0.className="msg e"; [].forEach.call(document.querySelectorAll("#bvw .pb"),function(b){b.disabled=false;}); return; }
+   api({action:"verifikasiBukti",token:SES.token,id:id,status:st,catatan:cat,jumlah:jm,t:isT?t:undefined}).then(function(x){
+    if(x&&x.ok){ if(isT){ tx.status=st; tx.catatan=x.catatan||""; tx.jumlah=x.jumlah||0; } else { row.buktiStatus=st; row.catatan=x.catatan||""; row.kuotaUtama=x.kuotaUtama||0; } row.kuotaMakalah=x.kuota||0; draw(); $("dlg2").close(); return; }
     var e=$("bve"); e.textContent=(x&&x.error)||"Gagal menyimpan."; e.className="msg e";
     [].forEach.call(document.querySelectorAll("#bvw .pb"),function(b){b.disabled=false;});
    }).catch(function(){ var e=$("bve"); e.textContent="Gagal terhubung ke server."; e.className="msg e"; [].forEach.call(document.querySelectorAll("#bvw .pb"),function(b){b.disabled=false;}); });
   }
+  function hit(){ var v=Math.floor(Number($("bvj")&&$("bvj").value)); if($("bvt")) $("bvt").textContent=v>=1?"= "+rp(v*50000):""; }
+  if($("bvj")){ $("bvj").addEventListener("input",hit); hit(); }
+  if($("bv4")) $("bv4").addEventListener("click",function(){kirim("Terverifikasi");});
   if($("bv1")) $("bv1").addEventListener("click",function(){kirim("Terverifikasi");});
   if($("bv2")) $("bv2").addEventListener("click",function(){kirim("Ditolak");});
   if($("bv3")) $("bv3").addEventListener("click",function(){ if(confirm("Batalkan verifikasi? Tombol Unggah makalah akan disembunyikan lagi untuk peserta ini.")) kirim("Menunggu"); });
  }).catch(function(){ $("bvw").textContent="Gagal terhubung ke server."; });
 }
-function unduhMakalah(id,btn){
+function unduhMakalah(id,btn,idx){
  btn.disabled=true;
- api({action:"lihatBerkas",token:SES.token,id:id,jenis:"makalah"}).then(function(r){
+ api({action:"lihatBerkas",token:SES.token,id:id,jenis:"makalah",idx:Number(idx)||0}).then(function(r){
   btn.disabled=false;
   if(!r||!r.ok){ alert((r&&r.error)||"Berkas tidak dapat diunduh."); return; }
   var u=URL.createObjectURL(b64blob(r.data,r.mime)), a=document.createElement("a"); a.href=u; a.download=r.nama||"makalah"; a.click(); setTimeout(function(){URL.revokeObjectURL(u);},2000);
@@ -805,36 +872,145 @@ function unduhSertifikat(btn){
  }).catch(function(){ btn.disabled=false; btn.textContent=t; alert("Gagal terhubung ke server."); });
 }
 
+/* --- Panitia: unggah laporan peserta Zoom (CSV) untuk peserta daring --- */
+var ZM={text:"",items:[],tgl:"2026-11-25"};
+function p2(n){return (n<10?"0":"")+n;}
+function csvParse(text){
+ text=String(text||"").replace(/^\ufeff/,"");
+ var first=text.split(/\r?\n/,1)[0]||"", delim=(first.split(";").length>first.split(",").length)?";":",";
+ var rows=[],row=[],cell="",q=false,i,c;
+ for(i=0;i<text.length;i++){ c=text[i];
+  if(q){ if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=c; }
+  else if(c==='"') q=true;
+  else if(c===delim){ row.push(cell); cell=""; }
+  else if(c==="\n"){ row.push(cell); rows.push(row); row=[]; cell=""; }
+  else if(c!=="\r") cell+=c;
+ }
+ if(cell!==""||row.length){ row.push(cell); rows.push(row); }
+ return rows;
+}
+function zmWaktu(s){ // "11/25/2026 08:03:21 AM", "25/11/2026 08:03", "2026-11-25 08:03:21" -> {t:"yyyy-mm-dd", min:menit sejak 00:00}
+ s=String(s||"").trim(); var m;
+ function mk(y,mo,d,h,mi,ap){ h=+h; if(ap){ ap=ap.toUpperCase(); if(ap==="PM"&&h<12) h+=12; if(ap==="AM"&&h===12) h=0; } return {t:y+"-"+p2(+mo)+"-"+p2(+d),min:h*60+(+mi)}; }
+ if((m=/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i.exec(s))) return mk(m[1],m[2],m[3],m[4],m[5],m[6]);
+ if((m=/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})[ ,T]+(\d{1,2})[:.](\d{2})(?:[:.]\d{2})?\s*(AM|PM)?$/i.exec(s))){
+  var a=+m[1], b=+m[2], mo, d; if(a>12){d=a;mo=b;} else {mo=a;d=b;}   // tanggal acara (25) tak ambigu; selain itu dianggap bulan/hari ala Zoom
+  return mk(m[3],mo,d,m[4],m[5],m[6]);
+ }
+ return null;
+}
+function zmParse(text,ws,we){
+ var R=csvParse(text), hi=-1, c={};
+ for(var i=0;i<Math.min(R.length,40);i++){
+  var h=R[i].map(function(x){return String(x).trim().toLowerCase();});
+  var j=h.findIndex(function(x){return /join|bergabung|waktu masuk/.test(x);}), l=h.findIndex(function(x){return /leave|keluar|meninggalkan/.test(x);});
+  if(j>=0&&l>=0){ hi=i; c={j:j,l:l,
+   n:h.findIndex(function(x){return /^(name|nama|user name|participant|nama pengguna)/.test(x);}),
+   e:h.findIndex(function(x){return /e-?mail|surel/.test(x);}),
+   f:h.indexOf("first name"), s:h.indexOf("last name")}; break; }
+ }
+ if(hi<0) throw new Error("Kolom 'Join Time' dan 'Leave Time' tidak ditemukan. Pastikan ini CSV Laporan Peserta Zoom.");
+ var map={}, order=[], tot=0, diAcara=0;
+ for(var r=hi+1;r<R.length;r++){
+  var row=R[r]; if(!row||row.length<2) continue;
+  var jn=zmWaktu(row[c.j]), lv=zmWaktu(row[c.l]); if(!jn||!lv) continue; tot++;
+  if(jn.t!==ZM.tgl) continue;
+  var nama=(c.n>=0?row[c.n]:((c.f>=0?row[c.f]:"")+" "+(c.s>=0?row[c.s]:""))).trim(), email=(c.e>=0?String(row[c.e]).trim().toLowerCase():"");
+  var s0=Math.max(jn.min,ws), e0=Math.min(lv.t===jn.t?lv.min:24*60,we); diAcara++;
+  var key=email||nama.toLowerCase(); if(!key) continue;
+  if(!map[key]){ map[key]={nama:nama,email:email,iv:[],target:"",via:"",catatan:""}; order.push(key); }
+  if(e0>s0) map[key].iv.push([s0,e0]);
+ }
+ if(!tot) throw new Error("Tidak ada baris peserta yang terbaca pada file ini.");
+ var items=order.map(function(k){ var it=map[k]; it.iv=zmGabung(it.iv); it.durasi=it.iv.reduce(function(a,x){return a+x[1]-x[0];},0); return it; });
+ items.forEach(function(it){ var m=zmCocok(it); it.target=m.id; it.via=m.via; if(m.id){ var pr=ROWS.filter(function(x){return x.id===m.id;})[0]; if(pr&&pr.mode!=="Daring"){ it.target=""; it.catatan="Peserta luring (absen QR)"; } } });
+ return {items:items,total:tot,diAcara:diAcara};
+}
+function zmGabung(iv){ iv=iv.slice().sort(function(a,b){return a[0]-b[0];}); var o=[]; iv.forEach(function(x){ var l=o[o.length-1]; if(l&&x[0]<=l[1]) l[1]=Math.max(l[1],x[1]); else o.push([x[0],x[1]]); }); return o; }
+function zmNorm(s){ return String(s||"").toLowerCase().replace(/sihg26-\d{4}/g," ").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(); }
+function zmCocok(it){
+ var m=/SIHG26-\d{4}/i.exec(it.nama||""); if(m){ var id=m[0].toUpperCase(); if(ROWS.some(function(r){return r.id===id;})) return {id:id,via:"ID"}; }
+ if(it.email){ var r=ROWS.filter(function(x){return String(x.email).toLowerCase()===it.email;})[0]; if(r) return {id:r.id,via:"Email"}; }
+ var nn=zmNorm(it.nama); if(nn){ var cs=ROWS.filter(function(x){return zmNorm(x.nama)===nn;}); if(cs.length===1) return {id:cs[0].id,via:"Nama"}; }
+ return {id:"",via:""};
+}
+function zmHasil(){ // gabungkan identitas yang menuju peserta yang sama -> daftar kirim
+ var g={}; ZM.items.forEach(function(it){ if(!it.target||!it.iv.length) return; (g[it.target]=g[it.target]||[]).push.apply(g[it.target],it.iv); });
+ return Object.keys(g).map(function(id){ var iv=zmGabung(g[id]); return {id:id,cekin:ZM.tgl+" "+p2(Math.floor(iv[0][0]/60))+":"+p2(iv[0][0]%60)+":00",cekout:ZM.tgl+" "+p2(Math.floor(iv[iv.length-1][1]/60))+":"+p2(iv[iv.length-1][1]%60)+":00",durasi:iv.reduce(function(a,x){return a+x[1]-x[0];},0)}; });
+}
+function zmGambar(){
+ var daring=ROWS.filter(function(r){return r.mode==="Daring";}).sort(function(a,b){return a.nama.localeCompare(b.nama);});
+ var opts=daring.map(function(r){return '<option value="'+esc(r.id)+'">'+esc(r.id)+' — '+esc(r.nama)+'</option>';}).join("");
+ var hm=function(m){return p2(Math.floor(m/60))+":"+p2(m%60);};
+ var idx=ZM.items.map(function(it,i){return i;}).sort(function(a,b){var A=ZM.items[a],B=ZM.items[b]; return (A.target?1:0)-(B.target?1:0)||(B.durasi-A.durasi);});
+ $("zmb").innerHTML=idx.map(function(i,k){var it=ZM.items[i];
+  return '<tr><td>'+(k+1)+'</td><td>'+esc(it.nama)+'</td><td>'+esc(it.email||"-")+'</td><td>'+(it.iv.length?hm(it.iv[0][0]):"-")+'</td><td>'+(it.iv.length?hm(it.iv[it.iv.length-1][1]):"-")+'</td><td>'+it.durasi+' mnt</td><td><select data-i="'+i+'" style="width:auto;max-width:240px;padding:5px 24px 5px 6px"><option value="">Abaikan</option>'+opts.replace('value="'+esc(it.target)+'"','value="'+esc(it.target)+'" selected')+'</select>'+(it.via?' <small>('+it.via+')</small>':'')+(it.catatan?' <small>'+esc(it.catatan)+'</small>':'')+'</td></tr>';}).join("")||'<tr><td colspan="7">Tidak ada peserta pada tanggal acara.</td></tr>';
+ var h=zmHasil(), ly=h.filter(function(x){return x.durasi>=MINDUR;}).length, bl=ZM.items.filter(function(it){return !it.target&&it.durasi>0;}).length;
+ $("zinfo").innerHTML='<div style="display:flex;gap:6px 18px;flex-wrap:wrap;font-size:14px;margin:8px 0"><span>Akun di Zoom: <b>'+ZM.items.length+'</b></span><span>Akan dicatat: <b>'+h.length+'</b> peserta</span><span>Layak sertifikat (≥ '+MINDUR+' mnt): <b>'+ly+'</b></span><span>Belum dicocokkan: <b>'+bl+'</b></span></div>';
+ $("zap").disabled=!h.length; $("zap").textContent="Terapkan ("+h.length+" peserta)";
+}
+function zmProses(){
+ var jm=function(v){var m=/^(\d{2}):(\d{2})$/.exec(v||""); return m?(+m[1])*60+(+m[2]):null;};
+ var ws=jm($("zs").value), we=jm($("ze").value);
+ if(ws===null||we===null||we<=ws){ $("zerr").textContent="Jam mulai/selesai tidak valid."; $("zerr").className="msg e"; return; }
+ try{ var r=zmParse(ZM.text,ws,we); ZM.items=r.items; $("zerr").className="msg"; $("zerr").textContent=""; zmGambar(); }
+ catch(x){ ZM.items=[]; $("zmb").innerHTML=""; $("zinfo").innerHTML=""; $("zap").disabled=true; $("zerr").textContent=x.message; $("zerr").className="msg e"; }
+}
+function dlgZoom(){
+ stopAll(); ZM.text=""; ZM.items=[];
+ dlg2('<h3 style="margin:0 0 8px">Unggah laporan peserta Zoom (CSV)</h3><p class="hint" style="font-size:14px;margin-bottom:10px">Unduh dari Zoom (<i>Reports → Usage → Meeting → Export / Participants</i>, atau laporan webinar). Hanya peserta <b>daring</b> yang dicatat; durasi = total menit terhubung dalam rentang jam acara (putus-nyambung digabung). Pencocokan: nomor SIHG26-xxxx pada nama Zoom → email → nama.</p>'+
+  '<div class="fg"><label for="zf">File CSV</label><input type="file" id="zf" accept=".csv,text/csv"></div>'+
+  '<div style="display:flex;gap:14px;flex-wrap:wrap;margin:6px 0"><label style="font-size:14px">Mulai <input type="time" id="zs" value="08:00" style="width:auto"></label><label style="font-size:14px">Selesai <input type="time" id="ze" value="12:00" style="width:auto"></label></div>'+
+  '<div class="msg" id="zerr" role="alert"></div><div id="zinfo"></div>'+
+  '<div class="tw" style="max-height:44vh;overflow:auto"><table><thead><tr><th>No</th><th>Nama di Zoom</th><th>Email</th><th>Masuk</th><th>Keluar</th><th>Durasi</th><th>Dicatat untuk</th></tr></thead><tbody id="zmb"></tbody></table></div>'+
+  '<div style="margin-top:12px"><button type="button" class="pb" id="zap" disabled>Terapkan</button><button type="button" class="pb alt" id="zc">Tutup</button></div>',true);
+ tutup2("zc");
+ $("zf").addEventListener("change",function(){ var f=this.files&&this.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ ZM.text=String(rd.result||""); zmProses(); }; rd.onerror=function(){ $("zerr").textContent="File tidak dapat dibaca."; $("zerr").className="msg e"; }; rd.readAsText(f,"utf-8"); });
+ $("zs").addEventListener("change",function(){ if(ZM.text) zmProses(); }); $("ze").addEventListener("change",function(){ if(ZM.text) zmProses(); });
+ $("zmb").addEventListener("change",function(e){ var s=e.target.closest("select[data-i]"); if(!s) return; var it=ZM.items[+s.dataset.i]; it.target=s.value; it.via=s.value?"manual":""; it.catatan=""; zmGambar(); });
+ $("zap").addEventListener("click",function(){
+  var items=zmHasil(); if(!items.length) return; this.disabled=true; this.textContent="Menyimpan…";
+  api({action:"importZoom",token:SES.token,items:items}).then(function(r){
+   if(r&&r.expired){ SES=null; store(null); $("dlg2").close(); openLogin("panitia"); return; }
+   if(!r||!r.ok){ $("zerr").textContent=(r&&r.error)||"Gagal menyimpan."; $("zerr").className="msg e"; $("zap").disabled=false; $("zap").textContent="Terapkan ("+items.length+" peserta)"; return; }
+   var lw=(r.dilewati||[]).map(function(x){return '<li>'+esc(x.id)+': '+esc(x.alasan)+'</li>';}).join("");
+   dlg2('<h3 style="margin:0 0 10px;color:var(--ok)">✓ Kehadiran daring tercatat</h3><p>'+r.diterapkan+' peserta daring dicatat dari laporan Zoom.</p>'+(lw?'<p class="hint" style="margin-top:8px">Dilewati:</p><ul style="margin:4px 0 0 18px">'+lw+'</ul>':"")+'<button type="button" class="pb" id="zok" style="margin-top:14px">Tutup</button>'); tutup2("zok");
+   api({action:"me",token:SES.token}).then(function(m){ if(m&&m.ok&&SES) show(m.role,m.nama,m.data); });
+  }).catch(function(){ $("zerr").textContent="Gagal terhubung ke server."; $("zerr").className="msg e"; $("zap").disabled=false; });
+ });
+}
+
 /* --- Panitia: daftar hadir + QR --- */
 function dlgHadir(){
- stopAll();
- dlg2('<h3 style="margin:0 0 8px">Daftar Hadir Peserta Luring</h3><div id="hdi"></div><div style="margin:12px 0 4px"><button type="button" class="pb" id="hqi">📱 QR Cek in</button><button type="button" class="pb" id="hqo">📱 QR Cek out</button><button type="button" class="pb" id="hp">🖨 Cetak</button><button type="button" class="pb alt" id="hc">Tutup</button></div><div id="qrWrap" hidden></div><input id="hf" type="search" placeholder="Cari nama, instansi, nomor" aria-label="Cari" style="margin:8px 0 10px"><div class="tw" style="max-height:50vh;overflow:auto"><table><thead><tr><th>No</th><th>Nomor</th><th>Nama</th><th>Instansi</th><th>Status</th><th>Cek in</th><th>Cek out</th><th>Durasi</th></tr></thead><tbody id="hdb"><tr><td colspan="8">Memuat…</td></tr></tbody></table></div>',true);
+ stopAll(); HD.m="Luring";
+ dlg2('<h3 style="margin:0 0 8px">Daftar Hadir Peserta</h3><div style="margin-bottom:8px"><select id="hm" aria-label="Metode" style="width:auto"><option value="Luring">Luring (QR Cek in/out)</option><option value="Daring">Daring (laporan Zoom)</option></select></div><div id="hdi"></div><div style="margin:12px 0 4px"><button type="button" class="pb" id="hqi">📱 QR Cek in</button><button type="button" class="pb" id="hqo">📱 QR Cek out</button><button type="button" class="pb" id="hp">🖨 Cetak</button><button type="button" class="pb alt" id="hc">Tutup</button></div><div id="qrWrap" hidden></div><input id="hf" type="search" placeholder="Cari nama, instansi, nomor" aria-label="Cari" style="margin:8px 0 10px"><div class="tw" style="max-height:50vh;overflow:auto"><table><thead><tr><th>No</th><th>Nomor</th><th>Nama</th><th>Instansi</th><th>Status</th><th>Cek in</th><th>Cek out</th><th>Durasi</th></tr></thead><tbody id="hdb"><tr><td colspan="8">Memuat…</td></tr></tbody></table></div>',true);
  $("hqi").addEventListener("click",function(){tampilQr("in");}); $("hqo").addEventListener("click",function(){tampilQr("out");}); $("hp").addEventListener("click",cetakHadir); tutup2("hc");
  $("hf").addEventListener("input",gambarHadir);
+ $("hm").addEventListener("change",function(){ HD.m=this.value; HD.d=null; $("hdb").innerHTML='<tr><td colspan="8">Memuat…</td></tr>'; muatHadir(); });
  $("hdb").addEventListener("change",function(e){
   var el=e.target.closest("select[data-id]"); if(!el) return;
-  api({action:"setHadir",token:SES.token,id:el.dataset.id,status:el.value}).then(function(r){ if(r&&r.ok){HD.d=r;gambarHadir();} else{ alert((r&&r.error)||"Gagal menyimpan."); muatHadir(); } }).catch(function(){alert("Gagal terhubung ke server.");muatHadir();});
+  api({action:"setHadir",token:SES.token,id:el.dataset.id,status:el.value,mode:HD.m}).then(function(r){ if(r&&r.ok){HD.d=r;gambarHadir();} else{ alert((r&&r.error)||"Gagal menyimpan."); muatHadir(); } }).catch(function(){alert("Gagal terhubung ke server.");muatHadir();});
  });
  $("hdb").addEventListener("change",function(e){
   var inp=e.target.closest("input[data-j]"); if(!inp) return;
-  api({action:"setWaktu",token:SES.token,id:inp.dataset.id,jenis:inp.dataset.j,jam:inp.value}).then(function(r){ if(r&&r.ok){HD.d=r;gambarHadir();} else{ alert((r&&r.error)||"Gagal menyimpan."); muatHadir(); } }).catch(function(){alert("Gagal terhubung ke server.");muatHadir();});
+  api({action:"setWaktu",token:SES.token,id:inp.dataset.id,jenis:inp.dataset.j,jam:inp.value,mode:HD.m}).then(function(r){ if(r&&r.ok){HD.d=r;gambarHadir();} else{ alert((r&&r.error)||"Gagal menyimpan."); muatHadir(); } }).catch(function(){alert("Gagal terhubung ke server.");muatHadir();});
  });
  muatHadir();
  HD.t=setInterval(function(){ if(!$("hdb")) return stopAll(); var ae=document.activeElement; if(ae&&(ae.tagName==="SELECT"||(ae.dataset&&ae.dataset.j))) return; muatHadir(); },15000);
 }
 function muatHadir(){
- return api({action:"daftarHadir",token:SES.token}).then(function(r){
+ return api({action:"daftarHadir",token:SES.token,mode:HD.m}).then(function(r){
   if(r&&r.ok){HD.d=r;gambarHadir();} else if($("hdi")) $("hdi").innerHTML='<div class="msg e" role="alert">'+esc((r&&r.error)||"Gagal memuat daftar hadir.")+'</div>';
  }).catch(function(){ if($("hdi")) $("hdi").innerHTML='<div class="msg e">Gagal terhubung ke server.</div>'; });
 }
 function gambarHadir(){
  if(!$("hdb")||!HD.d) return;
- var d=HD.d, ps=d.peserta, n={Hadir:0,Layak:0};
+ var d=HD.d, ps=d.peserta, n={Hadir:0,Layak:0}; if($("hqi")){ $("hqi").style.display=$("hqo").style.display=(d.mode==="Daring")?"none":""; }
  ps.forEach(function(p){ if(p.status==="Hadir") n.Hadir++; if(p.layak) n.Layak++; });
- $("hdi").innerHTML='<div class="hint" style="font-size:14px;margin-bottom:6px">'+esc(d.info.acara)+' · '+esc(d.info.tanggal)+' · '+esc(d.info.waktu)+' · '+esc(d.info.tempat)+'</div><div style="display:flex;gap:6px 18px;flex-wrap:wrap;font-size:14px"><span>Peserta luring: <b>'+ps.length+'</b></span><span>Hadir: <b>'+n.Hadir+'</b></span><span>Tidak hadir: <b>'+(ps.length-n.Hadir)+'</b></span><span>Layak sertifikat (≥ '+(d.minDurasi||150)+' mnt): <b>'+n.Layak+'</b></span></div>';
+ $("hdi").innerHTML='<div class="hint" style="font-size:14px;margin-bottom:6px">'+esc(d.info.acara)+' · '+esc(d.info.tanggal)+' · '+esc(d.info.waktu)+' · '+esc(d.info.tempat)+'</div><div style="display:flex;gap:6px 18px;flex-wrap:wrap;font-size:14px"><span>Peserta '+(d.mode==="Daring"?"daring":"luring")+': <b>'+ps.length+'</b></span><span>Hadir: <b>'+n.Hadir+'</b></span><span>Tidak hadir: <b>'+(ps.length-n.Hadir)+'</b></span><span>Layak sertifikat (≥ '+(d.minDurasi||150)+' mnt): <b>'+n.Layak+'</b></span></div>';
  var q=$("hf").value.toLowerCase(), opt=function(v,l,c){return '<option value="'+v+'"'+(c===v?" selected":"")+'>'+l+'</option>';};
  var rs=ps.filter(function(p){return !q||(p.nama+" "+p.instansi+" "+p.id).toLowerCase().indexOf(q)>=0;});
- $("hdb").innerHTML=rs.map(function(p,k){return '<tr><td>'+(k+1)+'</td><td>'+esc(p.id)+'</td><td>'+esc(p.nama)+'</td><td>'+esc(p.instansi)+'</td><td><select data-id="'+esc(p.id)+'" aria-label="Status '+esc(p.nama)+'" style="width:auto;padding:6px 28px 6px 8px">'+opt("","Tidak hadir",p.status)+opt("Hadir","Hadir",p.status)+'</select></td><td><input type="time" data-id="'+esc(p.id)+'" data-j="in" value="'+(p.cekin?esc(p.cekin.slice(11,16)):"")+'" title="'+(p.via==="QR"?"Dipindai via QR":"")+'" aria-label="Cek in '+esc(p.nama)+'" style="width:104px;padding:5px 4px;font-size:13px"></td><td><input type="time" data-id="'+esc(p.id)+'" data-j="out" value="'+(p.cekout?esc(p.cekout.slice(11,16)):"")+'" title="'+(p.viaOut==="QR"?"Dipindai via QR":"")+'" aria-label="Cek out '+esc(p.nama)+'" style="width:104px;padding:5px 4px;font-size:13px"'+(p.cekin?"":" disabled")+'></td><td>'+(p.cekin&&p.cekout?'<b style="color:'+(p.layak?"var(--ok)":"inherit")+'">'+p.durasi+' mnt</b>'+(p.layak?" ✓":""):"-")+'</td></tr>';}).join("")||'<tr><td colspan="8">Belum ada peserta luring.</td></tr>';
+ $("hdb").innerHTML=rs.map(function(p,k){return '<tr><td>'+(k+1)+'</td><td>'+esc(p.id)+'</td><td>'+esc(p.nama)+'</td><td>'+esc(p.instansi)+'</td><td><select data-id="'+esc(p.id)+'" aria-label="Status '+esc(p.nama)+'" style="width:auto;padding:6px 28px 6px 8px">'+opt("","Tidak hadir",p.status)+opt("Hadir","Hadir",p.status)+'</select></td><td><input type="time" data-id="'+esc(p.id)+'" data-j="in" value="'+(p.cekin?esc(p.cekin.slice(11,16)):"")+'" title="'+(p.via==="QR"?"Dipindai via QR":"")+'" aria-label="Cek in '+esc(p.nama)+'" style="width:104px;padding:5px 4px;font-size:13px"></td><td><input type="time" data-id="'+esc(p.id)+'" data-j="out" value="'+(p.cekout?esc(p.cekout.slice(11,16)):"")+'" title="'+(p.viaOut==="QR"?"Dipindai via QR":"")+'" aria-label="Cek out '+esc(p.nama)+'" style="width:104px;padding:5px 4px;font-size:13px"'+(p.cekin?"":" disabled")+'></td><td>'+(p.cekin&&p.cekout?'<b style="color:'+(p.layak?"var(--ok)":"inherit")+'">'+p.durasi+' mnt</b>'+(p.layak?" ✓":""):"-")+'</td></tr>';}).join("")||'<tr><td colspan="8">Belum ada peserta pada metode ini.</td></tr>';
 }
 function qrSvg(t){
  var q=qrcode(0,"M"); q.addData(t); q.make();
@@ -864,7 +1040,7 @@ function cetakHadir(){
  var rows=d.peserta.map(function(p,i){return "<tr><td>"+(i+1)+"</td><td>"+esc(p.id)+"</td><td>"+esc(p.nama)+"</td><td>"+esc(p.instansi)+"</td><td>"+esc(p.kategori)+"</td><td>"+esc(p.status||"")+"</td><td>"+esc(p.cekin?p.cekin.slice(11,16):"")+"</td><td>"+esc(p.cekout?p.cekout.slice(11,16):"")+"</td><td>"+(p.cekin&&p.cekout?p.durasi:"")+"</td><td></td></tr>";}).join("");
  var w=window.open("","_blank"); if(!w){ alert("Pop-up diblokir. Izinkan pop-up untuk mencetak."); return; }
  var u=document.querySelector(".logo-umm").src, f=document.querySelector(".logo-fpsh").src;
- w.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Daftar Hadir</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:18px}.k{background:#0f5a63;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}.k img{height:54px}h2{text-align:center;margin:14px 0 4px}p{text-align:center;margin:0 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:5px 6px;text-align:left}th{background:#e8f2f3;-webkit-print-color-adjust:exact;print-color-adjust:exact}td:last-child{width:110px}</style></head><body><div class="k"><img src="'+u+'" alt=""><img src="'+f+'" alt=""></div><h2>DAFTAR HADIR PESERTA LURING</h2><p>'+esc(d.info.acara)+' · '+esc(d.info.tanggal)+' · '+esc(d.info.tempat)+'</p><table><thead><tr><th>No</th><th>Nomor</th><th>Nama</th><th>Instansi</th><th>Kategori</th><th>Status</th><th>Cek in</th><th>Cek out</th><th>Durasi (mnt)</th><th>Tanda tangan</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print()}<\/script></body></html>');
+ w.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Daftar Hadir</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:18px}.k{background:#0f5a63;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}.k img{height:54px}h2{text-align:center;margin:14px 0 4px}p{text-align:center;margin:0 0 12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:5px 6px;text-align:left}th{background:#e8f2f3;-webkit-print-color-adjust:exact;print-color-adjust:exact}td:last-child{width:110px}</style></head><body><div class="k"><img src="'+u+'" alt=""><img src="'+f+'" alt=""></div><h2>DAFTAR HADIR PESERTA '+(d.mode==="Daring"?"DARING":"LURING")+'</h2><p>'+esc(d.info.acara)+' · '+esc(d.info.tanggal)+' · '+esc(d.info.tempat)+'</p><table><thead><tr><th>No</th><th>Nomor</th><th>Nama</th><th>Instansi</th><th>Kategori</th><th>Status</th><th>Cek in</th><th>Cek out</th><th>Durasi (mnt)</th><th>Tanda tangan</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print()}<\/script></body></html>');
  w.document.close();
 }
 

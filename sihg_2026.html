@@ -388,6 +388,7 @@ img{max-width:100%}
 <script>
 var CONFIG = {
   SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyAogbZvn5k7VrcjlWYKnR_pABRxkco4xwZeXdasuLOIPPlJyLNvh4LQ_qPYxOw82qyQQ/exec",
+  VERIFY_URL: "https://script.google.com/a/umm.ac.id/macros/s/AKfycbyAogbZvn5k7VrcjlWYKnR_pABRxkco4xwZeXdasuLOIPPlJyLNvh4LQ_qPYxOw82qyQQ/exec",   /* alamat tetap untuk QR e-sertifikat (harus sama dengan WEB_APP_URL di Apps Script) */
   EVENT_START: "2026-11-25T08:00:00+07:00"
 };
 var DEMOABS={ci:true,co:true};   /* demo: ubah ke false untuk mencoba tombol Cek in/out nonaktif */
@@ -1026,7 +1027,7 @@ async function kirimHadir(k,md){
 
 /* ===== E-sertifikat (Peserta, Pemateri, Panitia): cetak + QR validasi ===== */
 var CERT={html:"",nama:""};
-function certUrl(k){ var b=/^https?:$/.test(location.protocol)?location.href.split("#")[0].split("?")[0]:CONFIG.SCRIPT_URL; return b+"?cek="+k; }
+function certUrl(k){ return (CONFIG.VERIFY_URL||CONFIG.SCRIPT_URL)+"?cek="+k; }
 function qrCert(t){
  var q=qrcode(0,"M"); q.addData(t); q.make();
  var n=q.getModuleCount(), m=2, p="", r, c;

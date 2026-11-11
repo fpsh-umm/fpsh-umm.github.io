@@ -126,14 +126,18 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#e8f2f3;color:var(--teal)}
 .hb{width:auto;font-size:13px;padding:5px 12px;margin:0;border-radius:20px;background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+.hb:hover{background:#e3f0f1;color:var(--teal)}
 .hb.on{background:var(--ok);border-color:var(--ok);color:#fff}
 #dlg2{width:min(520px,94vw);max-height:92vh;overflow:auto}
 #dlg2.wide{width:min(1000px,96vw)}
 .pb{width:auto;font-size:15px;padding:10px 18px;margin:0 8px 8px 0;border-radius:8px;background:var(--teal);color:#fff}
 .pb:hover{background:var(--teal-d)}
 .bs{display:inline-block;font-size:13px;font-weight:800;padding:3px 11px;border-radius:20px;background:#eceae4;color:#555}
-.bs.ok{background:#e3f3e8;color:var(--ok)}.bs.wt{background:#fff3d6;color:#7a5600}.bs.no{background:#fbe9e6;color:var(--err)}
+.bs.ok{background:#e3f3e8;color:var(--ok);border:0;padding:3px 11px;border-radius:20px}.bs.wt{background:#fff3d6;color:#7a5600}.bs.no{background:#fbe9e6;color:var(--err)}
 .up{margin-top:18px}.up h3{margin:0 0 10px;font-size:18px}.up .kv{margin-bottom:12px}
+.pmbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:2px 18px;margin-bottom:12px}
+.pmr{padding:12px 0;border-bottom:1px solid var(--line)}.pmr:last-child{border:0}.pmr .pt{color:var(--mute);margin-bottom:6px}
+.pmr .ps{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.pmr .pn{flex:1 1 100%;font-size:13.5px;color:var(--mute);overflow-wrap:anywhere;line-height:1.4}.pmr .hb{min-height:34px}.pmr .pj{font-weight:700;margin-bottom:2px}
 .upf{width:100%;padding:12px;border:2px dashed var(--teal);border-radius:10px;background:#fff;font-size:15px;cursor:pointer}
 .upv{margin:10px 0;text-align:center}.upv img{max-width:100%;max-height:34vh;border:1px solid var(--line);border-radius:10px}
 .pb.alt{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
@@ -284,7 +288,7 @@ img{max-width:100%}
    <h2>Yang Anda dapat</h2>
    <ul>
     <li>E-sertifikat<span>Dikirim setelah acara untuk peserta yang hadir dan/atau terverifikasi oleh Panitia.</span></li>
-    <li>Materi seminar<span>Tautan unduhan dikirim lewat email.</span></li>
+    <li>Materi seminar<span>Klik Unduh Materi di akun peserta, berkas dikirim ke email (sesuai ketentuan panitia).</span></li>
     <li>Peserta yang mengirim makalah<span>akan diterbitkan di prosiding SIBI FPSH UMM</span></li>
    </ul>
    <button type="button" class="pb alt" id="vbtn" style="margin:0 0 16px">🔎 Validasi E-sertifikat</button>
@@ -587,6 +591,9 @@ function demo(b){
    if(!x){lz.push({id:it.id,alasan:"Pendaftar tidak ditemukan"});return;} if(x.mode!=="Daring"){lz.push({id:it.id,alasan:"Bukan peserta daring (absen lewat QR)"});return;}
    x.ci=it.cekin; x.co=it.cekout; x.dz=it.durasi; x.hadir=true; x.st="Hadir"; x.wh=x.ci; x.via="Zoom"; syncDemo(x); okz++; });
   return {ok:true,diterapkan:okz,dilewati:lz}; }
+ if(b.action==="unggahPemateri"){ if(["cv","materi"].indexOf(b.jenis)<0) return {ok:false,error:"Jenis berkas tidak valid."}; DPM[b.jenis]={ada:true,nama:(b.berkas&&b.berkas.nama)||"berkas.pdf",waktu:"2026-11-10 10:15:00"}; return {ok:true,data:demoData("pemateri")}; }
+ if(b.action==="unduhMateri"){ if(!DPM.materi.ada) return {ok:false,error:"Materi belum tersedia."}; return {ok:true,email:DEMOACC.peserta[0],terkirim:true}; }
+ if(b.action==="unduhPemateri"){ if(!DPM[b.jenis]||!DPM[b.jenis].ada) return {ok:false,error:"Berkas belum diunggah."}; return {ok:true,nama:DPM[b.jenis].nama,mime:"application/pdf",data:"JVBERi0xLjEKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgMjAwIDEwMF0+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+CiUlRU9G"}; }
  if(b.action==="ubahMetode"){ var xm=DROWS[0]; if(["Luring","Daring"].indexOf(b.mode)<0) return {ok:false,error:"Metode tidak valid."};
   if(xm.cekin||xm.hadir) return {ok:false,error:"Kehadiran Anda sudah tercatat, sehingga metode tidak dapat diubah. Hubungi panitia jika ada kendala."};
   xm.mode=b.mode; return {ok:true,mode:b.mode,zoom:b.mode==="Daring"?"https://zoom.us":"",emailTerkirim:true}; }
@@ -601,12 +608,13 @@ function demo(b){
  return {ok:true};
 }
 function stOf2(x){return x.st!==undefined?x.st:(x.hadir?"Hadir":"");}
+var DPM={cv:{ada:false,nama:"",waktu:""},materi:{ada:false,nama:"",waktu:""}};
 function demoNama(r){return {peserta:"Dr. Ahmad Dahlan, M.Pd.",pemateri:"Prof. Contoh Pemateri",panitia:"Panitia Contoh"}[r];}
 function demoData(r){
- if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,statusHadir:stOf2(x),waktuHadir:x.wh||"",cekin:x.cekin,cekout:x.cekout,durasi:x.durasi,minDurasi:150,layak:x.layak,absen:{cekinAktif:DEMOABS.ci,cekoutAktif:DEMOABS.co},tanggalSeminar:"25 November 2026",zoom:x.mode==="Daring"?"https://zoom.us":"",bisaUbahMode:!x.cekin&&!x.hadir,waktu:x.waktu,
+ if(r==="peserta"){var x=DROWS[0];return {id:x.id,nama:x.nama,email:DEMOACC.peserta[0],wa:DEMOACC.peserta[1],instansi:x.instansi,kategori:x.kategori,mode:x.mode,makalah:x.makalah,hadir:x.hadir,statusHadir:stOf2(x),waktuHadir:x.wh||"",cekin:x.cekin,cekout:x.cekout,durasi:x.durasi,minDurasi:150,layak:x.layak,absen:{cekinAktif:DEMOABS.ci,cekoutAktif:DEMOABS.co},tanggalSeminar:"25 November 2026",zoom:x.mode==="Daring"?"https://zoom.us":"",bisaUbahMode:!x.cekin&&!x.hadir,materiAktif:true,materiList:DPM.materi.ada?[{id:2,nama:"Prof. Contoh Pemateri",judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",berkas:DPM.materi.nama,waktu:DPM.materi.waktu}]:[],waktu:x.waktu,
    bukti:{perlu:x.makalah,ada:!!x.adaBukti,status:x.buktiStatus||"",waktu:x.bw||"",catatan:x.catatan||"",tambahan:x.tambahan,bisaTambah:x.buktiStatus==="Terverifikasi"&&x.tmb.length<10&&!x.tmb.some(function(t){return t.s==="Menunggu";})},makalahFile:{ada:x.mk.length>0,waktu:x.mk[x.mk.length-1]||"",jumlah:x.mk.length,kuota:x.kuotaMakalah,sisa:Math.max(0,x.kuotaMakalah-x.mk.length),files:x.mk.map(function(w,i){return {no:i+1,waktu:w};})}};}
- if(r==="pemateri") return {nama:demoNama(r),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",zoom:"https://zoom.us",upload:"https://drive.google.com",sertAktif:true};
- return {nama:demoNama(r),peran:"Ketua Panitia",kuota:350,sertAktif:true,rows:DROWS};
+ if(r==="pemateri") return {nama:demoNama(r),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",zoom:"https://zoom.us",upload:"",sertAktif:true,cv:DPM.cv,materi:DPM.materi};
+ return {nama:demoNama(r),peran:"Ketua Panitia",kuota:350,sertAktif:true,rows:DROWS,pemateri:[{nama:demoNama("pemateri"),email:DEMOACC.pemateri[0],judul:"Dialog Lintas Agama dalam Pendidikan",sesi:"25/11/2026 09:00 WIB",cv:DPM.cv,materi:DPM.materi}]};
 }
 function api(b){
  if(DEMO) return new Promise(function(res){setTimeout(function(){res(demo(b));},250);});
@@ -723,19 +731,20 @@ function show(role,nama,d){
  if(role==="peserta"){
   h=head("Peserta",d.nama)+'<div class="kv">'+kv("Nomor pendaftaran",d.id)+kv("Nama",d.nama)+kv("Email",d.email)+kv("WhatsApp",d.wa)+kv("Instansi",d.instansi)+kv("Kategori",d.kategori)+kv("Metode",d.mode)+kv("Kirim makalah",d.makalah?"Ya":"Tidak")+kv("Status kehadiran",d.statusHadir||"Belum tercatat")+((d.mode==="Luring"||d.cekin)?kv("Cek in",d.cekin?d.cekin.slice(11,16)+" WIB":"-")+kv("Cek out",d.cekout?d.cekout.slice(11,16)+" WIB":"-")+kv("Durasi hadir",d.cekin&&d.cekout?d.durasi+" menit":"-"):"")+kv("Waktu daftar",d.waktu)+'</div>'+tombolMetode(d)+blokUnggahan(d)+
    (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Buka tautan Zoom</a>':"")+
-   tombolAbsen(d)+
+   tombolAbsen(d)+blokMateri(d)+
    (d.layak?'<button type="button" class="pb" id="pc" style="margin-top:14px">🎓 Cetak E-sertifikat</button><p class="hint" style="margin-top:8px">Sertifikat memuat QR Code untuk validasi keaslian. Salinan PDF juga dikirim ke email Anda ('+esc(d.email)+').</p>':'<p class="hint" style="margin-top:12px">'+sertifikatHint(d)+'</p>');
  } else if(role==="pemateri"){
   h=head("Pemateri",d.nama)+'<div class="kv">'+kv("Nama",d.nama)+kv("Email",d.email)+kv("Judul materi",d.judul)+kv("Waktu sesi",d.sesi)+'</div>'+
    (safeUrl(d.zoom)?'<a class="linkbtn" href="'+safeUrl(d.zoom)+'" target="_blank" rel="noopener">Masuk Zoom sebagai pemateri</a>':"")+
-   (safeUrl(d.upload)?'<a class="linkbtn" href="'+safeUrl(d.upload)+'" target="_blank" rel="noopener">Unggah materi</a>':"")+sertBtn(d,"Pemateri");
+   (safeUrl(d.upload)?'<a class="linkbtn" href="'+safeUrl(d.upload)+'" target="_blank" rel="noopener">Unggah materi lewat Google Drive</a>':"")+blokPemateri(d)+sertBtn(d,"Pemateri");
  } else {
-  ROWS=d.rows||[]; KUOTA=d.kuota||0; MINDUR=d.minDurasi||150;
+  ROWS=d.rows||[]; KUOTA=d.kuota||0; MINDUR=d.minDurasi||150; PMS=d.pemateri||[];
   h=head(d.peran||"Panitia",d.nama)+'<div style="margin-bottom:16px">'+sertBtn(d,"Panitia")+'</div><div class="cards" id="cards"></div>'+
    '<div class="tbar"><input id="tq" type="search" placeholder="Cari nama, email, instansi, nomor" aria-label="Cari"><select id="tm" aria-label="Filter metode"><option value="">Semua metode</option><option>Luring</option><option>Daring</option></select><button type="button" id="th">📋 Daftar Hadir</button><button type="button" id="tz">📥 Unggah CSV Zoom</button><button type="button" id="tx">Unduh CSV</button></div>'+
-   '<p class="hint" id="tc" style="margin-bottom:8px"></p><div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>WhatsApp</th><th>Instansi</th><th>Kategori</th><th>Metode</th><th>Makalah</th><th>Kehadiran</th><th>Cek in</th><th>Cek out</th><th>Durasi</th><th>Bukti transfer</th><th>File makalah</th></tr></thead><tbody id="tb"></tbody></table></div>';
+   '<p class="hint" id="tc" style="margin-bottom:8px"></p><div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Email</th><th>WhatsApp</th><th>Instansi</th><th>Kategori</th><th>Metode</th><th>Makalah</th><th>Kehadiran</th><th>Cek in</th><th>Cek out</th><th>Durasi</th><th>Bukti transfer</th><th>File makalah</th></tr></thead><tbody id="tb"></tbody></table></div>'+pmSection();
  }
  $("dash").innerHTML=h;
+ bindPm();
  if($("pa")) $("pa").addEventListener("click",function(){dlgAbsen(this.dataset.m);});
  if($("pc")) $("pc").addEventListener("click",function(){unduhSertifikat(this);});
  if($("pm")) $("pm").addEventListener("click",function(){dlgMetode(d);});
@@ -805,6 +814,99 @@ function dlgMetode(d){
    dlg2('<h3 style="margin:0 0 8px;color:var(--ok)">✓ Metode diubah menjadi '+esc(r.mode)+'</h3><p class="hint" style="font-size:14px">'+(r.mode==="Luring"?'Datang ke Theater Dome UMM sebelum pukul 07:30 WIB, lalu lakukan Cek in dan Cek out dengan memindai QR panitia.':'Tautan Zoom tersedia pada halaman Anda. Saat masuk Zoom, ubah nama tampilan menjadi <b>'+esc(d.id)+' '+esc(d.nama)+'</b> agar kehadiran dan durasi tercatat.')+(r.emailTerkirim?' Konfirmasi telah dikirim ke email Anda.':'')+'</p><button type="button" class="pb" id="pmc" style="margin-top:12px">Tutup</button>');
    tutup2("pmc");
   }).catch(function(){ b.disabled=false; b.textContent="Simpan"; e.textContent="Gagal terhubung ke server."; e.className="msg e"; });
+ });
+}
+
+/* ===== Peserta: unduh materi seminar ===== */
+function blokMateri(d){
+ var h='<div class="up"><h3>Materi seminar</h3>';
+ if(!d.materiAktif) return h+'<p class="hint">Materi seminar belum dibuka oleh panitia. Silakan cek kembali setelah acara.</p></div>';
+ var L=d.materiList||[];
+ if(!L.length) return h+'<p class="hint">Belum ada materi yang diunggah pemateri. Silakan cek kembali nanti.</p></div>';
+ return h+'<div class="pmbox">'+L.map(function(m){
+  return '<div class="pmr"><div class="pj">'+esc(m.judul||"Materi seminar")+'</div><div class="hint" style="margin-bottom:8px">'+esc(m.nama)+(m.sesi?" · "+esc(m.sesi):"")+'</div>'+
+   '<div class="ps"><button type="button" class="hb" data-um="'+esc(m.id)+'">⬇️ Unduh materi</button><span class="pn">'+esc(m.berkas)+'</span></div></div>';
+ }).join("")+'</div><p class="hint" style="margin-top:6px">Klik <b>Unduh materi</b> dan berkasnya akan dikirim ke email Anda ('+esc(d.email)+'). Periksa juga folder spam.</p></div>';
+}
+function unduhMateri(btn,id){
+ var t0=btn.textContent; btn.disabled=true; btn.textContent="Mengirim ke email…";
+ api({action:"unduhMateri",token:SES.token,id:id}).then(function(r){
+  btn.disabled=false; btn.textContent=t0;
+  if(r&&r.expired){ var rl=SES&&SES.role||"peserta"; SES=null; store(null); openLogin(rl); return; }
+  if(!r||!r.ok){ alert((r&&r.error)||"Materi belum dapat dikirim."); return; }
+  dlg2('<h3 style="margin:0 0 8px;color:var(--ok)">✓ Materi dikirim ke email</h3><p style="margin-bottom:14px">Materi telah dikirim sebagai lampiran ke <b>'+esc(r.email)+'</b>. Jika belum masuk, periksa juga folder spam.</p><button type="button" class="pb" id="mo">Tutup</button>');
+  tutup2("mo");
+ }).catch(function(){ btn.disabled=false; btn.textContent=t0; alert("Gagal terhubung ke server."); });
+}
+
+/* ===== Pemateri: unggah CV & materi (+ daftar untuk panitia) ===== */
+var PMS=[], PM_INFO={cv:{ttl:"Curriculum Vitae (CV)",ext:/\.(pdf|docx?)$/i,acc:".pdf,.doc,.docx",ket:"Format PDF, DOC, atau DOCX. Maksimal 3 MB.",maks:3},
+ materi:{ttl:"Materi presentasi",ext:/\.(pdf|docx?|pptx?)$/i,acc:".pdf,.doc,.docx,.ppt,.pptx",ket:"Format PDF, DOC, DOCX, PPT, atau PPTX. Maksimal 10 MB.",maks:10}};
+function sel(b,u){ return b&&b.ada?'<div class="ps"><span class="bs ok">Sudah diunggah</span>'+u+'<span class="pn">'+(b.nama?esc(b.nama):"")+(b.nama&&b.waktu?" · ":"")+(b.waktu?esc(waktuId(b.waktu)):"")+'</span></div>':'<div class="ps"><span class="bs">Belum diunggah</span></div>'; }
+function blokPemateri(d){
+ var cv=d.cv||{}, mt=d.materi||{};
+ return '<div class="up"><h3>Berkas pemateri</h3><div class="pmbox">'+
+  '<div class="pmr"><div class="pt">Curriculum Vitae (CV)</div>'+sel(cv,'<button type="button" class="hb" data-pd="cv">Unduh</button>')+'</div>'+
+  '<div class="pmr"><div class="pt">Materi presentasi</div>'+sel(mt,'<button type="button" class="hb" data-pd="materi">Unduh</button>')+'</div></div>'+
+  '<button type="button" class="pb" data-pu="cv">📤 '+(cv.ada?"Unggah ulang CV":"Unggah CV")+'</button>'+
+  '<button type="button" class="pb" data-pu="materi">📤 '+(mt.ada?"Unggah ulang materi":"Unggah materi")+'</button>'+
+  '<p class="hint" style="margin-top:6px">Mengunggah ulang akan menggantikan berkas sebelumnya. Berkas hanya dapat diakses oleh Anda dan panitia.</p></div>';
+}
+function pmSection(){
+ return '<div class="up"><h3>Pemateri: CV &amp; materi</h3><div class="tw"><table><thead><tr><th>Nama</th><th>Judul materi</th><th>Waktu sesi</th><th>CV</th><th>Materi</th></tr></thead><tbody id="pmb"></tbody></table></div></div>';
+}
+function pmCell(p,j){ var b=p[j]||{}; return b.ada?'<span class="bs ok">Sudah</span> <button type="button" class="hb" data-pdl="'+esc(p.email)+'" data-j="'+j+'">Unduh</button><div class="hint">'+esc(waktuId(b.waktu))+'</div>':'<span class="bs">Belum</span>'; }
+function drawPm(){
+ var t=$("pmb"); if(!t) return;
+ t.innerHTML=PMS.length?PMS.map(function(p){return "<tr><td>"+esc(p.nama)+"</td><td>"+esc(p.judul)+"</td><td>"+esc(p.sesi)+"</td><td>"+pmCell(p,"cv")+"</td><td>"+pmCell(p,"materi")+"</td></tr>";}).join(""):'<tr><td colspan="5" class="hint">Belum ada pemateri terdaftar.</td></tr>';
+}
+function bindPm(){
+ [].forEach.call(document.querySelectorAll("#dash button[data-pu]"),function(b){ b.addEventListener("click",function(){dlgUnggahPm(this.dataset.pu);}); });
+ [].forEach.call(document.querySelectorAll("#dash button[data-um]"),function(b){ b.addEventListener("click",function(){unduhMateri(this,this.dataset.um);}); });
+ [].forEach.call(document.querySelectorAll("#dash button[data-pd]"),function(b){ b.addEventListener("click",function(){unduhPm(this,this.dataset.pd,"");}); });
+ if($("pmb")){ drawPm(); $("pmb").addEventListener("click",function(e){ var x=e.target.closest("button[data-pdl]"); if(x) unduhPm(x,x.dataset.j,x.dataset.pdl); }); }
+}
+function unduhPm(btn,jenis,email){
+ btn.disabled=true;
+ api({action:"unduhPemateri",token:SES.token,jenis:jenis,email:email}).then(function(r){
+  btn.disabled=false;
+  if(r&&r.expired){ var rl=SES&&SES.role||"pemateri"; SES=null; store(null); openLogin(rl); return; }
+  if(!r||!r.ok){ alert((r&&r.error)||"Berkas tidak dapat diunduh."); return; }
+  var bl=b64blob(r.data,r.mime||"application/octet-stream");
+  if(!bl.size){ alert("Berkas yang diterima dari server kosong. Minta pemateri mengunggah ulang."); return; }
+  var u=URL.createObjectURL(bl), a=document.createElement("a"); a.href=u; a.download=String(r.nama||"berkas").replace(/[\\\/:*?"<>|]/g,"_"); a.style.display="none"; document.body.appendChild(a); a.click(); setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},30000);
+ }).catch(function(){ btn.disabled=false; alert("Gagal terhubung ke server."); });
+}
+function dlgUnggahPm(jenis){
+ var c=PM_INFO[jenis]; if(!c) return;
+ dlg2('<h3 style="margin:0 0 8px">Unggah '+c.ttl+'</h3><p class="hint" style="font-size:14px;margin-bottom:10px">'+c.ket+' Berkas yang diunggah sebelumnya akan digantikan.</p>'+
+  '<input type="file" class="upf" id="pf" accept="'+c.acc+'" aria-label="Pilih berkas">'+
+  '<div class="upv" id="pv"></div><div class="msg" id="pe" role="alert"></div>'+
+  '<button type="button" class="pb" id="ps" disabled>Unggah</button><button type="button" class="pb alt" id="pcn">Batal</button>');
+ var BK=null, pv=$("pv"), ps=$("ps");
+ function perr(t){var e=$("pe");e.textContent=t;e.className=t?"msg e":"msg";}
+ tutup2("pcn");
+ $("pf").addEventListener("change",function(){
+  BK=null; ps.disabled=true; perr(""); pv.innerHTML="";
+  var f=this.files&&this.files[0]; if(!f) return;
+  if(!c.ext.test(f.name)){ perr(jenis==="cv"?"Format CV harus PDF, DOC, atau DOCX.":"Format materi harus PDF, DOC, DOCX, PPT, atau PPTX."); return; }
+  if(f.size>c.maks*1048576){ perr("Ukuran berkas terlalu besar (maksimal "+c.maks+" MB)."); return; }
+  pv.textContent="Memproses berkas…";
+  bacaBerkas(f,false).then(function(b){ BK=b; ps.disabled=false; pv.innerHTML='<b>'+esc(f.name)+'</b><br><span class="hint">'+(f.size/1048576).toFixed(2).replace(".",",")+' MB</span>'; })
+   .catch(function(x){ pv.textContent=""; perr(x.message||"Berkas tidak dapat dibaca."); });
+ });
+ ps.addEventListener("click",function(){
+  if(!BK||!SES) return; ps.disabled=true; ps.textContent="Mengunggah…"; perr("");
+  api({action:"unggahPemateri",token:SES.token,jenis:jenis,berkas:BK}).then(function(r){
+   if(r&&r.ok){
+    show("pemateri",SES.nama,r.data);
+    dlg2('<h3 style="margin:0 0 8px">Berhasil diunggah ✅</h3><p style="margin-bottom:14px">'+esc(c.ttl)+' Anda telah diterima panitia.</p><button type="button" class="pb" id="po">Tutup</button>');
+    tutup2("po"); return;
+   }
+   if(r&&r.expired){ perr("Sesi berakhir. Silakan masuk kembali."); }
+   else perr((r&&r.error)||"Unggah gagal. Coba lagi.");
+   ps.disabled=false; ps.textContent="Unggah";
+  }).catch(function(){ perr("Gagal terhubung ke server. Periksa koneksi lalu coba lagi."); ps.disabled=false; ps.textContent="Unggah"; });
  });
 }
 

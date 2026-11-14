@@ -1224,7 +1224,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             el("mSesiSub").textContent = !days.length ? "" :
                 days.length === 1 ? "Terjadwal " + titleCase(days[0]) :
                 "Terjadwal " + titleCase(days[0]) + " s.d. " + titleCase(days[days.length - 1]);
-            // Mahasiswa = total peserta semua kelas (satu kelas dihitung sekali); Dosen = jumlah dosen pengampu (nama unik).
+            // Mahasiswa = jumlah di sheet Mahasiswa (cadangan: total peserta semua kelas, satu kelas dihitung sekali); Dosen = jumlah dosen pengampu (nama unik).
             var kelasPeserta = {}, dosenUnik = {};
             rows.forEach(function (r, i) {
                 var kk = (r.kelas || r.prodi) ? (r.prodi + "|" + r.kelas).toLowerCase() : "baris" + i;
@@ -1234,6 +1234,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             });
             var jmlKelas = Object.keys(kelasPeserta).length, jmlMhs = 0;
             Object.keys(kelasPeserta).forEach(function (k) { jmlMhs += kelasPeserta[k]; });
+            // Jumlah mahasiswa sebenarnya = baris di sheet Mahasiswa (periode aktif). Kolom "Peserta" di Jadwal diisi manual dan bisa selisih.
+            if (data.ringkas && typeof data.ringkas.mahasiswa === "number") jmlMhs = data.ringkas.mahasiswa;
             el("mMhs").textContent = jmlMhs + " Mahasiswa";
             el("mMhsSub").textContent = jmlKelas ? "dari " + jmlKelas + " kelas" : "";
             el("mProdi").textContent = prodiList.length + " Program Studi";

@@ -405,8 +405,16 @@ async function post(o) {
 }
 function milikSaya(r) {
   var u = AUTH.user;
-  if (u.peran === "Mahasiswa") return nrm(r.prodi) === nrm(u.prodi) && nrm(r.kelas) === nrm(u.kelas);
+  if (u.peran === "Mahasiswa") { cekMk(); return !!(MK.set && MK.set[r.kunci]); }   // jadwal = mata kuliah + kelas tempat NIM terdaftar (Peserta_Mk)
   return [r.dosen, r.pengawas1, r.pengawas2].join("|").toLowerCase().indexOf(u.nama.toLowerCase()) >= 0;
+}
+// Daftar kunci jadwal milik mahasiswa yang sedang login (dimuat sekali per sesi login).
+var MK = { tok: null, set: null };
+function cekMk() {
+  if (MK.tok === AUTH.token) return;
+  MK = { tok: AUTH.token, set: null }; var t = AUTH.token;
+  post({ aksi: "mkSaya" }).then(function (j) { if (MK.tok !== t) return; MK.set = {}; (j.kunci || []).forEach(function (k) { MK.set[k] = 1; }); gambar(); })
+    .catch(function () { if (MK.tok === t) MK.set = {}; });
 }
 function pengawasMode() { return !!AUTH.user && AUTH.user.peran === "Pengawas"; }
 function boleh(p) { return AUTH.user && p.indexOf(AUTH.user.peran) >= 0; }
@@ -469,11 +477,6 @@ async function lgCek() {
     LG.cek = j; $("le").textContent = "";
     var h = '<div class="found"><b>' + esc(j.nama) + "</b>" + (j.unit ? esc(j.unit) + "<br>" : "") + "Email login: " + esc(j.email) + "</div>" +
       '<label class="l" for="lp">Password (tanggal lahir)</label><div class="ip">' + IC.lock + '<input id="lp" type="password" inputmode="numeric" maxlength="8" pattern="\\d{8}" autocomplete="new-password" placeholder="********" required></div><div class="hint">Format DDMMYYYY (contoh: 02091988)</div>';
-    if (mhs) {
-      var ks = uniq(S.data.filter(function (r) { return nrm(r.prodi) === nrm(j.prodi); }).map(function (r) { return r.kelas; }));
-      if (!ks.length) ks = uniq(S.data.map(function (r) { return r.kelas; }));
-      h += '<label class="l" for="rk">Kelas</label><div class="ip">' + IC.usr + '<select id="rk" required><option value="">Pilih kelas</option>' + ks.map(function (k) { return "<option>" + esc(k) + "</option>"; }).join("") + "</select></div>";
-    }
     $("rx").innerHTML = h; $("rb").disabled = false; $("lp").focus();
   } catch (x) { $("le").textContent = x.message; }
 }
@@ -495,7 +498,7 @@ async function doDaftar(e) {
   if (!/^\d{8}$/.test(pw)) { $("le").className = "err"; $("le").textContent = "Password harus 8 digit tanggal lahir (DDMMYYYY)."; return false; }
   $("le").className = "err"; $("le").textContent = "Mendaftarkan…"; $("rb").disabled = true;
   try {
-    var j = await post({ aksi: "daftar", kelompok: LG.tab, id: LG.id, password: pw, kelas: mhs ? $("rk").value : "" });
+    var j = await post({ aksi: "daftar", kelompok: LG.tab, id: LG.id, password: pw });
     $("le").className = "err ok"; $("le").textContent = j.pesan;
     if (j.status === "YA") setTimeout(function () { LG.prefill = j.email; lgMode("login"); LG.prefill = ""; }, 1800);
   } catch (x) { $("le").className = "err"; $("le").textContent = x.message; $("rb").disabled = false; }
@@ -536,7 +539,7 @@ function formUmum() {
 }
 function formUser() {
   $("bP").innerHTML = '<div id="pu">Memuat…</div><h4 id="uj"></h4><form id="uf" onsubmit="return simpanUser(event)"><div class="g2"><label class="fld">Email<input class="f" id="uu" type="email" autocapitalize="none" required></label><label class="fld">Nama (sama dengan di jadwal)<input class="f" id="un" required></label></div>' +
-    '<div class="g2"><label class="fld">Peran<select class="f" id="up"><option>Administrator</option><option>Panitia</option><option selected>Pengawas</option><option>Dosen</option><option>Mahasiswa</option></select></label><label class="fld">Password (DDMMYYYY)<input class="f" id="uw" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></label></div><div class="g2"><label class="fld">Program Studi (Mahasiswa)<input class="f" id="upr"></label><label class="fld">Kelas (Mahasiswa)<input class="f" id="ukl"></label></div>' +
+    '<div class="g2"><label class="fld">Peran<select class="f" id="up"><option>Administrator</option><option>Panitia</option><option selected>Pengawas</option><option>Dosen</option><option>Mahasiswa</option></select></label><label class="fld">Password (DDMMYYYY)<input class="f" id="uw" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></label></div><div class="g2"><label class="fld">Program Studi (Mahasiswa)<input class="f" id="upr"></label></div>' +
     '<label class="fld">Status<select class="f" id="ust"><option value="YA">Aktif</option><option value="MENUNGGU">Menunggu persetujuan</option><option value="TIDAK">Nonaktif</option></select></label><div class="err" id="ue"></div><button class="btn pri" id="usv"></button> <button type="button" class="btn" id="ubt" onclick="batalEdit()" hidden>Batal edit</button> <button type="button" class="btn" onclick="tutup()">Tutup</button></form>';
   batalEdit();
 }
@@ -639,7 +642,7 @@ var UDATA = [];
 function tabelUser(d) {
   UDATA = d;
   $("pu").innerHTML = '<table class="ut">' + d.map(function (u) {
-    return "<tr><td><b>" + esc(u.username) + "</b><br>" + esc(u.nama) + "</td><td>" + esc(u.peran) + (u.status === "YA" ? "" : u.status === "MENUNGGU" ? " (menunggu)" : " (nonaktif)") + (u.prodi ? "<br>" + esc(u.prodi) + " " + esc(u.kelas) : "") + '</td><td style="white-space:nowrap"><button class="btn sm" onclick="editUser(\'' + esc(u.username) + '\')">Edit</button> <button class="btn sm" onclick="hapusUser(\'' + esc(u.username) + '\')">Hapus</button></td></tr>';
+    return "<tr><td><b>" + esc(u.username) + "</b><br>" + esc(u.nama) + "</td><td>" + esc(u.peran) + (u.status === "YA" ? "" : u.status === "MENUNGGU" ? " (menunggu)" : " (nonaktif)") + (u.prodi ? "<br>" + esc(u.prodi) : "") + '</td><td style="white-space:nowrap"><button class="btn sm" onclick="editUser(\'' + esc(u.username) + '\')">Edit</button> <button class="btn sm" onclick="hapusUser(\'' + esc(u.username) + '\')">Hapus</button></td></tr>';
   }).join("") + "</table>";
 }
 async function muatUser() { try { tabelUser((await post({ aksi: "daftarPengguna" })).data); } catch (x) { $("pu").textContent = x.message; } }
@@ -649,7 +652,7 @@ function batalEdit() {
 }
 function editUser(un) {
   var u = UDATA.filter(function (x) { return x.username === un; })[0]; if (!u) return;
-  $("uu").value = u.username; $("uu").readOnly = true; $("un").value = u.nama; $("up").value = u.peran; $("ust").value = u.status; $("upr").value = u.prodi || ""; $("ukl").value = u.kelas || "";
+  $("uu").value = u.username; $("uu").readOnly = true; $("un").value = u.nama; $("up").value = u.peran; $("ust").value = u.status; $("upr").value = u.prodi || "";
   $("uw").value = ""; $("uw").required = false; $("uw").placeholder = "kosong = tidak diubah";
   $("uj").textContent = "Edit pengguna: " + u.username; $("usv").textContent = "Simpan perubahan"; $("ubt").hidden = false; $("ue").textContent = "";
   $("uf").scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -659,7 +662,7 @@ async function simpanUser(e) {
   var edit = $("uu").readOnly, un = $("uu").value.trim().toLowerCase();
   if (!edit && UDATA.some(function (x) { return x.username.toLowerCase() === un; })) { $("ue").textContent = "Username sudah ada. Gunakan tombol Edit pada daftar."; return false; }
   try {
-    tabelUser((await post({ aksi: "simpanPengguna", username: un, nama: $("un").value, peran: $("up").value, password: $("uw").value, status: $("ust").value, prodi: $("upr").value, kelas: $("ukl").value })).data);
+    tabelUser((await post({ aksi: "simpanPengguna", username: un, nama: $("un").value, peran: $("up").value, password: $("uw").value, status: $("ust").value, prodi: $("upr").value })).data);
     batalEdit(); $("ue").className = "err ok"; $("ue").textContent = edit ? "Perubahan tersimpan." : "Pengguna ditambahkan.";
   } catch (x) { $("ue").className = "err"; $("ue").textContent = x.message; }
   return false;

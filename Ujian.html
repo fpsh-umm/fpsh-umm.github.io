@@ -412,7 +412,7 @@ function pengawasMode() { return !!AUTH.user && AUTH.user.peran === "Pengawas"; 
 function boleh(p) { return AUTH.user && p.indexOf(AUTH.user.peran) >= 0; }
 function renderAkun() {
   var u = AUTH.user;
-  $("akun").innerHTML = u ? ((u.peran === "Mahasiswa") ? '<button class="btn" onclick="dlgAbsen()">📷 Absen</button><button class="btn" onclick="dlgSoal()">📝 Ujian</button>' : "") + ((u.peran === "Panitia" || u.peran === "Administrator") ? '<button class="btn" onclick="dlgPlgPanitia()">🚫 Pelanggaran</button>' : "") + ((u.peran === "Panitia" || u.peran === "Administrator") ? '<button class="btn" onclick="dlgRekapBA()">📑 Rekap BA</button>' : "") + (u.peran === "Administrator" ? '<button class="btn" onclick="dlgSoalAdmin()">📥 Soal PDF</button>' : "") + (boleh(["Administrator", "Panitia", "Dosen"]) ? '<button class="btn" onclick="dlgPengaturan()">⚙ Pengaturan</button>' : "") + '<button class="btn" onclick="keluar()" title="Keluar">' + esc(u.nama.split(",")[0]) + ' <span class="tag">' + esc(u.peran) + "</span> ⎋</button>" : '<button class="btn" onclick="dlgLogin()">👤 Masuk</button>';
+  $("akun").innerHTML = u ? ((u.peran === "Mahasiswa") ? '<button class="btn" onclick="dlgAbsen()">📷 Absen</button><button class="btn" onclick="dlgSoal()">📝 Ujian</button>' : "") + ((u.peran === "Panitia" || u.peran === "Administrator") ? '<button class="btn" onclick="dlgPlgPanitia()">🚫 Pelanggaran</button>' : "") + ((u.peran === "Panitia" || u.peran === "Administrator") ? '<button class="btn" onclick="dlgRekapBA()">📑 Rekap BA</button>' : "") + ((u.peran === "Panitia" || u.peran === "Administrator") ? '<button class="btn" onclick="dlgCetakPanitia()">🖨 Hadir &amp; BA</button>' : "") + (u.peran === "Panitia" ? '<button class="btn" onclick="dlgTugasPengawas()">🛡️ Tugas Pengawas</button>' : "") + (u.peran === "Administrator" ? '<button class="btn" onclick="dlgSoalAdmin()">📥 Soal PDF</button>' : "") + (boleh(["Administrator", "Panitia", "Dosen"]) ? '<button class="btn" onclick="dlgPengaturan()">⚙ Pengaturan</button>' : "") + '<button class="btn" onclick="keluar()" title="Keluar">' + esc(u.nama.split(",")[0]) + ' <span class="tag">' + esc(u.peran) + "</span> ⎋</button>" : '<button class="btn" onclick="dlgLogin()">👤 Masuk</button>';
   $("sayaWrap").hidden = !u || pengawasMode();
   if (!u || pengawasMode()) $("saya").checked = false;
   document.body.classList.toggle("modepw", pengawasMode());
@@ -689,7 +689,9 @@ $("ftoggle").onclick = function () { var o = document.querySelector(".fil").clas
 muat(); hitung(); setInterval(hitung, 1000); setInterval(muat, CONFIG.AUTO_REFRESH_MINUTES * 6e4); setInterval(gambar, 6e4);
 
 /* ---------- Daftar Hadir (QR), Berita Acara (Pengawas) & Absen/Soal (Mahasiswa) ---------- */
-var PENDING_H = null, HD = { r: null, d: null, t: null, qt: null }, SC = { stream: null, raf: 0 };
+var PENDING_H = null, HD = { r: null, d: null, t: null, qt: null, pn: false }, SC = { stream: null, raf: 0 };
+// Konteks jadwal ke server: Pengawas memakai id; Panitia/Administrator (menu 🖨 Hadir & BA) memakai kunci jadwal.
+function hdCtx() { return HD.pn ? { baris: HD.r.baris, kunci: HD.r.kunci } : { baris: HD.r.baris, id: HD.r.id }; }
 try { var _h = new URLSearchParams(location.search).get("h"); if (_h) { PENDING_H = _h; history.replaceState(null, "", location.pathname); } } catch (e) {}
 function stopScan() { cancelAnimationFrame(SC.raf); SC.raf = 0; if (SC.stream) { SC.stream.getTracks().forEach(function (t) { t.stop(); }); SC.stream = null; } }
 function stopHd() { clearInterval(HD.t); clearInterval(HD.qt); HD.t = HD.qt = null; stopScan(); }
@@ -701,7 +703,7 @@ function infoBlok(i) { return '<div class="hint" style="margin:0 0 10px"><b>' + 
 // ----- Pengawas: Daftar Hadir -----
 function dlgHadir(i) {
   var r = S.data[i]; if (!r || !r.baris) return alert("Muat ulang halaman terlebih dahulu.");
-  stopHd(); HD.r = r;
+  stopHd(); HD.r = r; HD.pn = false;
   dlg('<h3>Daftar Hadir</h3><div id="hdx">Memuat…</div>', "wide");
   muatHadir();
   HD.t = setInterval(function () { if (!$("hdb")) return stopHd(); if (document.activeElement && document.activeElement.tagName === "SELECT") return; muatHadir(); }, 15000);
@@ -721,7 +723,7 @@ function gambarHadir() {
     (d.peserta.length ? d.peserta.map(function (p, k) {
       return "<tr><td>" + (k + 1) + "</td><td>" + esc(p.nim) + "</td><td>" + esc(p.nama) + '</td><td><select class="f" style="min-width:120px;flex:none;width:auto;height:36px;padding:0 34px 0 10px" onchange="setHadir(\'' + esc(p.nim) + '\',this.value)">' +
         opt("", "Tidak hadir", p.status) + opt("Hadir", "Hadir", p.status) + opt("Izin", "Izin", p.status) + opt("Sakit", "Sakit", p.status) + "</select></td><td>" + esc(p.waktu ? p.waktu.slice(11, 16) + (p.via === "QR" ? " · QR" : "") : "") + "</td><td>" + (p.plg ? '<span class="hint" style="margin:0">🚫 Dinonaktifkan</span>' : '<button class="btn sm" onclick="dlgNonaktif(\'' + esc(p.nim) + '\',\'pw\')">🚫 Nonaktifkan</button>') + "</td></tr>";
-    }).join("") : '<tr><td colspan="6">Belum ada peserta pada sheet Peserta_Mk untuk mata kuliah dan kelas ini.</td></tr>') + "</table>";
+    }).join("") : '<tr><td colspan="6">Belum ada peserta pada sheet Peserta_Mk untuk mata kuliah dan kelas ini. Pastikan penulisan Mata Kuliah dan Kelas di sheet Ujian sama dengan di sheet Peserta_Mk.</td></tr>') + "</table>";
 }
 async function setHadir(nim, st) {
   try { HD.d = await post({ aksi: "setHadir", baris: HD.r.baris, id: HD.r.id, nim: nim, status: st }); gambarHadir(); } catch (x) { alert(x.message); muatHadir(); }
@@ -891,7 +893,7 @@ async function dlgBA(i) {
   stopHd();
   if (HD.r !== r || !HD.d) {
     HD.r = r; HD.d = null; dlg("<h3>Berita Acara Ujian</h3><div>Memuat…</div>", "wide");
-    try { HD.d = await post({ aksi: "daftarHadir", baris: r.baris, id: r.id }); }
+    try { HD.d = await post(Object.assign({ aksi: "daftarHadir" }, hdCtx())); }
     catch (x) { dlg('<h3>Berita Acara Ujian</h3><div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>', "wide"); return; }
   }
   var d = HD.d, n = ringkas(d), b = d.ba || {};
@@ -902,12 +904,12 @@ async function dlgBA(i) {
     '<label class="fld">Jumlah lembar jawaban yang dikumpulkan<input class="f" id="bal" type="number" min="0" value="' + esc(b.lembar !== undefined && b.lembar !== "" ? b.lembar : n.Hadir) + '"></label>' +
     '<label class="fld">Catatan / kejadian selama ujian<textarea class="f" id="bac" rows="4" maxlength="1000" style="height:auto" placeholder="Contoh: Ujian berjalan lancar dan tertib.">' + esc(b.catatan || "") + "</textarea></label>" +
     (b.dibuat ? '<div class="hint">Terakhir disimpan ' + esc(b.dibuat) + " oleh " + esc(b.oleh) + ".</div>" : "") +
-    '<div class="err" id="bae"></div><button class="btn pri" onclick="simpanBA(false)">Simpan</button> <button class="btn pri" onclick="simpanBA(true)">Simpan &amp; Cetak PDF</button> <button class="btn" onclick="dlgHadir(' + i + ')">← Daftar Hadir</button> <button class="btn" onclick="tutup()">Tutup</button>', "wide");
+    '<div class="err" id="bae"></div><button class="btn pri" onclick="simpanBA(false)">Simpan</button> <button class="btn pri" onclick="simpanBA(true)">Simpan &amp; Cetak PDF</button> ' + (HD.pn ? '<button class="btn" onclick="dlgCetakPanitia()">← Pilih jadwal</button>' : '<button class="btn" onclick="dlgHadir(' + i + ')">← Daftar Hadir</button>') + ' <button class="btn" onclick="tutup()">Tutup</button>', "wide");
 }
 async function simpanBA(cetak) {
   var e = $("bae"), w = cetak ? window.open("", "_blank") : null; e.className = "err"; e.textContent = "Menyimpan…";
   try {
-    HD.d = await post({ aksi: "simpanBA", baris: HD.r.baris, id: HD.r.id, mulai: $("bam").value, selesai: $("bas").value, lembar: $("bal").value, catatan: $("bac").value.trim() });
+    HD.d = await post(Object.assign({ aksi: "simpanBA" }, hdCtx(), { mulai: $("bam").value, selesai: $("bas").value, lembar: $("bal").value, catatan: $("bac").value.trim() }));
     e.className = "err ok"; e.textContent = "✓ Berita acara tersimpan.";
     if (cetak) ensureJsPDF().then(function (J) { pdfBA(J, HD.d, w); }).catch(function (x) { console.error(x); if (w) w.close(); e.className = "err"; e.textContent = "Gagal membuat PDF. Periksa koneksi internet."; });
   } catch (x) { if (w) w.close(); e.className = "err"; e.textContent = x.message; }
@@ -915,6 +917,48 @@ async function simpanBA(cetak) {
 function cetakHadir() {
   var w = window.open("", "_blank");
   ensureJsPDF().then(function (J) { pdfHadir(J, HD.d, w); }).catch(function (x) { console.error(x); if (w) w.close(); alert("Gagal membuat PDF. Periksa koneksi internet."); });
+}
+
+
+// ----- Panitia / Administrator: cetak & simpan Daftar Hadir dan Berita Acara untuk SEMUA jadwal -----
+function dlgCetakPanitia() {
+  stopHd(); HD.pn = true; HD.d = null;
+  dlg('<h3>🖨 Daftar Hadir &amp; Berita Acara</h3><div class="hint">Pilih tanggal dan jadwal ujian, lalu cetak/simpan <b>Daftar Hadir</b> (PDF) atau buka <b>Berita Acara</b> untuk diisi, disimpan, dan dicetak (PDF).</div><label class="fld">Tanggal ujian<input class="f" type="date" id="cpt" value="' + tglIni() + '" onchange="listCetakPanitia()"></label><div id="cpl"></div><button class="btn" onclick="tutup()">Tutup</button>', "wide");
+  listCetakPanitia();
+}
+function listCetakPanitia() {
+  var t = $("cpt").value, rows = S.data.filter(function (r) { return r.tanggal === t && r.baris; });
+  $("cpl").innerHTML = rows.length ? rows.map(function (r) {
+    var i = S.data.indexOf(r);
+    return '<div class="pw"><div class="pt"><b>' + esc(r.matkul) + "</b> · Kelas " + esc(r.kelas) + " · " + esc(r.prodi) + "<br><span>" + esc(r.mulai) + "–" + esc(r.selesai) + " · " + esc(r.ruang) + (r.pengawas1 ? " · Pengawas: " + esc(r.pengawas1) + (r.pengawas2 ? ", " + esc(r.pengawas2) : "") : "") + '</span></div>' +
+      '<div class="row"><button class="btn sm" onclick="cetakHadirPn(' + i + ')">🖨 Daftar Hadir (PDF)</button><button class="btn sm" onclick="dlgBAPn(' + i + ')">📝 Berita Acara</button></div></div>';
+  }).join("") : '<div class="hint">Tidak ada jadwal pada tanggal ini.</div>';
+}
+async function cetakHadirPn(i) {
+  var r = S.data[i]; if (!r || !r.baris) return alert("Muat ulang halaman terlebih dahulu.");
+  var w = window.open("", "_blank"); HD.pn = true; HD.r = r;   // jendela dibuka dulu (sebelum menunggu data) agar tidak diblokir browser
+  try {
+    HD.d = await post(Object.assign({ aksi: "daftarHadir" }, hdCtx()));
+    var J = await ensureJsPDF(); pdfHadir(J, HD.d, w);
+  } catch (x) { console.error(x); if (w) w.close(); alert(x && x.message ? x.message : "Gagal membuat PDF. Periksa koneksi internet."); }
+}
+function dlgBAPn(i) { var r = S.data[i]; if (!r || !r.baris) return alert("Muat ulang halaman terlebih dahulu."); HD.pn = true; HD.r = r; HD.d = null; dlgBA(i); }
+
+
+// ----- Panitia otomatis berperan sebagai Pengawas pada jadwal yang namanya diplot (Pengawas I/II) -----
+async function dlgTugasPengawas() {
+  stopHd(); HD.pn = false;
+  dlg('<h3>🛡️ Tugas Pengawas Saya</h3><div id="tpx">Memuat…</div>', "wide");
+  try {
+    var j = await post({ aksi: "jadwalSaya" }), rows = (j.data || []).slice().sort(function (a, b) { return (a.tanggal + a.mulai).localeCompare(b.tanggal + b.mulai); });
+    var cari = function (x) { return S.data.filter(function (y) { return y.baris === x.baris; })[0]; };
+    rows.forEach(function (x) { var r = cari(x); if (r) r.id = x.id; });
+    $("tpx").innerHTML = (rows.length ? rows.map(function (x) {
+      var r = cari(x);
+      return '<div class="pw"><div class="pt"><b>' + esc(x.matkul) + "</b><br><span>" + hariTgl(x.tanggal) + " · " + esc(x.mulai) + "–" + esc(x.selesai) + " · " + esc(x.ruang) + "</span></div>" +
+        (r ? '<button class="btn sm" onclick="dlgHadir(' + S.data.indexOf(r) + ')">📋 Daftar Hadir, QR &amp; BA</button>' : '<div class="hint">Muat ulang halaman, lalu buka lagi.</div>') + "</div>";
+    }).join("") : '<div class="hint">Belum ada jadwal pengawasan atas nama Anda. Admin/Panitia dapat memplot nama Anda di Pengaturan → Plotting Pengawas.</div>') + '<button class="btn" onclick="tutup()">Tutup</button>';
+  } catch (x) { $("tpx").innerHTML = '<div class="err">' + esc(x.message) + '</div><button class="btn" onclick="tutup()">Tutup</button>'; }
 }
 
 // ----- PDF (kop FPSH sama seperti cetak jadwal) -----

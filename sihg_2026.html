@@ -125,6 +125,7 @@ dialog::backdrop{background:rgba(10,63,70,.7)}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#e8f2f3;color:var(--teal)}
+td.tj{white-space:normal;min-width:200px;width:240px;max-width:260px;line-height:1.4;overflow-wrap:anywhere}
 .hb{width:auto;font-size:13px;padding:5px 12px;margin:0;border-radius:20px;background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
 .hb:hover{background:#e3f0f1;color:var(--teal)}
 .hb.on{background:var(--ok);border-color:var(--ok);color:#fff}
@@ -849,7 +850,7 @@ function pmSection(){
 function pmCell(p,j){ var b=p[j]||{}; return b.ada?'<span class="bs ok">Sudah</span> <button type="button" class="hb" data-pdl="'+esc(p.email)+'" data-j="'+j+'">Unduh</button><div class="hint">'+esc(waktuId(b.waktu))+'</div>':'<span class="bs">Belum</span>'; }
 function drawPm(){
  var t=$("pmb"); if(!t) return;
- t.innerHTML=PMS.length?PMS.map(function(p){return "<tr><td>"+esc(p.nama)+"</td><td>"+esc(p.judul)+"</td><td>"+esc(p.sesi)+"</td><td>"+pmCell(p,"cv")+"</td><td>"+pmCell(p,"materi")+"</td></tr>";}).join(""):'<tr><td colspan="5" class="hint">Belum ada pemateri terdaftar.</td></tr>';
+ t.innerHTML=PMS.length?PMS.map(function(p){return "<tr><td>"+esc(p.nama)+"</td><td class=\"tj\">"+esc(p.judul)+"</td><td>"+esc(p.sesi)+"</td><td>"+pmCell(p,"cv")+"</td><td>"+pmCell(p,"materi")+"</td></tr>";}).join(""):'<tr><td colspan="5" class="hint">Belum ada pemateri terdaftar.</td></tr>';
 }
 function bindPm(){
  [].forEach.call(document.querySelectorAll("#dash button[data-pu]"),function(b){ b.addEventListener("click",function(){dlgUnggahPm(this.dataset.pu);}); });

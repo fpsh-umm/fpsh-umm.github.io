@@ -543,7 +543,7 @@ function syncMk(x){x.jmlMakalah=x.mk.length;x.adaMakalah=x.jmlMakalah>0;}
 function syncDemo(x){syncMk(x);x.cekin=x.ci||"";x.cekout=x.co||"";x.durasi=(x.dz&&x.ci&&x.co)?x.dz:durOf(x);x.layak=x.durasi>=150;}
 DROWS.forEach(function(x,i){ if(x.hadir){x.ci="2026-11-25 08:0"+(5+i)+":00";x.co="";} syncDemo(x); });
 var DCERT={"SIHG26-P-0A1B2C3D":{peran:"PESERTA",nomor:"0001/SIHG/2026/P"},"SIHG26-M-1A2B3C4D":{peran:"PEMATERI",nomor:"0002/SIHG/2026/M",nama:"Prof. Contoh Pemateri",ket:"Dialog Lintas Agama dalam Pendidikan"},"SIHG26-N-2A3B4C5D":{peran:"PANITIA",nomor:"0003/SIHG/2026/N",nama:"Panitia Contoh",ket:"Ketua Panitia"},"SIHG26-P-DEADBEEF":{peran:"PESERTA",nomor:"0004/SIHG/2026/P",dicabut:true}};
-function demoCert(k){ var d=DCERT[k], p=d.peran==="PESERTA"; return {kode:k,nomor:d.nomor,peran:d.peran,nama:d.nama||DROWS[0].nama,keterangan:d.ket||(p?DROWS[0].instansi:""),durasi:p?(DROWS[0].durasi||175):"",acara:"Seminar Internasional Hari Guru 2026",tanggal:"25 November 2026",tempat:"Theater Dome UMM",waktu:"08:00–12:00 WIB",ttd:[{jabatan:"Dekan FPSH UMM",nama:""},{jabatan:"Ketua Panitia SIHG 2026",nama:""}]}; }
+function demoCert(k){ var d=DCERT[k], p=d.peran==="PESERTA"; return {kode:k,nomor:d.nomor,peran:d.peran,label:(d.peran==="PANITIA"&&d.ket&&d.ket.toLowerCase()!=="panitia")?d.ket.toUpperCase():(d.peran==="PESERTA"&&DROWS[0].makalah?"PRESENTER":d.peran),nama:d.nama||DROWS[0].nama,keterangan:d.ket||(p?DROWS[0].instansi:""),durasi:p?(DROWS[0].durasi||175):"",acara:"Seminar Internasional Hari Guru 2026",tanggal:"25 November 2026",tempat:"Theater Dome UMM",waktu:"08:00–12:00 WIB",ttd:[{jabatan:"Dekan FPSH UMM",nama:""},{jabatan:"Ketua Panitia SIHG 2026",nama:""}]}; }
 function demo(b){
  if(b.action==="login"){var a=DEMOACC[b.role];
   if(!a||b.username.toLowerCase()!==a[0]||digits(b.password)!==digits(a[1])) return {ok:false,error:"Email atau kata sandi salah."};
@@ -1120,9 +1120,8 @@ var CERT_IMG={bg:"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/6xaJSlACEQA
 var CERT_TEMA="TEMA SEMINAR:";
 var CERT_TTD={jabatan:"Dekan FPSH - UMM",nama:"Prof. Dr. Moh. Mahfud Effendi, M.M.",nip:"10491090241"};
 function certHtml(c){
- var role=String(c.peran||"PESERTA").toUpperCase(), nm=String(c.nama||""), fs=nm.length<=30?28:nm.length<=40?23:19, ket=String(c.keterangan||""), ex="";
+ var role=String(c.peran||"PESERTA").toUpperCase(), lab=String(c.label||role).toUpperCase(), nm=String(c.nama||""), fs=nm.length<=30?28:nm.length<=40?23:19, ket=String(c.keterangan||""), ex="";
  if(role==="PEMATERI") ex=ket?"dengan materi “"+esc(ket)+"”":"";
- else if(role==="PANITIA") ex=(ket&&ket.toLowerCase()!=="panitia")?"dengan peran "+esc(ket):"";
  var t0=(c.ttd&&c.ttd[0])||{}, tt={jabatan:t0.jabatan||CERT_TTD.jabatan,nama:t0.nama||CERT_TTD.nama,nip:t0.nip||CERT_TTD.nip};
  var tgl=esc(c.tanggal||"25 November 2026");
  return '<div class="cw"><div class="cert"><img class="bg" src="'+CERT_IMG.bg+'" alt="">'+
@@ -1132,7 +1131,7 @@ function certHtml(c){
   '<div class="r dk">DIBERIKAN KEPADA:</div><div class="pill" style="font-size:'+fs+'px">'+esc(nm)+'</div>'+
   (role==="PESERTA"?'<div class="r in">'+esc(ket)+'</div>':(ex?'<div class="ex">'+ex+'</div>':''))+
   '<div class="r ap">Atas partisipasinya</div>'+
-  '<div class="sg"><span>SEBAGAI:</span><span class="rl">'+esc(role)+'</span></div>'+
+  '<div class="sg"><span>SEBAGAI:</span><span class="rl">'+esc(lab)+'</span></div>'+
   '<div class="r dl">dalam Seminar Internasional Berbahasa Indonesia (SIBI) yang diselenggarakan oleh<br>Fakultas Pendidikan, Sains, dan Humaniora, Universitas Muhammadiyah Malang<br>pada tanggal '+tgl+'.</div>'+
   '<div class="r tm"><b>TEMA SEMINAR:</b> <i>Memberdayakan Guru, Mengintegrasikan Pendidikan, Sains, dan Humaniora:</i><br><i>Dialog Lintas Agama untuk Martabat Manusia dan Perdamaian Global</i></div>'+
   '<div class="r mg">Malang, '+tgl+'</div><div class="r dn">'+esc(tt.jabatan)+'</div>'+
@@ -1226,7 +1225,7 @@ function cekKode(raw){
   if(!r.ada){ res.innerHTML='<div class="vres vno"><b>✕ Kode tidak ditemukan</b><span>Kode ini tidak terdaftar pada arsip panitia. Periksa kembali penulisan kode atau hubungi panitia.</span></div>'; return; }
   var c=r.cert, lb=c.peran==="PEMATERI"?"Judul materi":c.peran==="PESERTA"?"Instansi":"Peran";
   res.innerHTML=(r.sah?'<div class="vres vyes"><b>✓ Sertifikat SAH</b><span>Tercatat pada arsip resmi panitia SIHG 2026.</span></div>':'<div class="vres vno"><b>✕ Sertifikat TIDAK BERLAKU</b><span>'+esc(r.alasan||"Sertifikat tidak berlaku.")+'</span></div>')+
-   '<div class="kv">'+kv("Nomor",c.nomor)+kv("Kode validasi",c.kode)+kv("Nama",c.nama)+kv("Sebagai",c.peran)+(c.keterangan?kv(lb,c.keterangan):"")+(c.peran==="PESERTA"&&c.durasi?kv("Durasi hadir",c.durasi+" menit"):"")+kv("Kegiatan",c.acara)+kv("Tanggal kegiatan",c.tanggal)+kv("Tempat",c.tempat)+kv("Diterbitkan",tglWaktu(c.terbit))+'</div>';
+   '<div class="kv">'+kv("Nomor",c.nomor)+kv("Kode validasi",c.kode)+kv("Nama",c.nama)+kv("Sebagai",c.label||c.peran)+(c.keterangan&&c.peran!=="PANITIA"?kv(lb,c.keterangan):"")+(c.peran==="PESERTA"&&c.durasi?kv("Durasi hadir",c.durasi+" menit"):"")+kv("Kegiatan",c.acara)+kv("Tanggal kegiatan",c.tanggal)+kv("Tempat",c.tempat)+kv("Diterbitkan",tglWaktu(c.terbit))+'</div>';
  }).catch(function(){ if($("vres")){ $("vgo").disabled=false; res.innerHTML='<div class="vres vno"><b>Gagal terhubung ke server</b><span>Periksa koneksi internet lalu coba lagi.</span></div>'; } });
 }
 
@@ -1328,11 +1327,12 @@ function dlgZoom(){
  $("zmb").addEventListener("change",function(e){ var s=e.target.closest("select[data-i]"); if(!s) return; var it=ZM.items[+s.dataset.i]; it.target=s.value; it.via=s.value?"manual":""; it.catatan=""; zmGambar(); });
  $("zap").addEventListener("click",function(){
   var items=zmHasil(); if(!items.length) return; this.disabled=true; this.textContent="Menyimpan…";
+  var tz=Date.now();
   api({action:"importZoom",token:SES.token,items:items}).then(function(r){
    if(r&&r.expired){ SES=null; store(null); $("dlg2").close(); openLogin("panitia"); return; }
    if(!r||!r.ok){ $("zerr").textContent=(r&&r.error)||"Gagal menyimpan."; $("zerr").className="msg e"; $("zap").disabled=false; $("zap").textContent="Terapkan ("+items.length+" peserta)"; return; }
    var lw=(r.dilewati||[]).map(function(x){return '<li>'+esc(x.id)+': '+esc(x.alasan)+'</li>';}).join("");
-   dlg2('<h3 style="margin:0 0 10px;color:var(--ok)">✓ Kehadiran daring tercatat</h3><p>'+r.diterapkan+' peserta daring dicatat dari laporan Zoom.</p>'+(lw?'<p class="hint" style="margin-top:8px">Dilewati:</p><ul style="margin:4px 0 0 18px">'+lw+'</ul>':"")+'<button type="button" class="pb" id="zok" style="margin-top:14px">Tutup</button>'); tutup2("zok");
+   dlg2('<h3 style="margin:0 0 10px;color:var(--ok)">✓ Kehadiran daring tercatat</h3><p>'+r.diterapkan+' peserta daring dicatat dari laporan Zoom.</p>'+(lw?'<p class="hint" style="margin-top:8px">Dilewati:</p><ul style="margin:4px 0 0 18px">'+lw+'</ul>':"")+(function(){ var m=r.ms, dt=Math.round((Date.now()-tz)/100)/10; return '<p class="hint" style="margin-top:10px;font-size:12px">Waktu proses: '+dt+' detik di browser'+(m?'; di server '+Math.round(m.total/100)/10+' detik (tunggu kunci '+m.kunci+' ms, baca '+m.baca+' ms, tulis '+m.tulis+' ms; baris sheet '+m.lastRow+', data '+m.baris+')':' (server versi lama: belum ada rincian)')+'.</p>'; })()+'<button type="button" class="pb" id="zok" style="margin-top:14px">Tutup</button>'); tutup2("zok");
    api({action:"me",token:SES.token}).then(function(m){ if(m&&m.ok&&SES) show(m.role,m.nama,m.data); });
   }).catch(function(){ $("zerr").textContent="Gagal terhubung ke server."; $("zerr").className="msg e"; $("zap").disabled=false; });
  });

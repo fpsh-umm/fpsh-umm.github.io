@@ -271,7 +271,7 @@ img{max-width:100%}
    </div>
    <aside class="timebox" aria-label="Hitung mundur acara">
     <div class="today"><div><small>Hari ini</small><b id="today"></b></div><div class="jam"><small>Jam</small><b id="jam"></b></div></div>
-    <div class="until"><div class="count" id="count" aria-live="off"></div><small>Menuju seminar</small></div>
+    <div class="until"><div class="count" id="count" aria-live="off"></div><small id="untilLbl">Menuju seminar</small></div>
     <div class="loginrow"><span id="who"></span><button type="button" class="ghost" id="btnLogin">Masuk</button></div>
    </aside>
   </div>
@@ -397,7 +397,8 @@ img{max-width:100%}
 var CONFIG = {
   SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyAogbZvn5k7VrcjlWYKnR_pABRxkco4xwZeXdasuLOIPPlJyLNvh4LQ_qPYxOw82qyQQ/exec",
   VERIFY_URL: "https://script.google.com/a/umm.ac.id/macros/s/AKfycbyAogbZvn5k7VrcjlWYKnR_pABRxkco4xwZeXdasuLOIPPlJyLNvh4LQ_qPYxOw82qyQQ/exec",   /* alamat tetap untuk QR e-sertifikat (harus sama dengan WEB_APP_URL di Apps Script) */
-  EVENT_START: "2026-11-25T08:00:00+07:00"
+  EVENT_START: "2026-11-25T08:00:00+07:00",
+  EVENT_END: "2026-11-25T12:00:00+07:00"   /* batas akhir acara: setelah ini tampil "Acara selesai" dan teks 2027 */
 };
 var DEMOABS={ci:true,co:true};   /* demo: ubah ke false untuk mencoba tombol Cek in/out nonaktif */
 var DEMO = CONFIG.SCRIPT_URL.indexOf("script.google.com") < 0;
@@ -405,10 +406,13 @@ var $ = function(i){return document.getElementById(i)};
 if (DEMO) $("demo").style.display = "block";
 
 /* Hitung mundur */
+function eventOver(){ return new Date() >= new Date(CONFIG.EVENT_END); }
 function tick(){
   $("today").textContent = new Date().toLocaleDateString("id-ID", {weekday:"long", day:"numeric", month:"long", year:"numeric", timeZone:"Asia/Jakarta"});
   var d = new Date(CONFIG.EVENT_START) - new Date(), c = $("count");
-  if (d <= 0){ c.innerHTML = "<div><b>Hari ini</b><small>Acara berlangsung</small></div>"; return; }
+  var over = eventOver(), ul = $("untilLbl");
+  if (ul) ul.textContent = over ? "Menuju Seminar 2027" : "Menuju seminar";
+  if (d <= 0){ c.innerHTML = "<div><b>Hari ini</b><small>" + (over ? "Acara selesai" : "Acara berlangsung") + "</small></div>"; return; }
   var t = [["hari",864e5],["jam",36e5],["menit",6e4]], h = "";
   t.forEach(function(u){ var n = Math.floor(d/u[1]); d -= n*u[1]; h += "<div><b>"+n+"</b><small>"+u[0]+"</small></div>"; });
   c.innerHTML = h;
@@ -459,7 +463,7 @@ function showQuota(s){
   }
   if (!s.buka){
     $("f").style.display = "none";
-    showMsg("Pendaftaran sudah ditutup. Hubungi panitia lewat WhatsApp jika ada kendala.");
+    showMsg(eventOver() ? "Sampai jumpa di seminar yang sama tahun 2027." : "Pendaftaran sudah ditutup. Hubungi panitia lewat WhatsApp jika ada kendala.");
   }
 }
 loadStatus();
